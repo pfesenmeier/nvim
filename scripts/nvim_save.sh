@@ -1,3 +1,5 @@
+#! /bin/bash
+
 MESSAGE=$1
 
 if [ -z "$MESSAGE" ]

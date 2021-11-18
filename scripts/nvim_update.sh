@@ -1,3 +1,4 @@
+#! /bin/bash
 CUR_DIR=$(pwd)
 cd ~/nvim
 git pull -q
