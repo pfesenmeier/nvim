@@ -3,5 +3,5 @@
 NVIM="$HOME/nvim"
 source "$NVIM/aliases.sh"
 source "$NVIM/commands.sh"
-source "$NVIM/rust.sh"
+source "$NVIM/deno.sh"
 
