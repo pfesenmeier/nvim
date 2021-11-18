@@ -15,6 +15,7 @@ nvim:update () {
 }
 
 nvim:save () {
+  CUR_DIR=$(pwd)
   MESSAGE=$1
   if [ -z "$MESSAGE" ]
     then MESSAGE="autosave (via script)"
@@ -23,5 +24,6 @@ nvim:save () {
   git add .
   git commit -m "$MESSAGE"
   git push
+  cd $CUR_DIR
 }
 
