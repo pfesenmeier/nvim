@@ -1,8 +1,7 @@
 # Repo for using nvim and bash terminal as main drivers
 
 ## Setup
-in .bashrc:
-./nvim/startup.sh
+source ~/nvim/init.sh
 
 ## TODO
 [ ] automate hardlinking of .bashrc OR just copy over .bashrc in startup script

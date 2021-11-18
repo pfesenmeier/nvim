@@ -1,0 +1,6 @@
+#! /bin/bash
+
+NVIM="$HOME/nvim"
+source "$NVIM/aliases.sh"
+source "$NVIM/commands.sh"
+
