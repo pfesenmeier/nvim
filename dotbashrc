@@ -4,4 +4,6 @@ NVIM="$HOME/nvim"
 source "$NVIM/aliases.sh"
 source "$NVIM/commands.sh"
 source "$NVIM/deno.sh"
+source "$NVIM/clip.sh"
+source "$NVIM/nvim.sh"
 

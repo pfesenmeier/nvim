@@ -1,7 +1,5 @@
-"filetype plugin indent on
-" show existing tab with 4 spaces width
-"set tabstop=4
-" when indenting with '>', use 4 spaces width
-"set shiftwidth=4
-" On pressing tab, insert 4 spaces
-"set expandtab
+set tabstop=2 " tabs are tabstop spaces long
+set shiftwidth=2 " indents are 2 widths long
+set softtabstop=4 " colunmn??
+set expandtab " tabs are now spaces
+
