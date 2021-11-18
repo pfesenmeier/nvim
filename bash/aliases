@@ -1,0 +1,11 @@
+alias i=ls
+alias d=cd
+alias s="git status"
+alias a="git add"
+alias c="git commit"
+alias pu="git push"
+alias d=cd
+alias i=ls
+alias clion=clion64.exe
+alias r=". ~/.bashrc; echo bashrc reloaded"
+alias o="nvim ~/.bashrc"
