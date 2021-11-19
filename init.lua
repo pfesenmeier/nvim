@@ -18,6 +18,8 @@ require "paq" {
   "neovim/nvim-lspconfig";
 }
 
+require("lspconfig").rust_analyzer.setup{} 
+
 
 -- tabs are spaces
 opt.tabstop = 2 -- tabs are tabstop spaces long

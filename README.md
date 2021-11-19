@@ -13,7 +13,17 @@ source ~/nvim/init.sh
 [x] automate aliasing
 [ ] move over old .bashrc
 [ ] can i use vim motions in terminal? fish?
-[ ] auto download cargo tools
+[x] auto download cargo tools
 [ ] auto download nvim modules
-[ ] auto setup oh my zsh?
-[ ] auto oh my bash?
+[x] auto setup oh my bash?
+[ ] line numbers
+[ ] get lsp configured how I like it
+[ ] get rust analyzer configured how I like it
+[ ] get nvim configured how I like it...
+[ ] add plugins as desired
+[ ] git integrations?
+[ ] what's the debugging story?
+[ ] jonhoo nvim configurations?
+[ ] identify nvim pain points that can be solved by knowing vim better
+[ ] portable windows terminal config 
+
