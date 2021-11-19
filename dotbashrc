@@ -7,4 +7,5 @@ source "$NVIM/deno.sh"
 source "$NVIM/clip.sh"
 source "$NVIM/nvim.sh"
 source "$NVIM/oh-my-bash.sh"
+source "$NVIM/rust.sh"
 

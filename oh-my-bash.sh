@@ -1,6 +1,6 @@
 export OSH=/home/pfes/.oh-my-bash
-OSH_THEME="random"
-# OSH_THEME="agnoster"
+# OSH_THEME="random"
+OSH_THEME="sexy"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
