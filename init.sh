@@ -5,7 +5,7 @@ rm ~/.bashrc
 cp ~/nvim/dotbashrc ~/.bashrc 
 source ~/.bashrc
 
-bash $NVIM/rust.sh
+source $NVIM/rust.sh
 
 rm ~/.config/nvim/init.vim -f
 rm ~/.config/nvim/init.lua -f
