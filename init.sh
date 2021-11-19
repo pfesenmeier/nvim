@@ -7,5 +7,6 @@ source ~/.bashrc
 
 bash $NVIM/rust.sh
 
-rm ~/.config/nvim/init.vim
-cp "$NVIM/init.vim" ~/.config/nvim/
+rm ~/.config/nvim/init.vim -f
+rm ~/.config/nvim/init.lua -f
+cp "$NVIM/init.lua" ~/.config/nvim/
