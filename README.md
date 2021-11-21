@@ -27,3 +27,11 @@ source ~/nvim/init.sh
 [ ] identify nvim pain points that can be solved by knowing vim better
 [ ] portable windows terminal config 
 
+[ ] comment out block of code
+[ ] Format command
+[ ] goto next error
+[ ] goto definition
+[ ] color brackets
+[ ] Configure editorconfig plugin
+[ ] Repeat this edit for x lines
+[ ] Port cmd p, cmd d
