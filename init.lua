@@ -21,7 +21,7 @@ require "paq" {
   "ciaranm/securemodelines";
   -- "editorconfig/editorconfig-vim";
   -- "justinmk/vim-sneak";
-  -- "airblade/vim-rooter";
+  "airblade/vim-rooter";
   -- on instead, telescope.vim?
   -- "junegunn/fzf";
   -- "junegunn/fzf.vim";
@@ -38,6 +38,9 @@ require "paq" {
   "hrsh7th/nvim-cmp";
   "hrsh7th/cmp-vsnip";
   "hrsh7th/vim-vsnip";
+
+  -- maybe rustdocs?
+  "plasticboy/vim-markdown";
 
   -- colors
    "rktjmp/lush.nvim";
