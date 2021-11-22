@@ -5,12 +5,10 @@
 - [install nvim] https://github.com/neovim/neovim/wiki/Installing-Neovim
 - [install rust] https://www.rust-lang.org/learn/get-started
 - fork repository
+- move .bashrc or ~/.config/nvim/init.lua somewhere else if want to preserve them
 
-cd nvim
-ln -s init.lua ~/.config/nvim/init.lua
-ln -s lua ~/.config/nvim/lua
-
-source ~/nvim/init.sh
+run once:
+~/nvim/start.sh
 
 ## TODO
 [x] automate hardlinking of .bashrc OR just copy over .bashrc in startup script
