@@ -46,23 +46,14 @@ require "paq" {
    "MordechaiHadad/nvim-papadark";
 }
 
-
-local settings_dir = "lua/"
-require(settings_dir .. "rust_analyzer")
-require(settings_dir .. "compare")
-require(settings_dir .. "settings")
-
-
-
+require("rust_analyzer")
+require("compare")
+require("settings")
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
 -- light line??
 -- yank highliht
 -- fzf - fuzzy search
--- leader character 'space', 'space' 'space' to switch to file I was just in 
--- Language Client?? - do not need it , ound
--- ncm - autocomplete
 -- undodir
 -- set capslock to ctrl
--- remmeber you are using dvorak
--- 
+
