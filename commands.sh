@@ -27,3 +27,4 @@ nvim:save () {
   cd $CUR_DIR
 }
 
+export -f nvim:init

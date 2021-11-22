@@ -6,6 +6,10 @@
 - [install rust] https://www.rust-lang.org/learn/get-started
 - fork repository
 
+cd nvim
+ln -s init.lua ~/.config/nvim/init.lua
+ln -s lua ~/.config/nvim/lua
+
 source ~/nvim/init.sh
 
 ## TODO
@@ -16,7 +20,7 @@ source ~/nvim/init.sh
 [x] auto download cargo tools
 [ ] auto download nvim modules
 [x] auto setup oh my bash?
-[ ] line numbers
+[x] line numbers
 [ ] get lsp configured how I like it
 [ ] get rust analyzer configured how I like it
 [ ] get nvim configured how I like it...
@@ -35,3 +39,7 @@ source ~/nvim/init.sh
 [ ] Configure editorconfig plugin
 [ ] Repeat this edit for x lines
 [ ] Port cmd p, cmd d
+[ ] autojump
+[ ] mirage
+[ ] proselint
+[ ] setup rust as search engine

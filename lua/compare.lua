@@ -1,7 +1,3 @@
--- TODO refactor?
--- cmd("nnoremap <Leader>T :lua require'lsp_extensions'.inlay_hints()")
-vim.api.nvim_set_keymap('n', "<Leader>t", ":lua require'lsp_extensions'.inlay_hints{ enabled = {'TypeHint', 'ChainingHint', 'ParameterHint'}, ony_current_line = true }", { noremap = true, silent = true })
-
 -- autocomplete setup
 vim.cmd('set completeopt=menu,menuone,noselect')
 
