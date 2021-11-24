@@ -20,7 +20,8 @@ require "paq" {
   "ciaranm/securemodelines";
   -- "editorconfig/editorconfig-vim";
   -- "justinmk/vim-sneak";
-  "airblade/vim-rooter";
+  -- keep off while working on aoc
+  -- "airblade/vim-rooter";
   -- on instead, telescope.vim?
   -- "junegunn/fzf";
   -- "junegunn/fzf.vim";
