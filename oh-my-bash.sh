@@ -64,7 +64,7 @@ aliases=(
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
   git
-  bashmarks
+  # bashmarks
 )
 
 source $OSH/oh-my-bash.sh
