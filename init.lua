@@ -14,11 +14,10 @@ end
 require "paq" {
   "savq/paq-nvim";
   -- once 0.6 hits
-  -- "nvim-treesitter/nvim-treesitter";
+  "nvim-treesitter/nvim-treesitter";
   "neovim/nvim-lspconfig";
   -- prevent remote code execution
   "ciaranm/securemodelines";
-  -- "editorconfig/editorconfig-vim";
   -- "justinmk/vim-sneak";
   -- keep off while working on aoc
   -- "airblade/vim-rooter";
@@ -51,6 +50,8 @@ require "paq" {
 require("rust_analyzer")
 require("compare")
 require("settings")
+require("mappings")
+require("treesitter")
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
 -- light line??
