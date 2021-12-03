@@ -28,3 +28,6 @@ require'nvim-treesitter.configs'.setup {
 -- enable tree-sitter base folding
 vim.cmd('set foldmethod=expr')
 vim.cmd('set foldexpr=nvim_treesitter#foldexpr()')
+
+-- for more
+-- :h nvim-treesitter-commands
