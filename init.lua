@@ -29,6 +29,7 @@ require "paq" {
   "nvim-lua/lsp_extensions.nvim";
   -- enable rust formatting
   "rust-lang/rust.vim";
+  "editorconfig/editorconfig-vim";
 
   -- completion
   "hrsh7th/cmp-nvim-lsp";
