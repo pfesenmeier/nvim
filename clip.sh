@@ -1,11 +1,11 @@
 #! /bin/bash
 
 set_clipboard () {
-  powershell.exe -noprofile -command '$Input | Set-Clipboard'
+  pwsh.exe -noprofile -command '$Input |  Set-Clipboard'
 }
 
 get_clipboard() {
-  powershell.exe -noprofile -command Get-Clipboard
+  pwsh.exe -noprofile -command 'Get-Clipboard' | sed s/\\r//
 }
 
 clip () {
