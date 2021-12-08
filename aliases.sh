@@ -6,3 +6,6 @@ alias s="git status"
 alias a="git add"
 alias c="git commit"
 alias n=nvim
+alias cat=bat
+alias find=fd
+
