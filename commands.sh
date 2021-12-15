@@ -3,7 +3,7 @@
 NVIM_FOLDER="$HOME/nvim"
 
 nvim:init () {
-  source "$NVIM_FOLDER/init.sh"
+  source "$NVIM_FOLDER/start.sh"
 }
 
 nvim:update () {
