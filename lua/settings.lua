@@ -10,7 +10,7 @@ c('set expandtab') -- tabs are now spaces
 -- theme stuff
 c('syntax on')
 c('set termguicolors')
-c('colorscheme papadark')
+-- c('colorscheme papadark')
 c('set number')
 c('set relativenumber')
 c('set nofoldenable')
