@@ -13,5 +13,6 @@ c('set termguicolors')
 c('colorscheme papadark')
 c('set number')
 c('set relativenumber')
+c('set nofoldenable')
 -- <leader><leader> toggles between buffers
   

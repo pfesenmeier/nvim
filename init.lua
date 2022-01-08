@@ -15,16 +15,14 @@ require "paq" {
   "savq/paq-nvim";
   -- once 0.6 hits
   "nvim-treesitter/nvim-treesitter";
+  --TODO - does not work
+  -- {"nvim-treesitter/nvim-treesitter", do = "TSUpdate" };
   "neovim/nvim-lspconfig";
   -- prevent remote code execution
   "ciaranm/securemodelines";
   -- "justinmk/vim-sneak";
   -- keep off while working on aoc
-  -- "airblade/vim-rooter";
-  -- on instead, telescope.vim?
-  -- "junegunn/fzf";
-  -- "junegunn/fzf.vim";
-  --  "hrsh7th/nvim-cmp";
+  "airblade/vim-rooter";
   "nvim-lua/lsp_extensions.nvim";
   -- enable rust formatting
   "rust-lang/rust.vim";
@@ -43,8 +41,13 @@ require "paq" {
   "plasticboy/vim-markdown";
 
   -- colors
+  -- TODO better colors?
    "rktjmp/lush.nvim";
    "MordechaiHadad/nvim-papadark";
+
+  -- fuzzy search
+  -- TODO install telescope
+  {"nvim-telescope/telescope-fzf-native.nvim", run = "make" };
 }
 
 require("rust_analyzer")
