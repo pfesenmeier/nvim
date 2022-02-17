@@ -41,3 +41,4 @@ run once:
 [ ] mirage
 [ ] proselint
 [ ] setup rust as search engine
+[ ] default to not folded
