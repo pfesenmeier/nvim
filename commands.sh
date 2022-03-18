@@ -20,7 +20,7 @@ nvim:update () {
   cd $CUR_DIR
 }
 
-nvim:save () {
+nvim:sync () {
   CUR_DIR=$(pwd)
   MESSAGE=$1
   if [ -z "$MESSAGE" ]
