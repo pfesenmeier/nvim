@@ -8,15 +8,15 @@
 
 NVIM_FOLDER="$HOME/nvim"
 
-nvim:init () {
+nvim:start () {
   source "$NVIM_FOLDER/start.sh"
 }
 
-nvim:update () {
+nvim:reload () {
   CUR_DIR=$(pwd)
   cd $NVIM_FOLDER
   git pull -q
-  nvim:init
+  nvim:start
   cd $CUR_DIR
 }
 
@@ -34,5 +34,3 @@ nvim:sync () {
   git push
   cd $CUR_DIR
 }
-
-export -f nvim:init
