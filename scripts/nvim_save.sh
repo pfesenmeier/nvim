@@ -6,9 +6,14 @@ if [ -z "$MESSAGE" ]
 	then MESSAGE="autosave (via script)"
 fi
 
-git pull
+cwd=$(pwd)
 
+cd ~/nvim
+
+git pull
 git add .
 git commit -m "$MESSAGE"
 git push
+
+cd $cwd
 
