@@ -1,8 +1,12 @@
 -- Paq Command: PaqSync
-local cmd = vim.cmd  -- to execute Vim commands e.g. cmd('pwd')
-local fn = vim.fn    -- to call Vim functions e.g. fn.bufnr()
-local g = vim.g      -- a table to access global variables
-local opt = vim.opt  -- to set options
+-- to execute Vim commands 
+local cmd = vim.cmd  
+-- to call Vim functions
+local fn = vim.fn    
+-- a table to access global variables
+local g = vim.g      
+-- to set options
+local opt = vim.opt 
 
 -- install paq-nvim if not already installed ( from savq/paq-nvim )
 local install_path = fn.stdpath('data') .. '/site/pack/paqs/start/paq-nvim'
@@ -13,15 +17,11 @@ end
 -- from https://oroques.dev/notes/neovim-init/
 require "paq" {
   "savq/paq-nvim";
-  -- once 0.6 hits
   "nvim-treesitter/nvim-treesitter";
-  --TODO - does not work
-  -- {"nvim-treesitter/nvim-treesitter", do = "TSUpdate" };
   "neovim/nvim-lspconfig";
   -- prevent remote code execution
   "ciaranm/securemodelines";
-  -- "justinmk/vim-sneak";
-  -- keep off while working on aoc
+  "justinmk/vim-sneak";
   "airblade/vim-rooter";
   "nvim-lua/lsp_extensions.nvim";
   -- enable rust formatting
@@ -46,8 +46,8 @@ require "paq" {
    "MordechaiHadad/nvim-papadark";
 
   -- fuzzy search
-  -- TODO install telescope
-  {"nvim-telescope/telescope-fzf-native.nvim", run = "make" };
+  "nvim-lua/plenary.nvim";
+  "nvim-telescope/telescope.nvim"
 }
 
 require("rust_analyzer")
