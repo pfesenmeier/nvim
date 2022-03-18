@@ -17,6 +17,7 @@ end
 -- from https://oroques.dev/notes/neovim-init/
 require "paq" {
   "savq/paq-nvim";
+  -- 'simrat39/rust-tools.nvim'
   "nvim-treesitter/nvim-treesitter";
   "neovim/nvim-lspconfig";
   -- prevent remote code execution

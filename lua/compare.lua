@@ -1,8 +1,6 @@
 -- autocomplete setup
 vim.cmd('set completeopt=menu,menuone,noselect')
 
--- TODO put in other file, automate copying over...
--- or just override where this file is supposed to be?
 local cmp = require'cmp'
 
 cmp.setup({
