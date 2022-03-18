@@ -1,5 +1,11 @@
 #! /bin/bash
 
+# https://kvz.io/bash-best-practices.html
+# set -o errexit
+# set -o nounset
+# set -o pipefail
+# set -o xtrace
+
 NVIM_FOLDER="$HOME/nvim"
 
 nvim:init () {
@@ -8,7 +14,7 @@ nvim:init () {
 
 nvim:update () {
   CUR_DIR=$(pwd)
-  cd ~/nvim
+  cd $NVIM_FOLDER
   git pull -q
   nvim:init
   cd $CUR_DIR
@@ -21,6 +27,8 @@ nvim:save () {
     then MESSAGE="autosave (via script)"
   fi
 
+  cd $NVIM_FOLDER
+  git pull
   git add .
   git commit -m "$MESSAGE"
   git push
