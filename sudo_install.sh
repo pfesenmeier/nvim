@@ -44,3 +44,6 @@ sudo ./aws/install
 
 # jq
 sudo apt install jq
+
+# set git stuff
+git config --global core.editor "nvim"
