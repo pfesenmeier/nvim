@@ -1,18 +1,18 @@
 #! /bin/bash
 
-set_clipboard () {
+function set_clipboard 
   pwsh.exe -noprofile -command '$Input |  Set-Clipboard'
-}
+end
 
-get_clipboard() {
+function get_clipboard 
   pwsh.exe -noprofile -command 'Get-Clipboard' | sed s/\\r//
-}
+end
 
-clip () {
-  if [ -t 0 ]; then
+function clip
+  if isatty stdin
     get_clipboard
   else
     set_clipboard
-  fi
-}
+  end
+end
 
