@@ -48,10 +48,13 @@ require "paq" {
 
   -- fuzzy search
   "nvim-lua/plenary.nvim";
-  "nvim-telescope/telescope.nvim"
+  "nvim-telescope/telescope.nvim";
+
+  -- git
+  "tpope/vim-fugitive";
 }
 
-require("rust_analyzer")
+require("lsp")
 require("compare")
 require("settings")
 require("mappings")
