@@ -10,10 +10,19 @@ set -o pipefail
 # extra vebose
 set -o xtrace
 
+# fish
+sudo apt-add-repository ppa:fish-shell/release-3
+sudo apt update
+sudo apt install fish
+
+# TODO fisher
+# TODO nvm
+
 # neovim
 curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
 chmod u+x nvim.appimage
-./nvim.appimage
+rm /usr/bin/nvim
+mv nvim.appimage /usr/bin/nvim
 
 # gh tool
 # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
@@ -37,10 +46,12 @@ rustflags = [
 ]' > ~/.cargo/config
 
 # aws
+cd ~
 sudo apt install unzip
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
+rm awscliv2.zip
 
 # jq
 sudo apt install jq
