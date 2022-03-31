@@ -24,7 +24,10 @@ require "paq" {
   "neovim/nvim-lspconfig";
   -- prevent remote code execution
   "ciaranm/securemodelines";
-  "justinmk/vim-sneak";
+
+  -- jumping around
+  -- "justinmk/vim-sneak";
+  'ggandor/lightspeed.nvim';
   "airblade/vim-rooter";
   "nvim-lua/lsp_extensions.nvim";
   -- enable rust formatting
@@ -44,9 +47,6 @@ require "paq" {
   "plasticboy/vim-markdown";
 
   -- colors
-  -- TODO better colors?
-   "rktjmp/lush.nvim";
-   "MordechaiHadad/nvim-papadark";
    "ellisonleao/gruvbox.nvim";
 
   -- fuzzy search
@@ -57,6 +57,8 @@ require "paq" {
   "tpope/vim-fugitive";
   -- enable Gbrowse with github
   "tpope/vim-rhubarb";
+
+  -- TODO vim surround again?
 }
 
 require("lsp")

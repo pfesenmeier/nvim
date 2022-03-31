@@ -12,12 +12,6 @@ set_keymap("n", "<leader>ff", ":Telescope find_files<cr>", { noremap = true })
 set_keymap("n", "<leader>fb", ":Telescope buffers<cr>", { noremap = true })
 set_keymap("n", "<leader>fh", ":Telescope help_tags<cr>", { noremap = true })
 
--- Vim Sneak overrides 's, S' :(
-set_keymap("n", "m", "<Plug>Sneak_s", { noremap = true })
-set_keymap("n", "M", "<Plug>Sneak_S", { noremap = true })
-set_keymap("v", "<leader>s", "<Plug>Sneak_s", { noremap = true })
-set_keymap("v", "<leader>S", "<Plug>Sneak_S", { noremap = true })
-
 -- Language server shortcuts from https://github.com/neovim/nvim-lspconfig
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
