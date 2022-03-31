@@ -9,8 +9,12 @@ c('set expandtab') -- tabs are now spaces
 
 -- theme stuff
 c('syntax on')
-c('set termguicolors')
-c('colorscheme papadark')
+vim.opt.termguicolors = true
+vim.o.background = "dark"
+c([[colorscheme gruvbox]])
+
+-- papadark is installed
+-- c('colorscheme papadark')
 c('set number')
 c('set relativenumber')
 c('set nofoldenable')

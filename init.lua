@@ -1,4 +1,6 @@
 -- Paq Command: PaqSync
+
+vim.g.mapleader = " "
 -- to execute Vim commands 
 local cmd = vim.cmd  
 -- to call Vim functions
@@ -45,6 +47,7 @@ require "paq" {
   -- TODO better colors?
    "rktjmp/lush.nvim";
    "MordechaiHadad/nvim-papadark";
+   "ellisonleao/gruvbox.nvim";
 
   -- fuzzy search
   "nvim-lua/plenary.nvim";
@@ -52,6 +55,8 @@ require "paq" {
 
   -- git
   "tpope/vim-fugitive";
+  -- enable Gbrowse with github
+  "tpope/vim-rhubarb";
 }
 
 require("lsp")
