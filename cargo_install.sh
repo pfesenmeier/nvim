@@ -1,4 +1,4 @@
-TOOLS="bat mdcat ripgrep exa cargo-outdated cargo-edit fd-find"
+TOOLS="bat mdcat ripgrep exa cargo-outdated cargo-edit fd-find cargo-tarpaulin"
 
 cargo install $TOOLS
 

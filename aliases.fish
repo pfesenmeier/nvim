@@ -6,6 +6,7 @@ alias s="git status"
 alias a="git add"
 alias c="git commit"
 alias r="git restore"
+alias b="git branch"
 alias e=nvim
 alias g=git
 alias python=python3
