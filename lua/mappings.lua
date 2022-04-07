@@ -1,14 +1,12 @@
 -- https://www.notonlycode.org/neovim-lua-config/
-vim.g.mapleader = " "
-
 local set_keymap = vim.api.nvim_set_keymap
 
 -- Reload init.lua
 set_keymap("n", "<leader>r", ":source $MYVIMRC<cr>", { noremap = true, silent = true })
 
 -- Fuzzy finding
-set_keymap("n", "<leader>fg", ":Telescope live_grep<cr>", { noremap = true })
-set_keymap("n", "<leader>ff", ":Telescope find_files<cr>", { noremap = true })
+set_keymap("n", "<leader>rg", ":Telescope live_grep<cr>", { noremap = true })
+set_keymap("n", "<leader>fd", ":Telescope find_files<cr>", { noremap = true })
 set_keymap("n", "<leader>fb", ":Telescope buffers<cr>", { noremap = true })
 set_keymap("n", "<leader>fh", ":Telescope help_tags<cr>", { noremap = true })
 

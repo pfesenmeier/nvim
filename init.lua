@@ -59,6 +59,7 @@ require "paq" {
   "tpope/vim-rhubarb";
 
   -- TODO vim surround again?
+  -- TODO undo memory between settings
 }
 
 require("lsp")

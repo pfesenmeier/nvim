@@ -1,3 +1,7 @@
+vim.g.mapleader = " "
+vim.g.netrw_browsex_viewer= "msedge.exe"
+
+
 local o = vim.opt
 local c = vim.cmd
 
