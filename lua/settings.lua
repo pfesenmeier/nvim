@@ -24,3 +24,5 @@ c('set relativenumber')
 c('set nofoldenable')
 -- <leader><leader> toggles between buffers
   
+-- better suggestions in terminal
+o.wildmenu = true

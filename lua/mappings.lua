@@ -1,8 +1,31 @@
 -- https://www.notonlycode.org/neovim-lua-config/
 local set_keymap = vim.api.nvim_set_keymap
+local opts = { noremap=true, silent=true }
 
 -- Reload init.lua
-set_keymap("n", "<leader>r", ":source $MYVIMRC<cr>", { noremap = true, silent = true })
+set_keymap("n", "<leader>r", ":luafile $MYVIMRC<cr>", { noremap = true })
+
+-- quicksave
+set_keymap("n", "<leader>w", ":w<CR>", { noremap = true })
+
+-- remap colon
+set_keymap("n", ";", ":", { noremap = true })
+
+-- open helpers
+set_keymap("n", "<leader>;", ":buffers", opts)
+set_keymap("n", "<c-p>", ":files", opts)
+
+-- switch buffers
+set_keymap("n", "<left>", ":bp<cr>", opts)
+set_keymap("n", "<right>", ":bn<cr>", opts)
+
+-- move by line
+set_keymap("n", "j", "<c-e>j", opts)
+set_keymap("n", "k", "<c-y>k", opts)
+
+-- toggle buffers
+set_keymap("n", "<leader><leader>", "<c-^>", opts)
+
 
 -- Fuzzy finding
 set_keymap("n", "<leader>rg", ":Telescope live_grep<cr>", { noremap = true })
@@ -13,7 +36,6 @@ set_keymap("n", "<leader>fh", ":Telescope help_tags<cr>", { noremap = true })
 -- Language server shortcuts from https://github.com/neovim/nvim-lspconfig
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
-local opts = { noremap=true, silent=true }
 vim.api.nvim_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
 vim.api.nvim_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
 vim.api.nvim_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)

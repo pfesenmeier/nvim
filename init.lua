@@ -26,7 +26,6 @@ require "paq" {
   "ciaranm/securemodelines";
 
   -- jumping around
-  -- "justinmk/vim-sneak";
   'ggandor/lightspeed.nvim';
   "airblade/vim-rooter";
   "nvim-lua/lsp_extensions.nvim";
@@ -60,6 +59,7 @@ require "paq" {
 
   -- TODO vim surround again?
   -- TODO undo memory between settings
+  -- TODO what is spell check?
 }
 
 require("lsp")
