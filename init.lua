@@ -27,8 +27,13 @@ require "paq" {
 
   -- jumping around
   'ggandor/lightspeed.nvim';
+
+  -- workspace defaults to closest .git 
   "airblade/vim-rooter";
+
+  -- inlay hints for Rust
   "nvim-lua/lsp_extensions.nvim";
+
   -- enable rust formatting
   "rust-lang/rust.vim";
   "editorconfig/editorconfig-vim";
