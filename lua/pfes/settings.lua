@@ -26,4 +26,6 @@ c('set nofoldenable')
 -- <leader><leader> toggles between buffers
   
 -- better suggestions in terminal
-o.wildmenu = true
+-- TODO does not work o.wildmenu = true
+
+-- TODO exclude public, node_modules from search results

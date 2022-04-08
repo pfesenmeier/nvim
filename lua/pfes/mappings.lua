@@ -1,3 +1,5 @@
+-- TODO tree command
+
 -- https://www.notonlycode.org/neovim-lua-config/
 local map = vim.api.nvim_set_keymap
 local opts = { noremap=true, silent=true }
