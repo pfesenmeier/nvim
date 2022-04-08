@@ -62,11 +62,11 @@ require "paq" {
   -- TODO what is spell check?
 }
 
-require("lsp")
-require("compare")
-require("settings")
-require("mappings")
-require("treesitter")
+require("pfes/lsp")
+require("pfes/compare")
+require("pfes/settings")
+require("pfes/mappings")
+require("pfes/treesitter")
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
 -- light line??

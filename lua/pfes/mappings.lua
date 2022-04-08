@@ -1,45 +1,56 @@
 -- https://www.notonlycode.org/neovim-lua-config/
-local set_keymap = vim.api.nvim_set_keymap
+local map = vim.api.nvim_set_keymap
 local opts = { noremap=true, silent=true }
 
--- Reload init.lua
-set_keymap("n", "<leader>r", ":luafile $MYVIMRC<cr>", { noremap = true })
+-- reload lua files require'd by init.lua
+-- from https://neovim.discourse.group/t/reload-init-lua-and-all-require-d-scripts/971/11
+-- does not remove keymaps
+function _G.ReloadConfig()
+  for name,_ in pairs(package.loaded) do
+    if name:match('^pfes') then
+      package.loaded[name] = nil
+    end
+  end
+
+  dofile(vim.env.MYVIMRC)
+end
+map("n", "<leader>r", ":lua ReloadConfig()<CR>", opts)
 
 -- quicksave
-set_keymap("n", "<leader>w", ":w<CR>", { noremap = true })
+map("n", "<leader>w", ":w<CR>", { noremap = true })
 
 -- remap colon
-set_keymap("n", ";", ":", { noremap = true })
+map("n", ";", ":", opts)
 
 -- open helpers
-set_keymap("n", "<leader>;", ":buffers", opts)
-set_keymap("n", "<c-p>", ":files", opts)
+map("n", "<leader>;", ":buffers", opts)
+map("n", "<c-p>", ":files", opts)
 
 -- switch buffers
-set_keymap("n", "<left>", ":bp<cr>", opts)
-set_keymap("n", "<right>", ":bn<cr>", opts)
+map("n", "<left>", ":bp<cr>", opts)
+map("n", "<right>", ":bn<cr>", opts)
 
--- move by line
-set_keymap("n", "j", "<c-e>j", opts)
-set_keymap("n", "k", "<c-y>k", opts)
+-- move to ends of lines with homerow
+map("n", "H", "^", opts)
+map("n", "L", "$", opts)
 
 -- toggle buffers
-set_keymap("n", "<leader><leader>", "<c-^>", opts)
+map("n", "<leader><leader>", "<c-^>", opts)
 
 
 -- Fuzzy finding
-set_keymap("n", "<leader>rg", ":Telescope live_grep<cr>", { noremap = true })
-set_keymap("n", "<leader>fd", ":Telescope find_files<cr>", { noremap = true })
-set_keymap("n", "<leader>fb", ":Telescope buffers<cr>", { noremap = true })
-set_keymap("n", "<leader>fh", ":Telescope help_tags<cr>", { noremap = true })
+map("n", "<leader>rg", ":Telescope live_grep<cr>", opts)
+map("n", "<leader>fd", ":Telescope find_files<cr>", opts)
+map("n", "<leader>fb", ":Telescope buffers<cr>", opts)
+map("n", "<leader>fh", ":Telescope help_tags<cr>", opts)
 
 -- Language server shortcuts from https://github.com/neovim/nvim-lspconfig
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
-vim.api.nvim_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
-vim.api.nvim_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
-vim.api.nvim_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
-vim.api.nvim_set_keymap('n', '<space>q', '<cmd>lua vim.diagnostic.setloclist()<CR>', opts)
+map('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
+map('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
+map('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
+map('n', '<space>q', '<cmd>lua vim.diagnostic.setloclist()<CR>', opts)
 
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer

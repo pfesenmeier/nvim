@@ -1,7 +1,6 @@
 vim.g.mapleader = " "
 vim.g.netrw_browsex_viewer= "msedge.exe"
 
-
 local o = vim.opt
 local c = vim.cmd
 
@@ -9,12 +8,14 @@ local c = vim.cmd
 o.tabstop = 2 -- tabs are tabstop spaces long
 o.shiftwidth = 2 -- indents are 2 widths long
 o.softtabstop = 4 -- colunmn??
-c('set expandtab') -- tabs are now spaces
+o.scrolloff = 999 -- keep cursor in middle of screen
+o.scrolloff = 999
+o.expandtab = true
 
 -- theme stuff
-c('syntax on')
-vim.opt.termguicolors = true
-vim.o.background = "dark"
+o.syntax = 'on'
+o.termguicolors = true
+o.background = "dark"
 c([[colorscheme gruvbox]])
 
 -- papadark is installed
