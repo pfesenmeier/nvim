@@ -1,6 +1,7 @@
 #! /bin/bash
 
 alias ls=exa
+alias ll='exa -1la'
 alias i=exa
 alias s="git status"
 alias a="git add"
