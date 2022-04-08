@@ -1,8 +1,8 @@
 #! /bin/bash
 
-alias ls=exa
+alias ls='exa -1'
+alias i=ls
 alias ll='exa -1la'
-alias i=exa
 alias s="git status"
 alias a="git add"
 alias c="git commit"
