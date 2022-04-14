@@ -16,3 +16,4 @@ set -x PATH "$HOME/.local/bin:$PATH"
 nvm use lts/gallium
 
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+set -gx AWS_PROFILE pfes
