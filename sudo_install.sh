@@ -13,7 +13,8 @@ set -o xtrace
 # neovim
 curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
 chmod u+x nvim.appimage
-./nvim.appimage
+rm /usr/bin/nvim
+mv nvim.appimage /usr/bin/nvim
 
 # gh tool
 # https://github.com/cli/cli/blob/trunk/docs/install_linux.md

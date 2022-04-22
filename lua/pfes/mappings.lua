@@ -37,7 +37,7 @@ map("n", "H", "^", opts)
 map("n", "L", "$", opts)
 
 -- go to folder view of current file
-map("n", "<leader>E", ":Explore<cr>", opts)
+map("n", "<leader>o", ":Explore<cr>", opts)
 
 -- toggle buffers
 map("n", "<leader><leader>", "<c-^>", opts)
