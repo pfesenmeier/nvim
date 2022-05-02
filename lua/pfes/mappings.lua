@@ -95,3 +95,4 @@ end
 
 -- inlay hints
 map("n", "<leader>t", ":lua require'lsp_extensions'.inlay_hints{ only_current_line = true }<cr>", opts)
+map("n", "<leader>T", ":lua require'lsp_extensions'.inlay_hints()<cr>", opts)
