@@ -1,11 +1,11 @@
-#! /bin/bash
+#! /bin/fish
 
 function set_clipboard 
-  pwsh.exe -noprofile -command '$Input |  Set-Clipboard'
+  powershell.exe -noprofile -command '$Input |  Set-Clipboard'
 end
 
 function get_clipboard 
-  pwsh.exe -noprofile -command 'Get-Clipboard' | sed s/\\r//
+  powershell.exe -noprofile -command 'Get-Clipboard' | sed s/\\r//
 end
 
 function clip

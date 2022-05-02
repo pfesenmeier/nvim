@@ -1,13 +1,6 @@
 #! /bin/bash
 
 NVIM="$HOME/nvim"
-source "$NVIM/aliases.sh"
-source "$NVIM/commands.sh"
-source "$NVIM/deno.sh"
-source "$NVIM/clip.sh"
-source "$NVIM/nvim.sh"
-source "$NVIM/rust.sh"
-eval "$(starship init bash)"
 
 export PATH="$HOME/.local/bin:$PATH"
 
@@ -17,3 +10,4 @@ then
 fi
 
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+. "$HOME/.cargo/env"

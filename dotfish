@@ -6,11 +6,11 @@ source "$NVIM/commands.fish"
 source "$NVIM/deno.fish"
 source "$NVIM/clip.fish"
 source "$NVIM/nvim.fish"
-source "$NVIM/rust.fish"
 starship init fish | source
 
 # might be for rust analyzer?
 set -x PATH "$HOME/.local/bin:$PATH"
+set -x PATH "$HOME/.cargo/bin:$PATH"
 
 # for nvm
 nvm use lts/gallium

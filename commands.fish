@@ -3,7 +3,7 @@
 set NVIM_FOLDER "$HOME/nvim"
 
 function nvim_sync 
-  set CUR_DIR $(pwd)
+  set CUR_DIR (pwd)
   set MESSAGE $1
 
   if test -n MESSAGE
