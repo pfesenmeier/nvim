@@ -68,7 +68,7 @@ require "paq" {
 }
 
 require("pfes/lsp")
-require("pfes/compare")
+require("pfes/completion")
 require("pfes/settings")
 require("pfes/mappings")
 require("pfes/treesitter")
