@@ -16,6 +16,7 @@ ln -sf $NVIM/lua $NVIM_CONFIG/lua
 ln -sf $NVIM/dotbashrc $HOME/.bashrc
 ln -sf $NVIM/dotfish $HOME/.config/fish/config.fish
 ln -sf $NVIM/dotripgrep $HOME/.ripgreprc
+ln -sf rg.fish ~/.config/fish/completions/
 nvim +PaqSync +TSUpdate
 
 bash $NVIM/cargo_install.sh
