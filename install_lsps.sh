@@ -2,8 +2,8 @@
 
 npm i -g yaml-language-server \
 typescript-language-server \
-vscode-langservers-extracted \ 
+vscode-langservers-extracted \
 @tailwindcss/language-server
 
-# extracted is for html, css, eslint, json
+# extracted is for html, css, eslint, json 
 
