@@ -1,4 +1,6 @@
 -- Paq Command: PaqSync
+
+vim.g.mapleader = " "
 -- to execute Vim commands 
 local cmd = vim.cmd  
 -- to call Vim functions
@@ -22,9 +24,16 @@ require "paq" {
   "neovim/nvim-lspconfig";
   -- prevent remote code execution
   "ciaranm/securemodelines";
-  "justinmk/vim-sneak";
+
+  -- jumping around
+  'ggandor/lightspeed.nvim';
+
+  -- workspace defaults to closest .git 
   "airblade/vim-rooter";
+
+  -- inlay hints for Rust
   "nvim-lua/lsp_extensions.nvim";
+
   -- enable rust formatting
   "rust-lang/rust.vim";
   "editorconfig/editorconfig-vim";
@@ -42,20 +51,27 @@ require "paq" {
   "plasticboy/vim-markdown";
 
   -- colors
-  -- TODO better colors?
-   "rktjmp/lush.nvim";
-   "MordechaiHadad/nvim-papadark";
+   "ellisonleao/gruvbox.nvim";
 
   -- fuzzy search
   "nvim-lua/plenary.nvim";
-  "nvim-telescope/telescope.nvim"
+  "nvim-telescope/telescope.nvim";
+
+  -- git
+  "tpope/vim-fugitive";
+  -- enable Gbrowse with github
+  "tpope/vim-rhubarb";
+
+  -- TODO vim surround again?
+  -- TODO undo memory between settings
+  -- TODO what is spell check?
 }
 
-require("rust_analyzer")
-require("compare")
-require("settings")
-require("mappings")
-require("treesitter")
+require("pfes/lsp")
+require("pfes/completion")
+require("pfes/settings")
+require("pfes/mappings")
+require("pfes/treesitter")
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
 -- light line??

@@ -12,8 +12,12 @@ set -o xtrace
 
 # neovim
 curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-chmod u+x nvim.appimage
-./nvim.appimage
+rm  -f /usr/bin/nvim
+mv nvim.appimage /usr/bin/nvim
+chmod +x /usr/bin/nvim
+
+# fish
+sudo apt install fish
 
 # gh tool
 # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
@@ -31,16 +35,20 @@ sudo apt install libssl-dev
 
 # https://www.rust-lang.org/learn/get-started
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+mkdir -p ~/.cargo
 echo '[target.x86_64-unknown-linux-gnu]
 rustflags = [
     "-C", "link-arg=-fuse-ld=lld",
 ]' > ~/.cargo/config
 
 # aws
+cd ..
 sudo apt install unzip
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
+sudo rm awscliv2.zip
+cd nvim
 
 # jq
 sudo apt install jq

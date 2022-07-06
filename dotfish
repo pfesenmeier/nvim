@@ -1,0 +1,23 @@
+#! /usr/bin/fish
+
+# might be for rust analyzer?
+set -x PATH "$HOME/.local/bin:$PATH"
+set -x PATH "$HOME/.cargo/bin:$PATH"
+
+set NVIM "$HOME/nvim"
+source "$NVIM/aliases.fish"
+source "$NVIM/commands.fish"
+source "$NVIM/deno.fish"
+source "$NVIM/clip.fish"
+source "$NVIM/nvim.fish"
+starship init fish | source
+
+
+# for nvm
+nvm use lts/gallium
+
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+
+# TODO use local fish config
+
+# set -gx AWS_PROFILE pfes
