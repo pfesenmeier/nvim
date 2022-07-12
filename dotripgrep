@@ -10,6 +10,7 @@ web:*.{html,css,js}*
 
 # Using glob patterns to include/exclude files or folders
 --glob=!**/package-lock.json
+--glob=!package-lock.json
 
 # Because who cares about case!?
 --smart-case

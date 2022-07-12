@@ -1,6 +1,7 @@
 #! /bin/bash
 
 alias ls='exa -1'
+alias l='git log --oneline'
 alias i=ls
 alias ll='exa -1la'
 alias s="git status"
@@ -8,6 +9,7 @@ alias a="git add"
 alias c="git commit"
 alias r="git restore"
 alias b="git branch"
+alias ch="git checkout"
 alias tree="exa --tree"
 alias e=nvim
 alias g=git

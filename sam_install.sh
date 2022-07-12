@@ -2,5 +2,7 @@
 
 # upgrade: ./sam-installation/install --update
 
+npm install -g aws-sso-creds-helper
+
 # install pip
 # pip install cfn-lint

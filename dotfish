@@ -14,7 +14,8 @@ starship init fish | source
 
 
 # for nvm
-nvm use lts/gallium
+nvm use lts/fermium
+# nvm use lts/gallium
 
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 
