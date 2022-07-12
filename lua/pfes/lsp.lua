@@ -33,7 +33,8 @@ require('lspconfig').cssls.setup{
   capabilities = capabilities
 }
 require('lspconfig').tailwindcss.setup{
-  capabilities = capabilities
+  capabilities = capabilities,
+-- filetypes = {"rust"}
 }
 
 
