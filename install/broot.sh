@@ -5,5 +5,6 @@ sudo mv -f broot /usr/local/bin/
 chmod u+x /usr/local/bin/broot
 
 # TODO download completions
-# https://dystroy.org/broot/download/completion/br.fish
+wget https://dystroy.org/broot/download/completion/br.fish
+mv -f br.fish ~/.config/fish/completions/
 
