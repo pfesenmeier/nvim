@@ -53,8 +53,8 @@ map("n", "<leader>fh", ":Telescope help_tags<cr>", opts)
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
 map('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
-map('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
-map('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
+map('n', '<leader>ge', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
+map('n', '<leader>gE', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
 map('n', '<space>q', '<cmd>lua vim.diagnostic.setloclist()<CR>', opts)
 
 -- Use an on_attach function to only map the following keys

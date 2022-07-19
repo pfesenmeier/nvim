@@ -18,8 +18,10 @@ mkdir -p $HOME/.config/fish
 ln -sf $NVIM/dotfish $HOME/.config/fish/config.fish
 ln -sf $NVIM/dotripgrep $HOME/.ripgreprc
 mkdir ~/.config/fish/completions
-cp -f rg.fish ~/.config/fish/completions/
+cp -f $NVIM/rg.fish ~/.config/fish/completions/
 nvim +PaqSync +TSUpdate +q
+mkdir -s ~/.cargo
+cp -f $NVIM/cargo_config.toml ~/.cargo/config.toml
 
 # bash $NVIM/cargo_install.sh
 
