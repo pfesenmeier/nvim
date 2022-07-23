@@ -1,4 +1,4 @@
--- TODO tree command
+-- gx opens links!!
 
 -- https://www.notonlycode.org/neovim-lua-config/
 local map = vim.api.nvim_set_keymap

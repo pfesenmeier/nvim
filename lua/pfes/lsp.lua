@@ -45,6 +45,10 @@ require('lspconfig').tailwindcss.setup{
   capabilities = capabilities,
   on_attach = AttachLspKeyMap
 }
+require('lspconfig').bashls.setup{
+  capabilities = capabilities,
+  on_attach = AttachLspKeyMap
+}
 
 require'lspconfig'.sumneko_lua.setup {
   settings = {
