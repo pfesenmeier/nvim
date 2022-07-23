@@ -1,6 +1,7 @@
 #! /bin/bash
 
-# This is for installing things that need to be updated every month or so.
+# this is a one-time setup for a new environment
+# designed to be idepotent
 
 set -o errexit
 set -o xtrace
@@ -17,12 +18,9 @@ ln -sf $NVIM/dotbashrc $HOME/.bashrc
 mkdir -p $HOME/.config/fish
 ln -sf $NVIM/dotfish $HOME/.config/fish/config.fish
 ln -sf $NVIM/dotripgrep $HOME/.ripgreprc
-mkdir ~/.config/fish/completions
+mkdir -p ~/.config/fish/completions
 cp -f $NVIM/rg.fish ~/.config/fish/completions/
-nvim +PaqSync +TSUpdate +q
-mkdir -s ~/.cargo
+mkdir -p ~/.cargo
 cp -f $NVIM/cargo_config.toml ~/.cargo/config.toml
+nvim +PaqSync +TSUpdate +q
 
-# bash $NVIM/cargo_install.sh
-
-bash $NVIM/ra_install.sh

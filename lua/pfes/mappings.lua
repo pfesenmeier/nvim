@@ -42,7 +42,6 @@ map("n", "<leader>o", ":Explore<cr>", opts)
 -- toggle buffers
 map("n", "<leader><leader>", "<c-^>", opts)
 
-
 -- Fuzzy finding
 map("n", "<leader>rg", ":Telescope live_grep<cr>", opts)
 map("n", "<leader>fd", ":Telescope find_files<cr>", opts)

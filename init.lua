@@ -76,7 +76,6 @@ require("pfes/treesitter")
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
 -- light line??
 -- yank highliht
--- fzf - fuzzy search
 -- undodir
 -- set capslock to ctrl
 
