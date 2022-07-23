@@ -62,11 +62,18 @@ require "paq" {
   -- enable Gbrowse with github
   "tpope/vim-rhubarb";
 
+  -- comments
+  "numToStr/Comment.nvim";
+
+  -- make missing directories on save
+  "jghauser/mkdir.nvim";
+
   -- TODO vim surround again?
   -- TODO undo memory between settings
   -- TODO what is spell check?
 }
 
+require('Comment').setup()
 require("pfes/lsp")
 require("pfes/completion")
 require("pfes/settings")
