@@ -1,40 +1,49 @@
+dofile("lua/pfes/mappings.lua")
+
 -- Enable cmp with lsp servers.
 local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 require("lspconfig").rust_analyzer.setup{
-  ['rust-analyzer'] = {
-    settings = {
-      cargo = {
-       allFeatures = true,
-    }
-  },
-  capabilities = capabilities
-}
+    ['rust-analyzer'] = {
+      settings = {
+        cargo = {
+         allFeatures = true,
+      }
+    },
+    capabilities = capabilities,
+    on_attach = AttachLspKeyMap
+  }
 }
 
 require("lspconfig").tsserver.setup{
-  capabilities = capabilities
+  capabilities = capabilities,
+  on_attach = AttachLspKeyMap
 }
 require('lspconfig').yamlls.setup{
-  capabilities = capabilities
+  capabilities = capabilities,
+  on_attach = AttachLspKeyMap
 }
 
 -- enabled via vscode-langservers-extracted
 require("lspconfig").eslint.setup{
-  capabilities = capabilities
+  capabilities = capabilities,
+  on_attach = AttachLspKeyMap
 }
 require('lspconfig').html.setup{
-  capabilities = capabilities
+  capabilities = capabilities,
+  on_attach = AttachLspKeyMap
 }
 require('lspconfig').jsonls.setup{
-  capabilities = capabilities
+  capabilities = capabilities,
+  on_attach = AttachLspKeyMap
 }
 require('lspconfig').cssls.setup{
-  capabilities = capabilities
+  capabilities = capabilities,
+  on_attach = AttachLspKeyMap
 }
 require('lspconfig').tailwindcss.setup{
   capabilities = capabilities,
--- filetypes = {"rust"}
+  on_attach = AttachLspKeyMap
 }
 
 require'lspconfig'.sumneko_lua.setup {
@@ -59,6 +68,7 @@ require'lspconfig'.sumneko_lua.setup {
     },
   },
   capabilities = capabilities,
+  on_attach = AttachLspKeyMap
 }
 
 

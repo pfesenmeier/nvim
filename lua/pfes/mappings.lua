@@ -6,7 +6,7 @@ local opts = { noremap=true, silent=true }
 
 -- reload lua files require'd by init.lua
 -- from https://neovim.discourse.group/t/reload-init-lua-and-all-require-d-scripts/971/11
--- does not remove keymaps
+-- does not remove old keymaps
 function _G.ReloadConfig()
   for name,_ in pairs(package.loaded) do
     if name:match('^pfes') then
@@ -16,7 +16,8 @@ function _G.ReloadConfig()
 
   dofile(vim.env.MYVIMRC)
 end
-map("n", "<leader>r", ":lua ReloadConfig()<CR>", opts)
+
+vim.keymap.set('n', '<leader>r', ReloadConfig, opts)
 
 -- quicksave
 map("n", "<leader>w", ":w<CR>", { noremap = true })
@@ -43,13 +44,15 @@ map("n", "<leader>o", ":Explore<cr>", opts)
 map("n", "<leader><leader>", "<c-^>", opts)
 
 -- Fuzzy finding
-map("n", "<leader>rg", ":Telescope live_grep<cr>", opts)
-map("n", "<leader>fd", ":Telescope find_files<cr>", opts)
-map("n", "<leader>fb", ":Telescope buffers<cr>", opts)
-map("n", "<leader>fh", ":Telescope help_tags<cr>", opts)
+local telescope = require('telescope.builtin')
+-- note: possible performance optimization: :help vim.keymap.set()
+-- in practice, I don't notice any lag
+vim.keymap.set("n", "<leader>rg", telescope.live_grep, opts)
+vim.keymap.set("n", "<leader>fd", telescope.find_files, opts)
+vim.keymap.set("n", "<leader>fb", telescope.buffers, opts)
+vim.keymap.set("n", "<leader>fh", telescope.help_tags, opts)
 
 -- Language server shortcuts from https://github.com/neovim/nvim-lspconfig
--- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
 vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', 'gE', vim.diagnostic.goto_prev, opts)
@@ -58,7 +61,8 @@ vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
-local on_attach = function(client, bufnr)
+-- see lsp.lua where this is being used
+AttachLspKeyMap = function(_, bufnr)
   -- Enable completion triggered by <c-x><c-o>
   vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
@@ -82,17 +86,6 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', '<space>f', vim.lsp.buf.formatting, bufopts)
 end
 
--- export this on_attach variable
+vim.keymap.set('n', '<leader>t', function() return require('lsp_extensions').inlay_hints{ only_current_line = true } end)
+vim.keymap.set('n', '<leader>T', function() return require('lsp_extensions').inlay_hints() end)
 
--- Use a loop to conveniently call 'setup' on multiple servers and
--- map buffer local keybindings when the language server attaches
-local servers = { 'yamlls', 'rust_analyzer', 'tsserver', 'eslint', 'html', 'jsonls', 'cssls', 'tailwindcss', 'sumneko_lua' }
-for _, lsp in pairs(servers) do
-  require('lspconfig')[lsp].setup {
-    on_attach = on_attach,
-  }
-end
-
--- inlay hints
-map("n", "<leader>t", ":lua require'lsp_extensions'.inlay_hints{ only_current_line = true }<cr>", opts)
-map("n", "<leader>T", ":lua require'lsp_extensions'.inlay_hints()<cr>", opts)
