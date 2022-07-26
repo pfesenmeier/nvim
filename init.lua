@@ -73,12 +73,14 @@ require "paq" {
   -- TODO what is spell check?
 }
 
-require('Comment').setup()
-require("pfes/lsp")
+
 require("pfes/completion")
 require("pfes/settings")
 require("pfes/mappings")
 require("pfes/treesitter")
+require("pfes/lsp")
+
+require('Comment').setup()
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
 -- light line??

@@ -18,14 +18,11 @@ o.termguicolors = true
 o.background = "dark"
 c([[colorscheme gruvbox]])
 
--- papadark is installed
--- c('colorscheme papadark')
 c('set number')
 c('set relativenumber')
 c('set nofoldenable')
--- <leader><leader> toggles between buffers
-  
--- better suggestions in terminal
--- TODO does not work o.wildmenu = true
 
--- TODO exclude public, node_modules from search results
+-- set background transparent (I have background photo via Windows Terminal)
+c('highlight Normal guibg=none')
+c('highlight NonText guibg=none')
+
