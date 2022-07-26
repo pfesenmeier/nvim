@@ -21,6 +21,7 @@ vim.keymap.set('n', '<leader>r', ReloadConfig, { noremap = true })
 
 -- quicksave
 map("n", "<leader>w", ":w<CR>", { noremap = true })
+map("n", "<leader>x", ":x<CR>", { noremap = true })
 
 -- remap colon
 map("n", ";", ":", opts)
