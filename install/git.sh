@@ -7,3 +7,4 @@ sudo apt install git
 # no more set origin
 git config --global --add --bool push.autoSetupRemote true
 
+git config --global core.editor "nvim"
