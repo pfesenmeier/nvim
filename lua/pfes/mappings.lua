@@ -25,7 +25,7 @@ map("n", "<leader>x", ":x<CR>", { noremap = true })
 
 -- remap colon
 map("n", ";", ":", opts)
-map("n", ":", ";", opts)
+map("n", ":", ";", { noremap = true })
 
 -- open helpers
 map("n", "<leader>;", ":buffers", opts)
