@@ -3,6 +3,9 @@
 # this is a one-time setup for a new environment
 # designed to be idepotent
 
+# have neovim installed before executing
+# assumes you are using fish as a daily driver
+
 set -o errexit
 set -o xtrace
 set -o pipefail
