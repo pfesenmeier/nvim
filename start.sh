@@ -3,6 +3,9 @@
 # this is a one-time setup for a new environment
 # designed to be idepotent
 
+# have neovim installed before executing
+# assumes you are using fish as a daily driver
+
 set -o errexit
 set -o xtrace
 set -o pipefail
@@ -22,5 +25,5 @@ mkdir -p ~/.config/fish/completions
 cp -f $NVIM/rg.fish ~/.config/fish/completions/
 mkdir -p ~/.cargo
 cp -f $NVIM/cargo_config.toml ~/.cargo/config.toml
-nvim +PaqSync +TSUpdate +q
+nvim +PaqSync +TSUpdate
 
