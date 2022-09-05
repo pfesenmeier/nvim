@@ -25,5 +25,5 @@ mkdir -p ~/.config/fish/completions
 cp -f $NVIM/rg.fish ~/.config/fish/completions/
 mkdir -p ~/.cargo
 cp -f $NVIM/cargo_config.toml ~/.cargo/config.toml
-nvim +PaqSync +TSUpdate
+nvim +PaqSync
 
