@@ -19,7 +19,6 @@ o.background = "dark"
 c([[colorscheme gruvbox]])
 
 c('set number')
-c('set relativenumber')
 c('set nofoldenable')
 
 -- set background transparent (I have background photo via Windows Terminal)
