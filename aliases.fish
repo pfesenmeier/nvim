@@ -23,3 +23,26 @@ alias fac="p; a .; c"
 alias git-home='cd `git rev-parse --show-toplevel`'
 git config --global alias.whereami "rev-parse --abbrev-ref HEAD"
 alias clion=clion64.exe
+
+function prprep
+  set branch $argv[1]
+  if test -z $branch
+    echo "Usage: git-pr-prep <branch>"
+    return 1
+  end
+
+  git fetch origin $branch:$branch
+  and git merge $branch --no-edit
+
+  # affected files in PR
+  and set files (git log --pretty='' --name-only $branch..HEAD | sort | uniq)
+  and npm test -- --no-coverage $files
+
+  and git diff $branch
+end
+
+# jira
+alias create-pr=$HOME/nvim/jira/create-pr
+alias post-slack=$HOME/nvim/jira/post-slack
+alias pr-title=$HOME/nvim/jira/pr-title
+  

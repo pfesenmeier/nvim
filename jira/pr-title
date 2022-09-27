@@ -1,0 +1,7 @@
+#! /usr/bin/env bash
+
+echo $(git rev-parse --abbrev-ref HEAD) \
+  | sed -E 's/[-|_]/ /g' \
+  | sed -E 's/bnw ([0-9]+)/[BNW-\1]/' \
+  | sed -E 's/ (\w)/ \U\1/g'
+
