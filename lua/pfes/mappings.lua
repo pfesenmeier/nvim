@@ -91,7 +91,7 @@ local function on_attach(_, bufnr)
   vim.keymap.set('n', '<leader>m', vim.lsp.buf.formatting, bufopts)
 end
 
-local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 vim.keymap.set('n', '<leader>t', function() return require('lsp_extensions').inlay_hints { only_current_line = true } end)
 vim.keymap.set('n', '<leader>T', function() return require('lsp_extensions').inlay_hints() end)

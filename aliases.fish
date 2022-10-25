@@ -32,7 +32,8 @@ function prprep
   end
 
   git fetch origin $branch:$branch
-  and git merge $branch --no-edit
+  and git rebase $branch
+  # and git merge $branch --no-edit
 
   # affected files in PR
   and set files (git log --pretty='' --name-only $branch..HEAD | sort | uniq)
