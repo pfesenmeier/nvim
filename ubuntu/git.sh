@@ -8,3 +8,7 @@ git config --global alias.checkoud checkout
 
 git config --global diff.external difft
 
+# have to install gcm on Windows from https://github.com/GitCredentialManager/git-credential-manager
+# useful for BitBucket
+git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"
+
