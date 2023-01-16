@@ -16,6 +16,9 @@ if test -f "$NVIM/dotfishlocal"
   source "$NVIM/dotfishlocal"
 end
 
+# https://learn.microsoft.com/en-us/dotnet/core/tools/enable-tab-autocomplete#fish
+complete -f -c dotnet -a "(dotnet complete (commandline -cp))"
+
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 
 # set -gx AWS_PROFILE pfes
