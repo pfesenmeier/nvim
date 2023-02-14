@@ -24,8 +24,8 @@ map("n", "<leader>w", ":w<CR>", { noremap = true })
 map("n", "<leader>x", ":x<CR>", { noremap = true })
 
 -- switch mark and buffer commands
-map("n", "'" ,'"', { noremap = true })
-map("n", '"', "'", { noremap = true })
+-- map("n", "'" ,'"', { noremap = true })
+-- map("n", '"', "'", { noremap = true })
 
 -- remap colon
 map("n", ";", ":", { noremap = true })
