@@ -53,7 +53,7 @@ require('lspconfig').bashls.setup{
   on_attach = on_attach
 }
 
-require'lspconfig'.sumneko_lua.setup {
+require'lspconfig'.lua_ls.setup {
   settings = {
     Lua = {
       runtime = {

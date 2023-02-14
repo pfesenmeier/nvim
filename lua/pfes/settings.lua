@@ -4,6 +4,9 @@ vim.g.netrw_browsex_viewer= "msedge.exe"
 local o = vim.opt
 local c = vim.cmd
 
+-- set windows clipboard
+c('set clipboard=unnamedplus')
+
 -- tabs are spaces
 o.tabstop = 2 -- tabs are tabstop spaces long
 o.shiftwidth = 2 -- indents are 2 widths long

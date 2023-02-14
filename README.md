@@ -11,6 +11,8 @@ run once:
 ~/nvim/start.sh
 
 ## TODO
+[ ] download latest curl
+[ ] surround plugin for vim
 [x] automate hardlinking of .bashrc OR just copy over .bashrc in startup script
 [x] automate aliasing
 [ ] move over old .bashrc
