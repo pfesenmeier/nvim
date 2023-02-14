@@ -9,6 +9,7 @@ source "$NVIM/aliases.fish"
 source "$NVIM/commands.fish"
 source "$NVIM/deno.fish"
 source "$NVIM/clip.fish"
+source "$NVIM/show.fish"
 source "$NVIM/nvim.fish"
 starship init fish | source
 
