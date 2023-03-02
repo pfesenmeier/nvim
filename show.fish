@@ -4,8 +4,8 @@ function show
   set ARG $argv[1]
 
   if test -z $ARG
-    echo "usage: show <file or folder path>"
-    return 
+    ls
+    return
   end
 
   # if folder
@@ -16,3 +16,7 @@ function show
   end
 end
 
+function dc
+  cd $argv[1] && ls
+end
+  

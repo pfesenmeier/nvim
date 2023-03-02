@@ -3,6 +3,7 @@
 # might be for rust analyzer?
 set -x PATH "$HOME/.local/bin:$PATH"
 set -x PATH "$HOME/.cargo/bin:$PATH"
+set -x PATH "$HOME/.local/bin/flutter/bin:$PATH"
 
 set NVIM "$HOME/nvim"
 source "$NVIM/aliases.fish"

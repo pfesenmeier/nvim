@@ -13,7 +13,7 @@ alias ch="git checkout"
 alias e=nvim
 alias g=git
 alias python=python3
-alias cat=bat
+alias cat="bat -p"
 alias pat="bat --style=plain"
 alias find=fd
 alias f="nvim (fzf)"
@@ -23,6 +23,13 @@ alias fac="p; a .; c"
 alias git-home='cd `git rev-parse --show-toplevel`'
 git config --global alias.whereami "rev-parse --abbrev-ref HEAD"
 alias clion=clion64.exe
+
+alias dn=dotnet
+alias ef="dotnet ef"
+
+alias tpp="terraform plan -out plan"
+alias ta="terraform apply"
+alias tap="terraform apply plan"
 
 function prprep
   set branch $argv[1]
