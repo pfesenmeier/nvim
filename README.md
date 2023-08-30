@@ -1,46 +1,18 @@
-# Repo for using nvim and bash terminal as main drivers
+# Repo for using nvim and fish terminal as main drivers
+
+- assumes using fish, wsl2, ubuntu
+- run scripts inside /install to install tools (at own risk, of course)
 
 ## Setup
 
-- [install nvim] https://github.com/neovim/neovim/wiki/Installing-Neovim
-- [install rust] https://www.rust-lang.org/learn/get-started
-- fork repository
-- move .bashrc or ~/.config/nvim/init.lua somewhere else if want to preserve them
-
-run once:
+run once to create soft-links of configuration files where your tools expect them to be:
 ~/nvim/start.sh
 
 ## TODO
-[ ] download latest curl
+[ ] sessions history
+[ ] download latest curl (for json flag)
 [ ] surround plugin for vim
-[x] automate hardlinking of .bashrc OR just copy over .bashrc in startup script
-[x] automate aliasing
-[ ] move over old .bashrc
-[ ] can i use vim motions in terminal? fish?
-[x] auto download cargo tools
-[ ] auto download nvim modules
-[x] auto setup oh my bash?
-[x] line numbers
-[ ] get lsp configured how I like it
-[ ] get rust analyzer configured how I like it
-[ ] get nvim configured how I like it...
-[ ] add plugins as desired
-[ ] git integrations?
 [ ] what's the debugging story?
-[ ] jonhoo nvim configurations?
-[ ] identify nvim pain points that can be solved by knowing vim better
-[ ] portable windows terminal config 
-
-[ ] comment out block of code
-[ ] Format command
-[ ] goto next error
-[ ] goto definition
-[ ] color brackets
-[ ] Configure editorconfig plugin
-[ ] Repeat this edit for x lines
-[ ] Port cmd p, cmd d
-[ ] autojump
+[ ] Port cmd d
 [ ] mirage
 [ ] proselint
-[ ] setup rust as search engine
-[ ] default to not folded

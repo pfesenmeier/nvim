@@ -23,9 +23,6 @@ vim.keymap.set('n', '<leader>r', ReloadConfig, { noremap = true })
 map("n", "<leader>w", ":w<CR>", { noremap = true })
 map("n", "<leader>x", ":x<CR>", { noremap = true })
 
--- switch mark and buffer commands
--- map("n", "'" ,'"', { noremap = true })
--- map("n", '"', "'", { noremap = true })
 
 -- remap colon
 map("n", ";", ":", { noremap = true })
@@ -36,6 +33,8 @@ map("n", "q", "<c-v>", { noremap = true })
 -- open helpers
 map("n", "<leader>;", ":buffers", opts)
 map("n", "<c-p>", ":files", opts)
+
+-- :b, :f (buffer/file name) auto-completes!
 
 -- switch buffers
 map("n", "<left>", ":bp<cr>", opts)
@@ -88,10 +87,10 @@ local function on_attach(_, bufnr)
   vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
   vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
   vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
-  vim.keymap.set('n', '<leader>m', vim.lsp.buf.formatting, bufopts)
+  vim.keymap.set('n', '<leader>m', function()
+    vim.lsp.buf.format { async = true }
+  end, bufopts)
 end
-
-local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 vim.keymap.set('n', '<leader>t', function() return require('lsp_extensions').inlay_hints { only_current_line = true } end)
 vim.keymap.set('n', '<leader>T', function() return require('lsp_extensions').inlay_hints() end)
