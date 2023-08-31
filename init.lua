@@ -30,7 +30,8 @@ require "paq" {
   'ggandor/lightspeed.nvim';
 
   -- workspace defaults to closest .git 
-  "airblade/vim-rooter";
+  -- removing for now to work in current project
+  -- "airblade/vim-rooter";
 
   -- inlay hints for Rust
   "nvim-lua/lsp_extensions.nvim";
