@@ -11,6 +11,7 @@ git config --global diff.external difft
 # useful for BitBucket logins
 # install Git for Windows first
 # commented out for now -> using gh tool to login to github
-# git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"
-git config --global --unset credential.helper
+git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"
+
+# git config --global --unset credential.helper
 
