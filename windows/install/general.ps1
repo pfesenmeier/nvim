@@ -2,6 +2,7 @@ $packages = $(
 'Axosoft.GitKraken'
 'BurntSushi.ripgrep.MSVC'
 'CoreyButler.NVMforWindows'
+'GitHub.cli'
 'Neovim.Neovim'
 'Microsoft.PowerShell'
 'Microsoft.VisualStudioCode'
