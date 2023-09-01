@@ -22,8 +22,16 @@ $packages = $(
 
 $packages | ForEach-Object { 
   Write-Host $PSItem -ForegroundColor Green
-  winget install $PSItem 
+  winget install --no-upgrade $PSItem
   Write-Host
 }
 
 Get-Command sed || winget install git.git --interactive --force
+
+if (Get-Command choco) {
+  Write-Host "Run from Elevated Prompt:"
+  Write-Host
+  Write-Host "choco install difftastic" 
+} else {
+  Start-Process "https://chocolatey.org/install#individual"
+}
