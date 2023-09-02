@@ -41,6 +41,16 @@ $env:path += ";C:\Program Files\starship\bin"
 $env:path += ";C:\ProgramData\chocolatey\bin"
 
 Invoke-Expression (&starship init powershell)
+# https://learn.microsoft.com/en-us/windows/terminal/tutorials/new-tab-same-directory
+function Invoke-Starship-PreCommand {
+  $loc = $executionContext.SessionState.Path.CurrentLocation;
+  $prompt = "$([char]27)]9;12$([char]7)"
+  if ($loc.Provider.Name -eq "FileSystem")
+  {
+    $prompt += "$([char]27)]9;9;`"$($loc.ProviderPath)`"$([char]27)\"
+  }
+  $host.ui.Write($prompt)
+}
 
 Set-Alias e nvim
 Set-Alias jq jq-win64.exe
