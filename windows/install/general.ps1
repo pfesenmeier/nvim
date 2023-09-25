@@ -2,7 +2,9 @@ $packages = $(
 'Axosoft.GitKraken'
 'BurntSushi.ripgrep.MSVC'
 'CoreyButler.NVMforWindows'
+'Docker.DockerDesktop'
 'GitHub.cli'
+'Hashicorp.Terraform'
 'Neovim.Neovim'
 'Microsoft.PowerShell'
 'Microsoft.VisualStudioCode'
@@ -36,3 +38,5 @@ if (Get-Command choco) {
 } else {
   Start-Process "https://chocolatey.org/install#individual"
 }
+
+# run wsl --update to install it for docker

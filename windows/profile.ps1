@@ -2,6 +2,11 @@
 Import-Module PSReadLine
 Import-Module CompletionPredictor
 
+# [Environment]::SetEnvironmentVariable("HOME", $HOME, "User")
+$env:HOME = $home
+
+Remove-Alias rm
+
 $PSReadlineOptions = @{
   BellStyle = "None"
   EditMode = "Vi"
@@ -53,7 +58,7 @@ function Invoke-Starship-PreCommand {
 }
 
 Set-Alias e nvim
-Set-Alias jq jq-win64.exe
+Set-Alias cat bat
 function i {
   Get-ChildItem -Directory
 }
