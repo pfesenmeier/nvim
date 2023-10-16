@@ -5,6 +5,7 @@ $packages = $(
 'Docker.DockerDesktop'
 'GitHub.cli'
 'Hashicorp.Terraform'
+'junegunn.fzf'
 'Neovim.Neovim'
 'Microsoft.PowerShell'
 'Microsoft.VisualStudioCode'

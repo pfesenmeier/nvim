@@ -31,7 +31,7 @@ require "paq" {
 
   -- workspace defaults to closest .git 
   -- removing for now to work in current project
-  -- "airblade/vim-rooter";
+  "airblade/vim-rooter";
 
   -- inlay hints for Rust
   "nvim-lua/lsp_extensions.nvim";
@@ -78,6 +78,7 @@ require "paq" {
   -- TODO what is spell check?
 }
 
+vim.g.rooter_patterns = {'.git', 'Makefile', '*.sln', 'build/env.sh'}
 
 require("pfes/completion")
 require("pfes/settings")
