@@ -3,7 +3,10 @@ Import-Module PSReadLine
 Import-Module CompletionPredictor
 
 # [Environment]::SetEnvironmentVariable("HOME", $HOME, "User")
-$env:HOME = $home
+# $env:HOME = $home
+
+$shared = "$home\Code\lids\int-3pl-shared"
+$notes = "$home\Code\lids\notes"
 
 Remove-Alias rm
 
@@ -59,6 +62,7 @@ function Invoke-Starship-PreCommand {
 
 Set-Alias e nvim
 Set-Alias cat bat
+Set-Alias bash 'C:\Program Files\Git\bin\bash.exe'
 function i {
   Get-ChildItem -Directory
 }

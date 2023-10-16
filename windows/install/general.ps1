@@ -12,6 +12,7 @@ $packages = $(
 'Microsoft.WindowsTerminal'
 'Obsidian.Obsidian'
 'Orange-OpenSource.Hurl'
+'Pulumi.Pulumi'
 'Python.Python.3.11'
 'SlackTechnologies.Slack'
 'Starship.Starship'

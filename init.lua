@@ -49,6 +49,9 @@ require "paq" {
   "hrsh7th/cmp-vsnip";
   "hrsh7th/vim-vsnip";
 
+  -- inspect decompiled C#
+  "Hoffs/omnisharp-extended-lsp.nvim";
+
   -- maybe rustdocs?
   "plasticboy/vim-markdown";
 
