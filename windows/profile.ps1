@@ -80,6 +80,8 @@ function clip {
     }
 }
 
+# Set-PSReadlineKeyHandler -Key Tab -Function Complete
+
 # https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=azure-cli#enable-tab-completion-on-powershell
 Register-ArgumentCompleter -Native -CommandName az -ScriptBlock {
     param($commandName, $wordToComplete, $cursorPosition)

@@ -7,6 +7,7 @@ $packages = $(
 'Hashicorp.Terraform'
 'junegunn.fzf'
 'Neovim.Neovim'
+'Microsoft.AzureCLI'
 'Microsoft.PowerShell'
 'Microsoft.VisualStudioCode'
 'Microsoft.Teams'
