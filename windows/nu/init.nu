@@ -1,11 +1,13 @@
-let nvim_path = [$nu.home-path nvim]  
-let config_path = $nvim_path | append [windows nu config]
-
-print $config_path
+let config_path = [$nu.home-path nvim windows nu config]
 
 def link [file_name: string] {
-  let from = $config_path | append $file_name | path join
-  let to = $nu.default-config-dir | append $file_name | path join
+  def create-path [path:list<string>] {
+    $path | append $file_name | path join
+  }
+
+  let from = create-path $config_path
+  let to = create-path $nu.default-config-dir
+
   {from: $from, to: $to}
 }
 
