@@ -6,6 +6,7 @@ $packages = $(
 'eza-community.eza'
 'GitHub.cli'
 'Hashicorp.Terraform'
+'JetBrains.Toolbox'
 'junegunn.fzf'
 'Neovim.Neovim'
 'Microsoft.AzureCLI'

@@ -4,3 +4,5 @@ $packages = $(
 )
 
 $packages | ForEach-Object { winget install $PSItem }
+
+dotnet tool install -g JetBrains.ReSharper.GlobalTools

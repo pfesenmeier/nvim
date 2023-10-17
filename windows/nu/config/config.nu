@@ -2,6 +2,10 @@
 #
 # version = "0.85.0"
 
+# TODO
+# starship prompt
+# autocompleter
+
 # For more information on defining custom themes, see
 # https://www.nushell.sh/book/coloring_and_theming.html
 # And here is the theme collection
@@ -769,3 +773,5 @@ alias e = nvim
 alias s = git status
 alias a = git add
 alias c = git commit
+alias b = git branch
+alias l = git log --oneline
