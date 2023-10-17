@@ -3,6 +3,7 @@ $packages = $(
 'BurntSushi.ripgrep.MSVC'
 'CoreyButler.NVMforWindows'
 'Docker.DockerDesktop'
+'eza-community.eza'
 'GitHub.cli'
 'Hashicorp.Terraform'
 'junegunn.fzf'

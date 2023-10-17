@@ -2,13 +2,11 @@
 Import-Module PSReadLine
 Import-Module CompletionPredictor
 
-# [Environment]::SetEnvironmentVariable("HOME", $HOME, "User")
-# $env:HOME = $home
-
-$shared = "$home\Code\lids\int-3pl-shared"
-$notes = "$home\Code\lids\notes"
+# TODO -> auto-set $HOME environment variable for git bash
 
 Remove-Alias rm
+Remove-Alias mv
+Set-Alias ls eza
 
 $PSReadlineOptions = @{
   BellStyle = "None"
@@ -70,6 +68,8 @@ function i {
 function s { git status }
 function a { git add $args }
 function c { git commit $args }
+function ll { eza -l }
+
 
 
 function clip {
@@ -108,3 +108,5 @@ $ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 if (Test-Path($ChocolateyProfile)) {
   Import-Module "$ChocolateyProfile"
 }
+
+. $home\nvim\windows\local.ps1
