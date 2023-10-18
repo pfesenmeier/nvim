@@ -111,4 +111,7 @@ if (Test-Path($ChocolateyProfile)) {
   Import-Module "$ChocolateyProfile"
 }
 
-. $home\nvim\windows\local.ps1
+$LocalSettings = $home\nvim\windows\local.ps1
+if (Test-Path($LocalSettings)) {
+  .  $LocalSettings
+}

@@ -7,6 +7,11 @@ $null = New-Item -ItemType SymbolicLink -Path $home\AppData\Local\nvim\lua -Valu
 $null = New-Item -ItemType SymbolicLink -Path $home\.ideavimrc -Value $home\nvim\windows\dotideavimrc -Force
 # $null = New-Item -ItemType SymbolicLink -Path $home\.rgignore -Value $home\nvim\windows\.rgignore -Force
 
+if (!(Test-Path $home\.config)) {
+  New-Item -Path $home\.config -ItemType Directory
+}
+$null = New-Item -ItemType SymbolicLink -Path $home\.config\starship.toml -Value $home\nvim\starship.toml
+
 # add .SH extension to PATHEXT system environment variable
 # associate .sh files with \Program Files\Git\bin\sh.exe
 
