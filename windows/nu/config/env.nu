@@ -3,19 +3,23 @@
 # version = "0.85.0"
 
 def create_left_prompt [] {
-    let home =  $nu.home-path
-
-    let dir = ([
-        ($env.PWD | str substring 0..($home | str length) | str replace $home "~"),
-        ($env.PWD | str substring ($home | str length)..)
-    ] | str join)
-
-    let path_color = (if (is-admin) { ansi red_bold } else { ansi green_bold })
-    let separator_color = (if (is-admin) { ansi light_red_bold } else { ansi light_green_bold })
-    let path_segment = $"($path_color)($dir)"
-
-    $path_segment | str replace --all (char path_sep) $"($separator_color)/($path_color)"
+    starship prompt --cmd-duration $env.CMD_DURATION_MS $'--status=($env.LAST_EXIT_CODE)'
 }
+
+# def create_left_prompt [] {
+#     let home =  $nu.home-path
+#
+#     let dir = ([
+#         ($env.PWD | str substring 0..($home | str length) | str replace $home "~"),
+#         ($env.PWD | str substring ($home | str length)..)
+#     ] | str join)
+#
+#     let path_color = (if (is-admin) { ansi red_bold } else { ansi green_bold })
+#     let separator_color = (if (is-admin) { ansi light_red_bold } else { ansi light_green_bold })
+#     let path_segment = $"($path_color)($dir)"
+#
+#     $path_segment | str replace --all (char path_sep) $"($separator_color)/($path_color)"
+# }
 
 def create_right_prompt [] {
     # create a right prompt in magenta with green separators and am/pm underlined
@@ -76,3 +80,5 @@ $env.NU_PLUGIN_DIRS = [
 
 # To add entries to PATH (on Windows you might use Path), you can use the following pattern:
 # $env.PATH = ($env.PATH | split row (char esep) | prepend '/some/path')
+
+$env.STARSHIP_SHELL = "nushell"
