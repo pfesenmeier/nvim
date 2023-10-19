@@ -21,8 +21,9 @@ param(
     }
 }
 
-$paths = (
+$paths = $(
   Join-Path $home AppData Local JetBrains Toolbox scripts
+  Join-Path \ "Program Files" omnisharp bin
 )
 
 $paths | ForEach-Object { AddTo-Path $PSItem }
