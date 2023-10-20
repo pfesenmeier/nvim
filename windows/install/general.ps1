@@ -1,5 +1,5 @@
 $packages = $(
-'Axosoft.GitKraken'
+# 'Axosoft.GitKraken'
 'BurntSushi.ripgrep.MSVC'
 'CoreyButler.NVMforWindows'
 'Docker.DockerDesktop'
@@ -15,7 +15,7 @@ $packages = $(
 'Microsoft.WindowsTerminal'
 'Obsidian.Obsidian'
 'Orange-OpenSource.Hurl'
-'Pulumi.Pulumi'
+# 'Pulumi.Pulumi'
 'Python.Python.3.11'
 'SlackTechnologies.Slack'
 'Starship.Starship'
@@ -23,6 +23,7 @@ $packages = $(
 'devtoys'
 'jqlang.jq'
 'junegunn.fzf'
+'gerardog.gsudo'
 'rsteube.Carapace'
 'sharkdp.bat'
 'sharkdp.fd'

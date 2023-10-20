@@ -113,5 +113,5 @@ if (Test-Path($ChocolateyProfile)) {
 
 $LocalSettings = "$home\nvim\windows\local.ps1"
 if (Test-Path($LocalSettings)) {
-  .  $LocalSettings
+  .  "$LocalSettings"
 }
