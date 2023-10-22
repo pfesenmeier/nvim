@@ -19,10 +19,10 @@ ln -sf $NVIM/init.lua $NVIM_CONFIG/init.lua
 ln -sf $NVIM/lua $NVIM_CONFIG/lua
 ln -sf $NVIM/dotbashrc $HOME/.bashrc
 mkdir -p $HOME/.config/fish
-ln -sf $NVIM/dotfish $HOME/.config/fish/config.fish
+ln -sf $NVIM/ubuntu/fish/dotfish $HOME/.config/fish/config.fish
 ln -sf $NVIM/dotripgrep $HOME/.ripgreprc
 mkdir -p ~/.config/fish/completions
-cp -f $NVIM/rg.fish ~/.config/fish/completions/
+cp -f $NVIM/ubuntu/fish/rg.fish ~/.config/fish/completions/
 mkdir -p ~/.cargo
 cp -f $NVIM/cargo_config.toml ~/.cargo/config.toml
 nvim +PaqSync
