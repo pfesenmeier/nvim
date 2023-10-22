@@ -1,7 +1,8 @@
-let config_path = [$nu.home-path nvim windows nu config]
+let config_path = [$nu.home-path nvim config]
 
 # https://www.nushell.sh/blog/2023-08-23-happy-birthday-nushell-4.html
 # Create a symlink
+# TODO: delete existing symlink
 export def symlink [
     existing: path   # The existing file
     link_name: path  # The name of the symlink
