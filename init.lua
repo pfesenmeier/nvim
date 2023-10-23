@@ -86,6 +86,7 @@ require("pfes/mappings")
 require("pfes/treesitter")
 require("pfes/lsp")
 
+vim.cmd('au BufRead,BufNewFile *.nu		set filetype=nu')
 require('Comment').setup()
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
