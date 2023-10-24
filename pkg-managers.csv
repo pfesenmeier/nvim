@@ -1,0 +1,4 @@
+name,install-args,platform
+winget,,windows
+apt,,linux
+npm,-g,

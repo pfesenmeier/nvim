@@ -1,27 +1,8 @@
 use std log
 use util.nu
 
-let sys_pkg_manager = (
-  if $nu.os-info.family == windows { 
-    'winget' 
-  } else { 
-    'apt' 
-  }
-)
-
-# list in order of precedence
-let pkg_managers = [
-  ['name' 'install-args' 'platform'];
-  ['winget' '' 'windows']
-  # TODO: what is $nu.os-info.family for linux?
-  ['apt' '' 'linux']
-  ['npm' '-g' '']
-] | where {|it| (
-      $it.platform == $nu.os-info.family
-      ) or (
-      $it.platform | is-empty
-      )
-    }
+# will choose first match
+let pkg_managers = open pkg-managers.csv | where platform in [$nu.os-info.family, '']
 
 # TODO: support script installs
 # TODO: support profiles (dotnet, js, etc..)
@@ -29,36 +10,9 @@ let pkg_managers = [
 # TODO: common lib for neovim, ra to use (LSP_LUA_ENABLED, etc..)
 # TODO: lang servers
 # TODO: universal git config
-# TODO: move tables to csv
 # TODO: drop column of unsupported package manages here
-let packages = [
-  ['cmd'        'apt'       'winget'                        'npm'   ];
-  ['az'         ''          'Microsoft.AzureCLI' '']
-  ['bat'        'bat'       'sharkdp.bat' '']
-  ['bash-language-server' '' '' 'bash-language-server']
-  ['carapace'   ''          'rsteube.Carapace' '']
-  ['code'       ''          'Microsoft.VisualStudioCode' '']
-  ['docker'     ''          'Docker.DockerDesktop' '']
-  ['eza'        ''          'eza-community.eza' '']
-  ['fd'         'fd-find'   'sharkdp.fd' '']
-  ['fzf'        'fzf'       'junegunn.fzf' ''      ]
-  ['gh'         ''          'GitHub.cli' ''      ]
-  ['gk'         ''          'Axosoft.GitKraken' ''      ]
-  ['hurl'       ''          'Orange-OpenSource.Hurl' ''      ]
-  ['jetbrains'  ''          'JetBrains.Toolbox' ''      ]
-  ['jq'         'jq'        'jqlang.jq' '' ]
-  ['nvim'       ''          'Neovim.Neovim' '' ]
-  ['nvm'        ''          'CoreyButler.NVMforWindows'     ''      ]
-  ['obsidian'   ''          'Obsidian.Obsidian' '' ]
-  ['python3'    ''          'Python.Python.3.11' '' ]
-  ['rg'         'ripgrep'   'BurntSushi.ripgrep.MSVC'       ''      ]
-  ['starship'   ''          'Starship.Starship' '' ]
-  ['terraform'  ''          'Hashicorp.Terraform' '' ]
-  ['unzip'      'unzip'     '' '' ]
-  ['wslu'       'wslu',     '' '' ]
-  ['zig'        ''          'zig.zig' '' ]
-  ['zoom'       ''          'Zoom.Zoom' '' ]
-]
+# TODO: handle empty list, list of all invalid
+let packages = open packages.csv
 
 def "ra list" [] {
   $packages 
