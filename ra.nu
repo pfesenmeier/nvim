@@ -1,5 +1,5 @@
 use std log
-use utility.nu
+use util.nu
 
 let sys_pkg_manager = (
   if $nu.os-info.family == windows { 
@@ -84,7 +84,7 @@ def "ra install" [...names: string] {
           $it 
           | select ($pkg_managers | get name) 
           | transpose pkg-manager pkg-id 
-          | where {|it| $it.pkg-id | is-empty | utility is-false } 
+          | where {|it| $it.pkg-id | util is-non-empty } 
         )
         if ($install_options | is-empty) {
           log warning $"No package manager available for ($it.cmd)"
@@ -97,7 +97,7 @@ def "ra install" [...names: string] {
           )
         }
       }
-    | filter {|it| $it.pkg-manager | is-empty | utility is-false}
+    | filter {|it| $it.pkg-manager | util is-non-empty}
     | select cmd pkg-manager pkg-id
     | group-by pkg-manager
     | transpose pkg-manager pkgs
