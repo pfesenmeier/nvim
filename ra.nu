@@ -30,6 +30,7 @@ let pkg_managers = [
 # TODO: lang servers
 # TODO: universal git config
 # TODO: move tables to csv
+# TODO: drop column of unsupported package manages here
 let packages = [
   ['cmd'        'apt'       'winget'                        'npm'   ];
   ['az'         ''          'Microsoft.AzureCLI' '']
@@ -84,7 +85,7 @@ def "ra install" [...names: string] {
           $it 
           | select ($pkg_managers | get name) 
           | transpose pkg-manager pkg-id 
-          | where {|it| $it.pkg-id | util is-non-empty } 
+          | where pkg-manager != ''
         )
         if ($install_options | is-empty) {
           log warning $"No package manager available for ($it.cmd)"
@@ -97,14 +98,14 @@ def "ra install" [...names: string] {
           )
         }
       }
-    | filter {|it| $it.pkg-manager | util is-non-empty}
-    | select cmd pkg-manager pkg-id
+    | where pkg-manager != ''
+    | select pkg-manager pkg-id
     | group-by pkg-manager
     | transpose pkg-manager pkgs
     | join --left $pkg_managers pkg-manager name
     | reject name
     | each {|it| 
-        let pkgs = $it.pkgs | select cmd pkg-id
+        let pkgs = $it.pkgs | select pkg-id
         $it | update pkgs $pkgs
       }
     | each {|it|
