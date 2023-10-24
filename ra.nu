@@ -99,18 +99,22 @@ def "ra install" [...names: string] {
       }
     | filter {|it| $it.pkg-manager | is-empty | utility is-false}
     | select cmd pkg-manager pkg-id
+    | group-by pkg-manager
+    | transpose pkg-manager pkgs
     | join --left $pkg_managers pkg-manager name
     | reject name
-    | move pkg-id --after install-args
     | each {|it| 
+        let pkgs = $it.pkgs | select cmd pkg-id
+        $it | update pkgs $pkgs
+      }
+    | each {|it|
         print ''
-        log info $"Installing '($it.cmd)' from ($it.pkg-manager)..."
+        log info $"Installing ($it.pkgs.pkg-id | str join ' ') from ($it.pkg-manager)..."
         if ($it.install-args | is-empty) {
-          run-external $it.pkg-manager install $it.pkg-id
+          run-external $it.pkg-manager install $it.pkgs.pkg-id
         } else {
-          run-external $it.pkg-manager install $it.install-args $it.pkg-id
+          run-external $it.pkg-manager install $it.install-args $it.pkgs.pkg-id
         }
-        print ''
       }
   )
   ignore
