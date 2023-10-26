@@ -4,9 +4,9 @@ use util.nu
 # will choose first match
 let pkg_managers = open pkg-managers.csv | where platform in [$nu.os-info.family, '']
 
+# TODO: library for symlinking, unzipping, putting in bin folder
 # TODO: support script installs
 # TODO: support profiles (dotnet, js, etc..)
-# TODO: library for symlinking, unzipping, putting in bin folder
 # TODO: common lib for neovim, ra to use (LSP_LUA_ENABLED, etc..)
 # TODO: lang servers
 # TODO: universal git config

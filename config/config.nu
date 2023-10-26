@@ -771,3 +771,5 @@ alias a = git add
 alias c = git commit
 alias b = git branch
 alias l = git log --oneline
+
+source ra-env.nu

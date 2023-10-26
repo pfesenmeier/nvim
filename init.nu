@@ -37,4 +37,4 @@ def link_nu_config [file_name: string] {
 
 link_nu_config 'config.nu'
 link_nu_config 'env.nu'
-
+link_nu_config 'ra-env.nu'

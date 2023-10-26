@@ -10,17 +10,25 @@ export def dump [] {
   $result
 }
 
-# problem: only works on windows
-# problem: will be applied to all machines
-# solution: on windows, add to calls to registry
-# on linux, create linux.env.nu ??
 export def "env path add" [
   path: path
 ] {
-  if ($path | path exists) == false) {
+  if ($path | path exists) == false {
     log error "Path does not exist"
+    return
+  }
+  if $nu.os-info.family == 'windows' {
+    let env_path = $nu.config-path | path basename -r ra-env.nu
+    (
+      $env_path
+      | open
+      | append $"$env.Path = \($env.Path | prepend ($path | path join))" 
+      | str join 
+      | save -f $env_path
+    )
+    log info $"Successfully added ($env.Path | get $path) to path"
   } else {
-    open $nu.env-path | append $"$env.Path = \($env.Path | prepend ($path | path join))" | str join | save -f $nu.env-path
+    log error "Path setting not implemented for this platform"
   }
 }
 
