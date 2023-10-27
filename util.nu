@@ -1,9 +1,5 @@
 use std log
 
-export def is-non-empty [] {
-  ($in | is-empty) == false
-}
-
 export def dump [] {
   let result = $in;
   $result | print
@@ -36,19 +32,21 @@ export def "env path add" [
 # set that somewhere
 
 # https://github.com/OmniSharp/omnisharp-roslyn/releases/latest/download/omnisharp-win-x64-net6.0.zip
-# github-latest 
-export def github-latest [
+export def github latest [
   repo: string
-  file: path
-  dir: path
-] (
-  if ($file | path parse | get extension) != 'zip' {
-    log error "only zip files are supported"
-  } else {
-    # creates directory path if does not exist
-    gh release download --repo $repo --pattern ($file | path join) --dir ($dir | path join)
+  file: string
+  dir: string
+] {
+  (
+    if ($file | path parse | get extension) != 'zip' {
+      log error "only zip files are supported"
+    } else {
+      # creates directory path if does not exist
+      run-external gh release download "--repo" $repo "--pattern" $file "--dir" $dir
 
-    unzip ([$dir $file] | path join) -d $dir 
-    [$dir $file] | path parse | rm $in
-  }
-)
+      let zip_path = [$dir $file] | path join
+      run-external unzip $zip_path "-d" $dir 
+      $zip_path | rm $in
+    }
+  )
+}
