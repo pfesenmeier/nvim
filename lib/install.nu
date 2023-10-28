@@ -23,3 +23,16 @@ def 'download lua-language-server' [] {
 
  util env path add ($install_dir | append bin | path join)
 }
+
+def 'download difft' [] {
+ let install_dir = [$app_dir difft] | path join
+ 
+ (
+   util github latest 
+   Wilfred/difftastic 
+   difft-x86_64-pc-windows-msvc.zip
+   $install_dir
+ )
+
+ util env path add $install_dir
+}

@@ -14,12 +14,17 @@ export def "env path add" [
     return
   }
   if $nu.os-info.family == 'windows' {
-    let env_path = $nu.config-path | path basename -r ra-env.nu
+    let env_path = $nu.config-path | path basename -r lib | path join ra-env.nu
+
+    if ($env_path | path exists) == false {
+      touch $env_path
+    }
+
     (
       $env_path
       | open
       | append $"$env.Path = \($env.Path | prepend ($path))" 
-      | str join 
+      | str join (char newline)
       | save -f $env_path
     )
     log info $"Successfully added ($path) to path"

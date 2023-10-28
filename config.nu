@@ -775,3 +775,4 @@ alias l = git log --oneline
 source lib/ra.nu
 source lib/util.nu
 source lib/install.nu
+source lib/ra-env.nu
