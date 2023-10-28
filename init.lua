@@ -1,14 +1,6 @@
 -- Paq Command: PaqSync
 
 vim.g.mapleader = " "
--- to execute Vim commands 
-local cmd = vim.cmd  
--- to call Vim functions
-local fn = vim.fn    
--- a table to access global variables
-local g = vim.g      
--- to set options
-local opt = vim.opt 
 
 -- install paq-nvim if not already installed ( from savq/paq-nvim )
 -- commenting out... does not work on windows
@@ -78,7 +70,7 @@ require "paq" {
   -- TODO what is spell check?
 }
 
-vim.g.rooter_patterns = {'.git', 'Makefile', '*.sln', 'build/env.sh'}
+vim.g.rooter_patterns = {'.git', 'Makefile', '*.sln', '*.csproj', 'build/env.sh'}
 
 require("pfes/completion")
 require("pfes/settings")
@@ -94,4 +86,3 @@ require('Comment').setup()
 -- yank highliht
 -- undodir
 -- set capslock to ctrl
-

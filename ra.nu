@@ -2,16 +2,20 @@ use std log
 use util.nu
 
 # will choose first match
-let pkg_managers = open pkg-managers.csv | where platform in [$nu.os-info.family, '']
+let pkg_managers = (
+  $env.nvim_repo
+  | append pkg-managers.csv
+  | path join
+  | open
+  | where platform in [$nu.os-info.family, '']
+)
 
+# TODO: let setup of ra-env file be less painful
 # TODO: library for symlinking, unzipping, putting in bin folder
 # TODO: support script installs
 # TODO: support profiles (dotnet, js, etc..)
 # TODO: common lib for neovim, ra to use (LSP_LUA_ENABLED, etc..)
-# TODO: lang servers
 # TODO: universal git config
-# TODO: drop column of unsupported package manages here
-# TODO: handle empty list, list of all invalid
 let packages = open packages.csv
 
 def "ra list" [] {
@@ -19,7 +23,7 @@ def "ra list" [] {
 }
 
 def "ra install" [...names: string] {
-  (
+  let pkg_list = (
     $names
     | wrap arg
     | join --left $packages arg cmd
@@ -54,6 +58,14 @@ def "ra install" [...names: string] {
       }
     | where pkg-manager != ''
     | select pkg-manager pkg-id
+  )
+
+  if ($pkg_list | is-empty) {
+    return
+  }
+
+  (
+    $pkg_list
     | group-by pkg-manager
     | transpose pkg-manager pkgs
     | join --left $pkg_managers pkg-manager name
