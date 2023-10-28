@@ -773,3 +773,4 @@ alias b = git branch
 alias l = git log --oneline
 
 source ra-env.nu
+source ../ra.nu

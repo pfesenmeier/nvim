@@ -7,7 +7,7 @@ export def dump [] {
 }
 
 export def "env path add" [
-  path: path
+  path: string
 ] {
   if ($path | path exists) == false {
     log error "Path does not exist"
@@ -18,11 +18,11 @@ export def "env path add" [
     (
       $env_path
       | open
-      | append $"$env.Path = \($env.Path | prepend ($path | path join))" 
+      | append $"$env.Path = \($env.Path | prepend ($path))" 
       | str join 
       | save -f $env_path
     )
-    log info $"Successfully added ($env.Path | get $path) to path"
+    log info $"Successfully added ($path) to path"
   } else {
     log error "Path setting not implemented for this platform"
   }
@@ -32,7 +32,7 @@ export def "env path add" [
 # set that somewhere
 
 # https://github.com/OmniSharp/omnisharp-roslyn/releases/latest/download/omnisharp-win-x64-net6.0.zip
-export def github latest [
+export def 'github latest' [
   repo: string
   file: string
   dir: string
