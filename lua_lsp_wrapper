@@ -1,6 +1,0 @@
-#! /usr/bin/env bash
-
-NVIM=$HOME/nvim
-FOLDER=lua-language-server
-exec "$NVIM/$FOLDER/bin/lua-language-server" "$@"
-

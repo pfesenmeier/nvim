@@ -54,6 +54,9 @@ require "paq" {
   "nvim-lua/plenary.nvim";
   "nvim-telescope/telescope.nvim";
 
+  -- file explorer
+  "nvim-telescope/telescope-file-browser.nvim";
+
   -- git
   "tpope/vim-fugitive";
   -- enable Gbrowse with github
@@ -80,6 +83,18 @@ require("pfes/lsp")
 
 vim.cmd('au BufRead,BufNewFile *.nu		set filetype=nu')
 require('Comment').setup()
+
+require("telescope").setup {
+  extensions = {
+    file_browser = {
+      theme = "ivy",
+      -- disables netrw and use telescope-file-browser in its place
+      hijack_netrw = true,
+    },
+  },
+}
+
+require("telescope").load_extension "file_browser"
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
 -- light line??

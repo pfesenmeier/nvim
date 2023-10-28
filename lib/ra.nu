@@ -3,20 +3,14 @@ use util.nu
 
 # will choose first match
 let pkg_managers = (
-  $env.nvim_repo
+  $env.lib-path
   | append pkg-managers.csv
   | path join
   | open
   | where platform in [$nu.os-info.family, '']
 )
 
-# TODO: let setup of ra-env file be less painful
-# TODO: library for symlinking, unzipping, putting in bin folder
-# TODO: support script installs
-# TODO: support profiles (dotnet, js, etc..)
-# TODO: common lib for neovim, ra to use (LSP_LUA_ENABLED, etc..)
-# TODO: universal git config
-let packages = open packages.csv
+let packages = [$env.lib-path packages.csv] | path join | open
 
 def "ra list" [] {
   $packages 

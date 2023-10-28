@@ -1,4 +1,4 @@
-let config_path = [$nu.home-path nvim config]
+let config_path = [$nu.home-path nvim]
 
 # https://www.nushell.sh/blog/2023-08-23-happy-birthday-nushell-4.html
 # Create a symlink
@@ -37,4 +37,5 @@ def link_nu_config [file_name: string] {
 
 link_nu_config 'config.nu'
 link_nu_config 'env.nu'
-link_nu_config 'ra-env.nu'
+link_nu_config 'lib'
+

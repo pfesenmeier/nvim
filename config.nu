@@ -771,3 +771,7 @@ alias a = git add
 alias c = git commit
 alias b = git branch
 alias l = git log --oneline
+
+source lib/ra.nu
+source lib/util.nu
+source lib/install.nu

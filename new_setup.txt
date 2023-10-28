@@ -1,0 +1,3 @@
+# symlink lib directory no config/lib
+# adds new dir to NU_DIRS...
+# update source commands

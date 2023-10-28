@@ -63,6 +63,13 @@ vim.keymap.set('n', 'gE', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', 'ge', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 
+vim.api.nvim_set_keymap(
+  "n",
+  "<space>ff",
+  ":Telescope file_browser path=%:p:h select_buffer=true<CR>",
+  { noremap = true }
+)
+
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
 -- see lsp.lua where this is being used
