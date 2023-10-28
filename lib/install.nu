@@ -24,6 +24,19 @@ def 'download lua-language-server' [] {
  util env path add ($install_dir | append bin | path join)
 }
 
+def 'download omnisharp' [] {
+ let install_dir = [$app_dir omnisharp] | path join
+ 
+ (
+   util github latest 
+   OmniSharp/omnisharp-roslyn 
+   omnisharp-win-x64.zip
+   $install_dir
+ )
+
+ util env path add $install_dir
+}
+
 def 'download difft' [] {
  let install_dir = [$app_dir difft] | path join
  
