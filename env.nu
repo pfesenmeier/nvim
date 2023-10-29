@@ -70,7 +70,7 @@ $env.ENV_CONVERSIONS = {
 $env.NU_LIB_DIRS = [
     # FIXME: This default is not implemented in rust code as of 2023-09-06.
     ($nu.default-config-dir | path join 'scripts') # add <nushell-config-dir>/scripts
-    ($nu.config-path | path dirname | path join 'lib')
+    ($nu.default-config-dir | path join 'lib')
 ]
 
 # Directories to search for plugin binaries when calling register

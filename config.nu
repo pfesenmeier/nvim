@@ -772,7 +772,8 @@ alias c = git commit
 alias b = git branch
 alias l = git log --oneline
 
-source lib/ra.nu
-source lib/util.nu
-source lib/install.nu
-source lib/ra-env.nu
+# https://github.com/nushell/nushell/issues/7849
+source C:\Users\pfese\AppData\Roaming\nushell\lib\ra.nu
+source C:\Users\pfese\AppData\Roaming\nushell\lib\util.nu
+source C:\Users\pfese\AppData\Roaming\nushell\lib\install.nu
+source C:\Users\pfese\AppData\Roaming\nushell\lib\ra-env.nu

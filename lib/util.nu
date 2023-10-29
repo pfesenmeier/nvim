@@ -6,6 +6,28 @@ export def dump [] {
   $result
 }
 
+export def "env path try add" [
+  folder: string
+  file: string
+] {
+  if ($folder | path type) != 'dir' {
+    log error $"folder ($folder) does not exist"
+    return
+  }
+
+  let search_results = ls $"($folder)/**/($file)"
+
+  if ($search_results | is-empty) {
+    log error $"could not find ($file) in ($folder)"
+    return
+  }
+
+  let file = $search_results | get 0.name
+  let base_path = $file | path dirname
+
+  env path add $base_path
+}
+
 export def "env path add" [
   path: string
 ] {
