@@ -37,7 +37,7 @@ def "ra install" [...names: string] {
           $it 
           | select ($pkg_managers | get name) 
           | transpose pkg-manager pkg-id 
-          | where pkg-manager != ''
+          | where pkg-id != ''
         )
         if ($install_options | is-empty) {
           log warning $"No package manager available for ($it.cmd)"
