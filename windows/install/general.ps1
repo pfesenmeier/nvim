@@ -15,13 +15,4 @@ $packages | ForEach-Object {
 
 Get-Command sed || winget install git.git --interactive --force
 
-if (Get-Command choco) {
-  Write-Host "Run from Elevated Prompt:"
-  Write-Host
-  Write-Host "choco install difftastic" 
-} else {
-  Write-Host "Need Chocolatey to install difftastic"
-  Start-Process "https://chocolatey.org/install#individual"
-}
-
 # run wsl --update to install it for docker

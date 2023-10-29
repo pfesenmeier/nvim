@@ -1,4 +1,0 @@
-#! /usr/bin/env bash
-
-gh pr view --jq .title --json title
-gh pr view --jq .url --json url
