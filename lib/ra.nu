@@ -71,10 +71,10 @@ def "ra install" [...names: string] {
     | each {|it|
         print ''
         log info $"Installing ($it.pkgs.pkg-id | str join ' ') from ($it.pkg-manager)..."
-        if ($it.install-args | is-empty) {
-          run-external $it.pkg-manager install $it.pkgs.pkg-id
+        if (($it.install-cmd | str contains ' ') == false) {
+          run-external $it.pkg-manager $it.install-cmd $it.pkgs.pkg-id
         } else {
-          run-external $it.pkg-manager install $it.install-args $it.pkgs.pkg-id
+          run-external $it.pkg-manager ($it.install-cmd | split row " ") $it.pkgs.pkg-id
         }
       }
   )

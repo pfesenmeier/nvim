@@ -62,8 +62,3 @@ def 'download difft' [] {
     log error "unsupported platform"
   }
 }
-
-def 'download jetbrains-clis' [] {
-  dotnet tool install -g JetBrains.ReSharper.GlobalTools
-  dotnet tool install JetBrains.dotCover.GlobalTool -g
-}
