@@ -13,13 +13,17 @@ vim.g.mapleader = " "
 require "paq" {
   "savq/paq-nvim";
   -- 'simrat39/rust-tools.nvim'
-  "nvim-treesitter/nvim-treesitter";
+  { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
   "neovim/nvim-lspconfig";
   -- prevent remote code execution
   "ciaranm/securemodelines";
 
   -- jumping around
   'ggandor/lightspeed.nvim';
+
+  -- debug
+  'mfussenegger/nvim-dap';
+  'theHamsta/nvim-dap-virtual-text';
 
   -- workspace defaults to closest .git 
   -- removing for now to work in current project
@@ -95,6 +99,26 @@ require("telescope").setup {
 }
 
 require("telescope").load_extension "file_browser"
+
+local dap = require('dap')
+
+dap.adapters.coreclr = {
+  type = 'executable',
+  command = 'C:\\Users\\pfese\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe',
+  args = {'--interpreter=vscode'}
+}
+
+dap.configurations.cs = {
+  {
+    type = "coreclr",
+    name = "launch - netcoredbg",
+    request = "launch",
+    program = function()
+        return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/', 'file')
+    end,
+  },
+}
+require("nvim-dap-virtual-text").setup()
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
 -- light line??

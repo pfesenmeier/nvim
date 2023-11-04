@@ -62,3 +62,16 @@ def 'download difft' [] {
     log error "unsupported platform"
   }
 }
+
+def 'download netcoredbg' [] {
+  if $nu.os-info.family == 'windows' {
+    (
+      download
+      Samsung/netcoredbg 
+      netcoredbg-win64.zip
+      netcoredbg.exe
+    )
+  } else {
+    log error "unsupported platform"
+  }
+}
