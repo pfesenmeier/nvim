@@ -32,11 +32,9 @@ require "paq" {
   -- removing for now to work in current project
   "airblade/vim-rooter";
 
-  -- inlay hints for Rust
-  "nvim-lua/lsp_extensions.nvim";
-
   -- enable rust formatting
-  "rust-lang/rust.vim";
+  -- "rust-lang/rust.vim";
+
   "editorconfig/editorconfig-vim";
 
   -- completion
@@ -53,9 +51,6 @@ require "paq" {
 
   -- inspect decompiled C#
   "Hoffs/omnisharp-extended-lsp.nvim";
-
-  -- maybe rustdocs?
-  "plasticboy/vim-markdown";
 
   -- colors
    "ellisonleao/gruvbox.nvim";
@@ -82,8 +77,6 @@ require "paq" {
   "jghauser/mkdir.nvim";
 
   -- TODO vim surround again?
-  -- TODO undo memory between settings
-  -- TODO what is spell check?
 }
 
 vim.g.rooter_patterns = {'.git', 'Makefile', '*.sln', '*.csproj', 'build/env.sh'}
@@ -102,7 +95,7 @@ require("telescope").setup {
     file_browser = {
       theme = "ivy",
       -- disables netrw and use telescope-file-browser in its place
-      hijack_netrw = true,
+      -- hijack_netrw = true,
     },
   },
 }
