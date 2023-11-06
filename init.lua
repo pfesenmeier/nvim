@@ -49,6 +49,7 @@ require "paq" {
   "hrsh7th/nvim-cmp";
   "hrsh7th/cmp-vsnip";
   "hrsh7th/vim-vsnip";
+  "hrsh7th/cmp-nvim-lsp-signature-help";
 
   -- inspect decompiled C#
   "Hoffs/omnisharp-extended-lsp.nvim";
