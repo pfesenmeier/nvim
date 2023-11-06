@@ -20,6 +20,8 @@ o.syntax = 'on'
 o.termguicolors = true
 o.background = "dark"
 c([[colorscheme gruvbox]])
+-- default highlight group for nvim-dap is a bright blue
+vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F36' })
 
 c('set number')
 c('set nofoldenable')

@@ -1,5 +1,8 @@
 -- Paq Command: PaqSync
 
+-- https://neovim.io/doc/user/lua.html#vim.loader
+vim.loader.enable()
+
 vim.g.mapleader = " "
 
 -- install paq-nvim if not already installed ( from savq/paq-nvim )
@@ -38,8 +41,10 @@ require "paq" {
 
   -- completion
   "hrsh7th/cmp-nvim-lsp";
+  "hrsh7th/cmp-nvim-lua";
   "hrsh7th/cmp-buffer";
-  "hrsh7th/cmp-path";
+  "FelipeLema/cmp-async-path";
+  -- "hrsh7th/cmp-path";
   "hrsh7th/cmp-cmdline";
   "hrsh7th/nvim-cmp";
   "hrsh7th/cmp-vsnip";
@@ -53,6 +58,9 @@ require "paq" {
 
   -- colors
    "ellisonleao/gruvbox.nvim";
+
+  -- autosave
+  "pocco81/auto-save.nvim";
 
   -- fuzzy search
   "nvim-lua/plenary.nvim";
@@ -118,6 +126,8 @@ dap.configurations.cs = {
     end,
   },
 }
+
+
 require("nvim-dap-virtual-text").setup()
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
