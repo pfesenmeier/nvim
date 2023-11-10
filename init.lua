@@ -22,15 +22,15 @@ require "paq" {
   "ciaranm/securemodelines";
 
   -- jumping around
-  'ggandor/lightspeed.nvim';
+  'tpope/vim-repeat';
+  'ggandor/leap.nvim';
 
   -- debug
   'mfussenegger/nvim-dap';
   'theHamsta/nvim-dap-virtual-text';
 
   -- workspace defaults to closest .git 
-  -- removing for now to work in current project
-  "airblade/vim-rooter";
+  -- "airblade/vim-rooter";
 
   -- enable rust formatting
   -- "rust-lang/rust.vim";
@@ -41,8 +41,8 @@ require "paq" {
   "hrsh7th/cmp-nvim-lsp";
   "hrsh7th/cmp-nvim-lua";
   "hrsh7th/cmp-buffer";
-  "FelipeLema/cmp-async-path";
-  -- "hrsh7th/cmp-path";
+  -- "FelipeLema/cmp-async-path";
+  "hrsh7th/cmp-path";
   "hrsh7th/cmp-cmdline";
   "hrsh7th/nvim-cmp";
   "hrsh7th/cmp-vsnip";
@@ -79,7 +79,7 @@ require "paq" {
   -- TODO vim surround again?
 }
 
-vim.g.rooter_patterns = {'.git', 'Makefile', '*.sln', '*.csproj', 'build/env.sh'}
+-- vim.g.rooter_patterns = {'.git', 'Makefile', '*.sln', 'build/env.sh'}
 
 require("pfes/completion")
 require("pfes/settings")
@@ -95,7 +95,7 @@ require("telescope").setup {
     file_browser = {
       theme = "ivy",
       -- disables netrw and use telescope-file-browser in its place
-      -- hijack_netrw = true,
+      hijack_netrw = true,
     },
   },
 }
@@ -123,6 +123,7 @@ dap.configurations.cs = {
 
 
 require("nvim-dap-virtual-text").setup()
+require('leap').add_default_mappings()
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
 -- light line??

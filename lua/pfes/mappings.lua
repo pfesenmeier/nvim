@@ -25,8 +25,8 @@ map("n", "<leader>x", ":x<CR>", { noremap = true })
 
 
 -- remap colon
-map("n", ";", ":", { noremap = true })
-map("n", ":", ";", { noremap = true })
+-- map("n", ";", ":", { noremap = true })
+-- map("n", ":", ";", { noremap = true })
 
 map("n", "q", "<c-v>", { noremap = true })
 
@@ -66,7 +66,8 @@ vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 vim.api.nvim_set_keymap(
   "n",
   "<space>ff",
-  ":Telescope file_browser path=%:p:h select_buffer=true<CR>",
+  ":Telescope file_browser<CR>",
+  -- ":Telescope file_browser path=%:p:h select_buffer=true<CR>",
   { noremap = true }
 )
 
