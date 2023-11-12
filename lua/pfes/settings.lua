@@ -16,8 +16,8 @@ o.scrolloff = 999
 o.expandtab = true
 
 -- theme stuff
-o.syntax = 'on'
-o.termguicolors = true
+-- o.syntax = 'on'
+-- o.termguicolors = true
 o.background = "dark"
 c([[colorscheme gruvbox]])
 -- default highlight group for nvim-dap is a bright blue

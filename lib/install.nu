@@ -29,7 +29,7 @@ def 'download lua-language-server' [] {
     (
       download
       LuaLS/lua-language-server 
-      lua-language-server-3.7.0-win32-x64.zip 
+      lua-language-server-3.7.2-win32-x64.zip
       lua-language-server.exe
     )
   } else {

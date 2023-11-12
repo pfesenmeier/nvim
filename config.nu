@@ -776,3 +776,4 @@ source ra.nu
 source util.nu
 source install.nu
 source ra-env.nu
+source clean.nu

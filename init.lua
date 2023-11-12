@@ -15,25 +15,21 @@ vim.g.mapleader = " "
 -- from https://oroques.dev/notes/neovim-init/
 require "paq" {
   "savq/paq-nvim";
-  -- 'simrat39/rust-tools.nvim'
   { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
   "neovim/nvim-lspconfig";
   -- prevent remote code execution
   "ciaranm/securemodelines";
 
-  -- jumping around
-  'tpope/vim-repeat';
-  'ggandor/leap.nvim';
-
   -- debug
   'mfussenegger/nvim-dap';
   'theHamsta/nvim-dap-virtual-text';
+  'antoinemadec/FixCursorHold.nvim';
+  'nvim-neotest/neotest';
+  'Issafalcon/neotest-dotnet';
 
   -- workspace defaults to closest .git 
-  -- "airblade/vim-rooter";
-
-  -- enable rust formatting
-  -- "rust-lang/rust.vim";
+  -- trying to use tcd (tab), lcd (window), cd
+  "airblade/vim-rooter";
 
   "editorconfig/editorconfig-vim";
 
@@ -41,7 +37,6 @@ require "paq" {
   "hrsh7th/cmp-nvim-lsp";
   "hrsh7th/cmp-nvim-lua";
   "hrsh7th/cmp-buffer";
-  -- "FelipeLema/cmp-async-path";
   "hrsh7th/cmp-path";
   "hrsh7th/cmp-cmdline";
   "hrsh7th/nvim-cmp";
@@ -55,15 +50,9 @@ require "paq" {
   -- colors
    "ellisonleao/gruvbox.nvim";
 
-  -- autosave
-  "pocco81/auto-save.nvim";
-
   -- fuzzy search
   "nvim-lua/plenary.nvim";
   "nvim-telescope/telescope.nvim";
-
-  -- file explorer
-  "nvim-telescope/telescope-file-browser.nvim";
 
   -- git
   "tpope/vim-fugitive";
@@ -72,14 +61,9 @@ require "paq" {
 
   -- comments
   "numToStr/Comment.nvim";
-
-  -- make missing directories on save
-  "jghauser/mkdir.nvim";
-
-  -- TODO vim surround again?
 }
 
--- vim.g.rooter_patterns = {'.git', 'Makefile', '*.sln', 'build/env.sh'}
+vim.g.rooter_patterns = {'.git', 'Makefile', '*.sln', 'build/env.sh'}
 
 require("pfes/completion")
 require("pfes/settings")
@@ -90,21 +74,15 @@ require("pfes/lsp")
 vim.cmd('au BufRead,BufNewFile *.nu		set filetype=nu')
 require('Comment').setup()
 
-require("telescope").setup {
-  extensions = {
-    file_browser = {
-      theme = "ivy",
-      -- disables netrw and use telescope-file-browser in its place
-      hijack_netrw = true,
-    },
-  },
-}
-
-require("telescope").load_extension "file_browser"
-
 local dap = require('dap')
 
 dap.adapters.coreclr = {
+  type = 'executable',
+  command = 'C:\\Users\\pfese\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe',
+  args = {'--interpreter=vscode'}
+}
+
+dap.adapters.netcoredbg = {
   type = 'executable',
   command = 'C:\\Users\\pfese\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe',
   args = {'--interpreter=vscode'}
@@ -121,12 +99,12 @@ dap.configurations.cs = {
   },
 }
 
-
 require("nvim-dap-virtual-text").setup()
-require('leap').add_default_mappings()
+
+require("neotest").setup({
+  adapters = {
+    require("neotest-dotnet")
+  }
+})
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
--- light line??
--- yank highliht
--- undodir
--- set capslock to ctrl

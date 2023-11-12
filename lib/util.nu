@@ -45,7 +45,7 @@ export def "env path add" [
     (
       $env_path
       | open
-      | append $"$env.Path = \($env.Path | prepend ($path))" 
+      | append $"$env.PATH = \($env.PATH | prepend ($path))" 
       | str join (char newline)
       | save -f $env_path
     )

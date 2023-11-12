@@ -19,19 +19,28 @@ end
 
 vim.keymap.set('n', '<leader>r', ReloadConfig, { noremap = true })
 
--- quicksave
+-- common command line motions
 map("n", "<leader>w", ":w<CR>", { noremap = true })
 map("n", "<leader>x", ":x<CR>", { noremap = true })
+map("n", "<leader>q", ":q<CR>", { noremap = true })
+map("n", "<leader>e", ":e ", { noremap = true })
+map("n", "<leader>;", ":", { noremap = true })
+-- go to folder view of current file
+map("n", "<leader>o", ":Explore<cr>", opts)
+-- toggle buffers
+map("n", "<leader><leader>", "<c-^>", opts)
+-- idea is to have quick solution to paste same content multiple times
+-- will not have access to cut content...
+-- v_P does same thing?
+map("n", "<leader>p", "\"0p", { noremap = true })
 
-
--- remap colon
--- map("n", ";", ":", { noremap = true })
--- map("n", ":", ";", { noremap = true })
-
-map("n", "q", "<c-v>", { noremap = true })
+-- TODO
+-- vs +terminal\ nu.exe will open terminal
+--
+-- use <c-q> for visual block mode on windows
 
 -- open helpers
-map("n", "<leader>;", ":buffers", opts)
+-- map("n", "<leader>;", ":buffers", opts)
 map("n", "<c-p>", ":files", opts)
 
 -- :b, :f (buffer/file name) auto-completes!
@@ -44,32 +53,23 @@ map("n", "<right>", ":bn<cr>", opts)
 map("n", "H", "^", opts)
 map("n", "L", "$", opts)
 
--- go to folder view of current file
-map("n", "<leader>o", ":Explore<cr>", opts)
-
--- toggle buffers
-map("n", "<leader><leader>", "<c-^>", opts)
 
 -- functions eagerly load module. see :help vim.keymap.set()
 vim.keymap.set("n", "<leader>rg", function() return require('telescope.builtin').live_grep() end, opts)
 vim.keymap.set("n", "<leader>fd", function() return require('telescope.builtin').find_files() end, opts)
 vim.keymap.set("n", "<leader>fb", function() return require('telescope.builtin').buffers() end, opts)
 vim.keymap.set("n", "<leader>fh", function() return require('telescope.builtin').help_tags() end, opts)
+vim.keymap.set("n", "<leader>ft", function() return require('telescope.builtin').treesitter() end, opts)
+vim.keymap.set("n", "<leader>fc", function() return require('telescope.builtin').git_bcommits() end, opts)
+vim.keymap.set("n", "<leader>rr", function() return require('telescope.builtin').resume() end, opts)
 
 -- Language server shortcuts from https://github.com/neovim/nvim-lspconfig
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
-vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
+vim.keymap.set('n', '<leader>E', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', 'gE', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', 'ge', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 
-vim.api.nvim_set_keymap(
-  "n",
-  "<space>ff",
-  ":Telescope file_browser<CR>",
-  -- ":Telescope file_browser path=%:p:h select_buffer=true<CR>",
-  { noremap = true }
-)
 
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
