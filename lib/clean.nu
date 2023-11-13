@@ -8,3 +8,11 @@ def clean [] {
 
   run-external "jb" "cleanupcode" '--profile"Built-in: Full Cleanup"' $changed;
 }
+
+def "clean pr" [branch: string] {
+  run-external "git" "fetch" "origin" $"($branch):($branch)"
+  run-external "git" "merge" $branch
+  let changed = run-external --redirect-stdout "git" "diff" "--name-only" $"HEAD..($branch)" | lines;
+
+  run-external "jb" "cleanupcode" '--profile"Built-in: Full Cleanup"' $changed;
+}

@@ -6,8 +6,9 @@
 - 
 
 ### big wins
-git add (like in vscode)
-run cleanup script on files in staging directory
+- sessions management (open up last tabs used on startup)
+- shorcut to cd to nvim folder
+- git signs
 
 ### small things
 - shorcut to dotnet build cmd (before test cmd)
