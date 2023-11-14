@@ -55,8 +55,9 @@ map("n", "L", "$", opts)
 
 
 -- functions eagerly load module. see :help vim.keymap.set()
-vim.keymap.set("n", "<leader>rg", function() return require('telescope.builtin').live_grep() end, opts)
-vim.keymap.set("n", "<leader>fd", function() return require('telescope.builtin').find_files() end, opts)
+-- :h telescope.defaults
+vim.keymap.set("n", "<leader>rg", function() return require('telescope.builtin').live_grep({ path_display = { "truncate" }}) end, opts)
+vim.keymap.set("n", "<leader>fd", function() return require('telescope.builtin').find_files({ path_display = { "truncate" }}) end, opts)
 vim.keymap.set("n", "<leader>fb", function() return require('telescope.builtin').buffers() end, opts)
 vim.keymap.set("n", "<leader>fh", function() return require('telescope.builtin').help_tags() end, opts)
 vim.keymap.set("n", "<leader>ft", function() return require('telescope.builtin').treesitter() end, opts)
