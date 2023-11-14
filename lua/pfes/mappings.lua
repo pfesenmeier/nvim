@@ -19,6 +19,14 @@ end
 
 vim.keymap.set('n', '<leader>r', ReloadConfig, { noremap = true })
 
+-- command line motions from :h cmdline.txt
+vim.api.nvim_set_keymap('c', '<C-A>', '<Home>', opts )
+vim.api.nvim_set_keymap('c', '<C-F>', '<Right>', opts )
+vim.api.nvim_set_keymap('c', '<C-B>', '<Left>', opts )
+-- <S-Right> ... the name for word motion
+vim.api.nvim_set_keymap('c', '<Esc>b', '<S-Left>', opts )
+vim.api.nvim_set_keymap('c', '<Esc>f', '<S-Right>', opts )
+
 -- common command line motions
 map("n", "<leader>w", ":w<CR>", { noremap = true })
 map("n", "<leader>x", ":x<CR>", { noremap = true })
@@ -36,14 +44,29 @@ map("n", "<leader>p", "\"0p", { noremap = true })
 
 -- TODO
 -- vs +terminal\ nu.exe will open terminal
---
+
 -- use <c-q> for visual block mode on windows
 
 -- open helpers
 -- map("n", "<leader>;", ":buffers", opts)
 map("n", "<c-p>", ":files", opts)
 
--- :b, :f (buffer/file name) auto-completes!
+-- :b, :f (buffer/file name) auto-completes!!
+function DotNetTest(runArgs)
+  local build_result = os.execute("dotnet build")
+
+  if build_result ~= 0 then
+    vim.print("build failed")
+    return
+  end
+
+  require("neotest").run.run(runArgs)
+  vim.notify("build succeed and tests have begun")
+end
+
+vim.keymap.set('n', '<leader>tr', function() return DotNetTest() end, { noremap = true })
+vim.keymap.set('n', '<leader>tf', function() return DotNetTest(vim.fn.expand("%")) end, { noremap = true })
+vim.keymap.set('n', '<leader>td', function() return DotNetTest({vim.fn.expand("%"), strategy = "dap"}) end, { noremap = true })
 
 -- switch buffers
 map("n", "<left>", ":bp<cr>", opts)
