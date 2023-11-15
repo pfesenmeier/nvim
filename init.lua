@@ -16,6 +16,7 @@ vim.g.mapleader = " "
 require "paq" {
   "savq/paq-nvim";
   { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
+  "nvim-treesitter/nvim-treesitter-textobjects";
   "neovim/nvim-lspconfig";
   -- prevent remote code execution
   "ciaranm/securemodelines";
@@ -58,6 +59,12 @@ require "paq" {
   "tpope/vim-fugitive";
   -- enable Gbrowse with github
   "tpope/vim-rhubarb";
+  "lewis6991/gitsigns.nvim";
+
+  -- merges
+  -- need to install https://github.com/Shougo/vimproc.vim: see windows binaries
+  "Shougo/vimproc.vim";
+  "idanarye/vim-merginal";
 
   -- comments
   "numToStr/Comment.nvim";
@@ -73,6 +80,8 @@ require("pfes/lsp")
 
 vim.cmd('au BufRead,BufNewFile *.nu		set filetype=nu')
 require('Comment').setup()
+
+require('gitsigns').setup()
 
 local dap = require('dap')
 
