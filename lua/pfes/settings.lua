@@ -29,4 +29,3 @@ c('set nofoldenable')
 -- set background transparent (I have background photo via Windows Terminal)
 c('highlight Normal guibg=none')
 c('highlight NonText guibg=none')
-
