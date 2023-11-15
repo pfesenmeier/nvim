@@ -36,4 +36,4 @@ dadbod
 - Open Telemetry
 - Container Apps (aca)
 - cli tools with AOT
-
+- https://smartwindows.app/
