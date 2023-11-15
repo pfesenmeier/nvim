@@ -28,4 +28,12 @@ dadbod
 - add 'lib' dir to NU_LIB_DIRS in env.nu
 - add 'source ra.nu' etc.. to bottom of config.nu
 
+## Dotnet 
+
+- Dapr
+- Prometheus
+- [Visual Studio Aspire Tools](https://learn.microsoft.com/en-us/dotnet/aspire/setup-tooling?tabs=visual-studio#visual-studio-tooling)
+- Open Telemetry
+- Container Apps (aca)
+- cli tools with AOT
 
