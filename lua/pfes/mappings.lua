@@ -124,9 +124,6 @@ local function on_attach(_, bufnr)
   end, bufopts)
 end
 
-vim.keymap.set('n', '<leader>t', function() return require('lsp_extensions').inlay_hints { only_current_line = true } end)
-vim.keymap.set('n', '<leader>T', function() return require('lsp_extensions').inlay_hints() end)
-
 vim.keymap.set('n', '<F5>', function() require('dap').continue() end)
 vim.keymap.set('n', '<F10>', function() require('dap').step_over() end)
 vim.keymap.set('n', '<F11>', function() require('dap').step_into() end)
@@ -187,7 +184,7 @@ require('gitsigns').setup{
     map('n', '<leader>tb', gs.toggle_current_line_blame)
     map('n', '<leader>hd', gs.diffthis)
     map('n', '<leader>hD', function() gs.diffthis('~') end)
-    map('n', '<leader>td', gs.toggle_deleted)
+--    map('n', '<leader>td', gs.toggle_deleted)
 
     -- Text object
     map({'o', 'x'}, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
