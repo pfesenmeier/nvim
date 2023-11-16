@@ -85,16 +85,18 @@ require('Comment').setup()
 require('gitsigns').setup()
 
 local dap = require('dap')
+local home = os.getenv('HOME')
+
 
 dap.adapters.coreclr = {
   type = 'executable',
-  command = 'C:\\Users\\pfese\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe',
+  command = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe',
   args = {'--interpreter=vscode'}
 }
 
 dap.adapters.netcoredbg = {
   type = 'executable',
-  command = 'C:\\Users\\pfese\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe',
+  command = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe',
   args = {'--interpreter=vscode'}
 }
 

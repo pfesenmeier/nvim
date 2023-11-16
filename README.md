@@ -32,6 +32,10 @@ dadbod
 - add 'lib' dir to NU_LIB_DIRS in env.nu
 - add 'source ra.nu' etc.. to bottom of config.nu
 
+## Adding rosylnator
+https://github.com/OmniSharp/omnisharp-vim/issues/451#issuecomment-473727111
+https://marketplace.visualstudio.com/items?itemName=josefpihrt-vscode.roslynator
+
 ## Dotnet 
 
 - Dapr

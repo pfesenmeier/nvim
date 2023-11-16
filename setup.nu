@@ -39,5 +39,14 @@ link_nu_config 'config.nu'
 link_nu_config 'env.nu'
 link_nu_config 'lib'
 
-symlink .editorconfig ([$nu.home-path .editorconfig] | path join)
+let egpath = ([$nu.home-path .editorconfig] | path join)
+if not ($egpath | path exists) {
+  symlink .editorconfig $egpath
+}
+
+mkdir .omnisharp
+let omnipath = ([$nu.home-path .omnisharp omnisharp.json] | path join)
+if not ($omnipath | path exists) {
+  symlink omnisharp.json $omnipath
+}
 
