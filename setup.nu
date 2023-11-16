@@ -39,3 +39,5 @@ link_nu_config 'config.nu'
 link_nu_config 'env.nu'
 link_nu_config 'lib'
 
+symlink .editorconfig ([$nu.home-path .editorconfig] | path join)
+
