@@ -56,10 +56,11 @@ require "paq" {
   "nvim-telescope/telescope.nvim";
 
   -- git
+  "lewis6991/gitsigns.nvim";
   "tpope/vim-fugitive";
   -- enable Gbrowse with github
   "tpope/vim-rhubarb";
-  "lewis6991/gitsigns.nvim";
+  "cedarbaum/fugitive-azure-devops.vim";
 
   -- merges
   -- need to install https://github.com/Shougo/vimproc.vim: see windows binaries

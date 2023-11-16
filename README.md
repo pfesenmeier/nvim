@@ -2,8 +2,12 @@
 
 
 ### big wins
+- lsp: recognize unused fields?
 - sessions management (open up last tabs used on startup)
-- git signs
+- using % for <>
+- test signs prescedence over git signs
+- windows terminal shortcut: only command
+- Roslyn, codecleanup settings: not block namespace, no expression bodies
 
 ### small things
 - shorcut to cd to nvim folder
