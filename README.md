@@ -2,17 +2,15 @@
 
 
 ### big wins
-- lsp: recognize unused fields?
+- azure devops + nu tool (open prs, tickets in next column)
 - sessions management (open up last tabs used on startup)
 - using % for <>
 - test signs prescedence over git signs
-- windows terminal shortcut: only command
-- Roslyn, codecleanup settings: not block namespace, no expression bodies
 
 ### small things
-- shorcut to cd to nvim folder
-- shortcut to cd home (for gui)
-- shorcut to cd to current dir (:cd %:h)
+- shorcut to cd to nvim folder (leader cn)
+- shortcut to cd home (leader ch?)
+- shorcut to cd to current dir (:cd %:h) (leader cb)
 - close buffers through telescope?
 - telescope git buffer preview fitting in preview window
 - telescope view marks
