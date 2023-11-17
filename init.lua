@@ -87,7 +87,6 @@ require('gitsigns').setup()
 local dap = require('dap')
 local home = os.getenv('HOME')
 
-
 dap.adapters.coreclr = {
   type = 'executable',
   command = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe',
