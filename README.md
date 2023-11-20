@@ -4,18 +4,17 @@
 ### big wins
 - azure devops + nu tool (open prs, tickets in next column)
 - sessions management (open up last tabs used on startup)
-- using % for <>
-- test signs prescedence over git signs
+- use text objects treesitter?
 
 ### small things
 - shorcut to cd to nvim folder (leader cn)
 - shortcut to cd home (leader ch?)
 - shorcut to cd to current dir (:cd %:h) (leader cb)
+
 - close buffers through telescope?
 - telescope git buffer preview fitting in preview window
 - telescope view marks
-- customize csharp lsp?
-- text objects treesitter
+- cleanup tab and signs bg
 
 ### tips
 - <C-o>, <c-w>, <c-h> in insert mode
@@ -43,3 +42,12 @@ https://marketplace.visualstudio.com/items?itemName=josefpihrt-vscode.roslynator
 - Container Apps (aca)
 - cli tools with AOT
 - https://smartwindows.app/
+
+
+## closed
+not sure how global .editorconfig is being setup...
+either symlink an .editorconfig to the solution folder
+or setting an empty .editorconfig at solution level and symlinking one at ~\\.editorconfig
+
+- fix all of occurences in buffer... yeah, I think this has to be providerd by the server. not sure though. 
+- Does "Run Test" work with parameterized test? <- yes, just put cursor on theory

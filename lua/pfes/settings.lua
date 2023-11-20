@@ -23,9 +23,15 @@ c([[colorscheme gruvbox]])
 -- default highlight group for nvim-dap is a bright blue
 vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F36' })
 
-c('set number')
+c('set relativenumber')
 c('set nofoldenable')
 
 -- set background transparent (I have background photo via Windows Terminal)
 c('highlight Normal guibg=none')
 c('highlight NonText guibg=none')
+
+-- add <> for % motion
+-- see :h matchpairs
+vim.cmd('set mps+=<:>')
+
+vim.opt.signcolumn = "auto:4"
