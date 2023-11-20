@@ -5,6 +5,7 @@
 - azure devops + nu tool (open prs, tickets in next column)
 - sessions management (open up last tabs used on startup)
 - use text objects treesitter?
+- nu lsp setup
 
 ### small things
 - shorcut to cd to nvim folder (leader cn)
@@ -15,6 +16,7 @@
 - telescope git buffer preview fitting in preview window
 - telescope view marks
 - cleanup tab and signs bg
+- associate tab width per filetype
 
 ### tips
 - <C-o>, <c-w>, <c-h> in insert mode
