@@ -19,6 +19,29 @@ end
 
 vim.keymap.set('n', '<leader>r', ReloadConfig, { noremap = true })
 
+vim.cmd([[
+  " Expand
+  imap <expr> <C-j>   vsnip#expandable()  ? '<Plug>(vsnip-expand)'         : '<C-j>'
+  smap <expr> <C-j>   vsnip#expandable()  ? '<Plug>(vsnip-expand)'         : '<C-j>'
+
+  " Expand or jump
+  imap <expr> <C-l>   vsnip#available(1)  ? '<Plug>(vsnip-expand-or-jump)' : '<C-l>'
+  smap <expr> <C-l>   vsnip#available(1)  ? '<Plug>(vsnip-expand-or-jump)' : '<C-l>'
+
+  " Jump forward or backward
+  imap <expr> <Tab>   vsnip#jumpable(1)   ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
+  smap <expr> <Tab>   vsnip#jumpable(1)   ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
+  imap <expr> <S-Tab> vsnip#jumpable(-1)  ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
+  smap <expr> <S-Tab> vsnip#jumpable(-1)  ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
+
+  " Select or cut text to use as $TM_SELECTED_TEXT in the next snippet.
+  " See https://github.com/hrsh7th/vim-vsnip/pull/50
+  nmap        s   <Plug>(vsnip-select-text)
+  xmap        s   <Plug>(vsnip-select-text)
+  nmap        S   <Plug>(vsnip-cut-text)
+  xmap        S   <Plug>(vsnip-cut-text)
+]])
+
 -- command line motions from :h cmdline.txt
 vim.api.nvim_set_keymap('c', '<C-A>', '<Home>', opts )
 vim.api.nvim_set_keymap('c', '<C-F>', '<Right>', opts )
@@ -53,6 +76,7 @@ map("n", "<c-p>", ":files", opts)
 
 -- :b, :f (buffer/file name) auto-completes!!
 function DotNetTest(runArgs)
+  vim.notify("building solution...")
   local build_result = os.execute("dotnet build")
 
   if build_result ~= 0 then
@@ -92,7 +116,7 @@ vim.keymap.set("n", "<leader>rr", function() return require('telescope.builtin')
 vim.keymap.set('n', '<leader>E', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', 'gE', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', 'ge', vim.diagnostic.goto_next, opts)
-vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
 
 
 -- Use an on_attach function to only map the following keys
@@ -117,7 +141,7 @@ local function on_attach(_, bufnr)
   end, bufopts)
   vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, bufopts)
   vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, bufopts)
-  vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, bufopts)
+  vim.keymap.set({'v', 'n' }, '<leader>ca', vim.lsp.buf.code_action, bufopts)
   vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
   vim.keymap.set('n', '<leader>f', function()
     vim.lsp.buf.format { async = true }
