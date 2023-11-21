@@ -2,8 +2,10 @@
 
 
 ### big wins
-- azure devops + nu tool (open prs, tickets in next column)
 - sessions management (open up last tabs used on startup)
+- azure devops + nu tool (open prs, tickets in next column)
+- https://github.com/mfussenegger/nvim-dap/wiki/Cookbook#making-debugging-net-easier
+- find dotnet process https://github.com/mfussenegger/nvim-dap/issues/356#issuecomment-975825270
 - use text objects treesitter?
 - nu lsp setup
 
@@ -12,6 +14,7 @@
 - shortcut to cd home (leader ch?)
 - shorcut to cd to current dir (:cd %:h) (leader cb)
 
+- dap integrations (fzf, telescope)
 - close buffers through telescope?
 - telescope git buffer preview fitting in preview window
 - telescope view marks

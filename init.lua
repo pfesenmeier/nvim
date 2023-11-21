@@ -102,6 +102,13 @@ dap.adapters.netcoredbg = {
 dap.configurations.cs = {
   {
     type = "coreclr",
+    request = "attach",
+    name = "attach - netcoredbg",
+    processId = require('dap.utils').pick_process,
+    args = {},
+  },
+  {
+    type = "coreclr",
     name = "launch - netcoredbg",
     request = "launch",
     program = function()
