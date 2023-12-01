@@ -143,6 +143,7 @@ local config = {
   },
 }
 
+-- if experiencing problems, make sure treesitter is up to date first!
 dap.adapters.netcoredbg = {
   type = 'executable',
   command = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe',
