@@ -8,7 +8,7 @@ carapace,,rsteube.Carapace,,
 code,,Microsoft.VisualStudioCode,,
 docker,,Docker.DockerDesktop,,
 dotCover,,,,JetBrains.dotCover.GlobalTool
-dotnet,,Microsoft.DotNet.SDK.7,,
+dotnet,,Microsoft.DotNet.SDK.8,,
 eza,,eza-community.eza,,
 fd,fd-find,sharkdp.fd,,
 fzf,fzf,junegunn.fzf,,

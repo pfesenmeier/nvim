@@ -34,4 +34,4 @@ c('highlight NonText guibg=none')
 -- see :h matchpairs
 vim.cmd('set mps+=<:>')
 
-vim.opt.signcolumn = "auto:4"
+vim.opt.signcolumn = "yes:2"

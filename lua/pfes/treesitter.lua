@@ -30,6 +30,13 @@ require'nvim-treesitter.configs'.setup {
 vim.cmd('set foldmethod=expr')
 vim.cmd('set foldexpr=nvim_treesitter#foldexpr()')
 
+vim.filetype.add({
+    extension = {
+        razor = "html"
+    }
+})
+
+
 -- for more
 -- :h nvim-treesitter-commands
 
