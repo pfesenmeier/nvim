@@ -6,6 +6,15 @@ export def dump [] {
   $result
 }
 
+export def clip [] {
+     let stdin = $in;
+     if ($stdin | is-empty) {
+         run-external "pwsh" "-noprofile" "-c" "Get-Clipboard"
+     } else {
+        run-external "pwsh" "-noprofile" "-c" $"Set-Clipboard ($stdin)"
+     }
+}
+
 export def "env path try add" [
   folder: string
   file: string
