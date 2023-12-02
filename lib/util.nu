@@ -9,7 +9,7 @@ export def dump [] {
 export def clip [] {
      let stdin = $in;
      if ($stdin | is-empty) {
-         run-external "pwsh" "-noprofile" "-c" "Get-Clipboard"
+         run-external --redirect-stdout "pwsh" "-noprofile" "-c" "Get-Clipboard"
      } else {
         run-external "pwsh" "-noprofile" "-c" $"Set-Clipboard ($stdin)"
      }
