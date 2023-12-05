@@ -2,6 +2,8 @@
 
 
 ### big wins
+- closing buffers from renamed files
+- command to generate namespace based on File location
 - sessions management (open up last tabs used on startup)
 - azure devops + nu tool (open prs, tickets in next column)
 - https://github.com/mfussenegger/nvim-dap/wiki/Cookbook#making-debugging-net-easier

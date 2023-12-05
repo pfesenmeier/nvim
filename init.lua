@@ -124,7 +124,7 @@ end
 
 local config = {
   {
-    type = "coreclr",
+    type = "netcoredbg",
     name = "launch - netcoredbg",
     request = "launch",
     program = function()
@@ -135,7 +135,7 @@ local config = {
     end,
   },
   {
-    type = "coreclr",
+    type = "netcoredbg",
     request = "attach",
     name = "attach - netcoredbg",
     processId = require('dap.utils').pick_process,
@@ -143,7 +143,7 @@ local config = {
   },
 }
 
-dap.adapters.coreclr = {
+dap.adapters.netcoredbg = {
   type = 'executable',
   command = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe',
   args = {'--interpreter=vscode'}
