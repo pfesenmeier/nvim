@@ -3,6 +3,7 @@ root = true
 # All files
 [*]
 indent_style = space
+max_line_length = 90
 
 # Xml files
 [*.xml]
@@ -13,6 +14,7 @@ indent_size = 2
 
 csharp_style_namespace_declarations = file_scoped
 csharp_style_expression_bodied_methods = true
+csharp_style_expression_bodied_local_functions	= when_on_single_line
 
 csharp_style_var_when_type_is_apparent = true:none
 csharp_style_var_for_built_in_types = true:none
