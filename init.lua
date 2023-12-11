@@ -108,7 +108,7 @@ end
 -- https://github.com/mfussenegger/nvim-dap/wiki/Cookbook#making-debugging-net-easier
 vim.g.dotnet_get_dll_path = function()
     local request = function()
-        return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/', 'file')
+        return vim.fn.input('Path to dll', vim.fn.getcwd(), 'file')
     end
 
     if vim.g['dotnet_last_dll_path'] == nil then

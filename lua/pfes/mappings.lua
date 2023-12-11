@@ -19,6 +19,8 @@ end
 
 vim.keymap.set('n', '<leader>r', ReloadConfig, { noremap = true })
 
+-- to wipe out all buffers: %bw
+
 vim.cmd([[
   " Expand
   imap <expr> <C-j>   vsnip#expandable()  ? '<Plug>(vsnip-expand)'         : '<C-j>'
