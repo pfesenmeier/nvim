@@ -53,7 +53,7 @@ vim.api.nvim_set_keymap('c', '<Esc>f', '<S-Right>', opts )
 -- common command line motions
 map("n", "<leader>w", ":w<CR>", { noremap = true })
 map("n", "<leader>x", ":x<CR>", { noremap = true })
-map("n", "<leader>q", ":q<CR>", { noremap = true })
+vim.keymap.set({"n", "i" }, "<leader>q", ":silent :w <bar> :DB < %<CR>", opts)
 map("n", "<leader>;", ":", { noremap = true })
 -- go to folder view of current file
 map("n", "<leader>o", ":Explore<cr>", opts)
@@ -118,7 +118,7 @@ vim.keymap.set('n', 'gE', function() return vim.diagnostic.goto_prev(err_opts) e
 vim.keymap.set('n', 'ge', function() return vim.diagnostic.goto_next(err_opts) end, opts)
 vim.keymap.set('n', 'gW', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', 'gw', vim.diagnostic.goto_next, opts)
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
+-- vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
 
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer

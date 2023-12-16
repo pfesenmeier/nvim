@@ -37,6 +37,13 @@ cmp.setup({
   })
 })
 
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'sql', 'mysql', 'plsql' },
+  callback = function()
+    cmp.setup.buffer({ sources = { { name = 'vim-dadbod-completion' } } })
+  end,
+})
+
 -- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
 cmp.setup.cmdline('/', {
   sources = {

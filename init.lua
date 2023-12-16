@@ -4,6 +4,7 @@
 vim.loader.enable()
 
 vim.g.mapleader = " "
+vim.g.db = "postgres://postgres:postgres@localhost:5433/testdb"
 
 -- install paq-nvim if not already installed ( from savq/paq-nvim )
 -- commenting out... does not work on windows
@@ -33,6 +34,10 @@ require "paq" {
   "airblade/vim-rooter";
 
   "editorconfig/editorconfig-vim";
+
+  -- database
+  "tpope/vim-dadbod";
+  "kristijanhusak/vim-dadbod-completion";
 
   -- completion
   "hrsh7th/cmp-nvim-lsp";
