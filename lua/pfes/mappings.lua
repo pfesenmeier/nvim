@@ -38,11 +38,14 @@ vim.cmd([[
 
   " Select or cut text to use as $TM_SELECTED_TEXT in the next snippet.
   " See https://github.com/hrsh7th/vim-vsnip/pull/50
-  nmap        s   <Plug>(vsnip-select-text)
-  xmap        s   <Plug>(vsnip-select-text)
-  nmap        S   <Plug>(vsnip-cut-text)
-  xmap        S   <Plug>(vsnip-cut-text)
+  " nmap        s   <Plug>(vsnip-select-text)
+  " xmap        s   <Plug>(vsnip-select-text)
+  " nmap        S   <Plug>(vsnip-cut-text)
+  " xmap        S   <Plug>(vsnip-cut-text)
 ]])
+
+-- paste over something in visual mode without changing buffer
+vim.api.nvim_set_keymap("x", "<leader>p", "\"_dP", opts)
 
 -- command line motions from :h cmdline.txt
 vim.api.nvim_set_keymap('c', '<C-A>', '<Home>', opts )
