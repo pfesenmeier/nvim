@@ -53,6 +53,11 @@ require('lspconfig').bashls.setup{
   on_attach = on_attach
 }
 
+-- require('lspconfig').sqlls.setup{
+--   capabilities = capabilities,
+--   on_attach = on_attach
+-- }
+
 -- require'lspconfig'.lua_ls.setup {
 --   on_init = function(client)
 --     local path = client.workspace_folders[1].name
