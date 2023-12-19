@@ -35,3 +35,11 @@ c('highlight NonText guibg=none')
 vim.cmd('set mps+=<:>')
 
 vim.opt.signcolumn = "yes:2"
+
+-- ongoing issue: https://github.com/nvim-telescope/telescope.nvim/issues/2712
+-- TODO remove boilerplate from file display
+require('telescope').setup{
+	defaults = {
+		path_display={"smart"}
+	}
+}
