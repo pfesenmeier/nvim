@@ -2,11 +2,12 @@
 
 
 ### big wins
+- obsidian.nvim https://github.com/epwalsh/obsidian.nvim
 - shortcut for vim.diagnostic.setqflist({ severity = ERROR }) (project-level errors)
 - async dotnet build (plenary?), esp for tests
 - closing buffers from renamed files
 - command to generate namespace based on File location
-- sessions management (open up last tabs used on startup)
+- sessions management (open up last tabs used on startup
 - azure devops + nu tool (open prs, tickets in next column)
 - https://github.com/mfussenegger/nvim-dap/wiki/Cookbook#making-debugging-net-easier
 - find dotnet process https://github.com/mfussenegger/nvim-dap/issues/356#issuecomment-975825270

@@ -58,7 +58,7 @@ vim.api.nvim_set_keymap('c', '<Esc>f', '<S-Right>', opts )
 -- common command line motions
 map("n", "<leader>w", ":w<CR>", { noremap = true })
 map("n", "<leader>x", ":x<CR>", { noremap = true })
-vim.keymap.set({"n", "i" }, "<leader>q", ":silent :w <bar> :DB < %<CR>", opts)
+vim.keymap.set("n", "<leader>q", ":silent :w <bar> :DB < %<CR>", opts)
 map("n", "<leader>;", ":", { noremap = true })
 -- go to folder view of current file
 map("n", "<leader>o", ":Explore<cr>", opts)
