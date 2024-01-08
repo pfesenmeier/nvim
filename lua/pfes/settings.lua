@@ -40,6 +40,6 @@ vim.opt.signcolumn = "yes:2"
 -- TODO remove boilerplate from file display
 require('telescope').setup{
 	defaults = {
-		path_display={"smart"}
+		path_display={"truncate"}
 	}
 }

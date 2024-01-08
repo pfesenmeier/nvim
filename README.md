@@ -2,6 +2,11 @@
 
 
 ### big wins
+- add saving buffer to test running command
+- shortcut for copying filename (let @+ = expand("%:t")) (or for creating class file, a la
+  jetbrains?)
+- telescope picker for projects
+- get snippets working?
 - obsidian.nvim https://github.com/epwalsh/obsidian.nvim
 - shortcut for vim.diagnostic.setqflist({ severity = ERROR }) (project-level errors)
 - async dotnet build (plenary?), esp for tests
@@ -42,6 +47,7 @@ dadbod
 ## Adding rosylnator
 https://github.com/OmniSharp/omnisharp-vim/issues/451#issuecomment-473727111
 https://marketplace.visualstudio.com/items?itemName=josefpihrt-vscode.roslynator
+https://open-vsx.org/extension/josefpihrt-vscode/roslynator
 
 ## Dotnet 
 
