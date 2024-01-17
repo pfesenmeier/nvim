@@ -2,6 +2,8 @@
 
 
 ### big wins
+- run tests for whole solution, project and see results
+- filter autocompletion by type
 - add saving buffer to test running command
 - shortcut for copying filename (let @+ = expand("%:t")) (or for creating class file, a la
   jetbrains?)
