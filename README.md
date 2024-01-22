@@ -2,6 +2,8 @@
 
 
 ### big wins
+- why path completion so slow?
+- get tab completion to auto-complete common 
 - run tests for whole solution, project and see results
 - filter autocompletion by type
 - add saving buffer to test running command
