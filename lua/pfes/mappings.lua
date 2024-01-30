@@ -95,6 +95,16 @@ end
 vim.keymap.set('n', '<leader>tr', function() return DotNetTest() end, { noremap = true })
 vim.keymap.set('n', '<leader>tf', function() return DotNetTest(vim.fn.expand("%")) end, { noremap = true })
 vim.keymap.set('n', '<leader>td', function() return DotNetTest({vim.fn.expand("%"), strategy = "dap"}) end, { noremap = true })
+vim.keymap.set('n', '<leader>tt', function()
+    require('neotest').summary.toggle()
+end, opts)
+vim.keymap.set('n', '<leader>to', function()
+    require('neotest').summary.open()
+    vim.cmd(':wincmd l', opts)
+end, opts)
+vim.keymap.set('n', '<leader>tc', function()
+    require('neotest').summary.close()
+end, opts)
 
 -- switch buffers
 map("n", "<left>", ":bp<cr>", opts)

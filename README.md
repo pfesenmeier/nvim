@@ -1,33 +1,24 @@
 # Ra - personal dev config
 
-
 ### big wins
-- why path completion so slow?
-- get tab completion to auto-complete common 
-- run tests for whole solution, project and see results
-- filter autocompletion by type
-- add saving buffer to test running command
 - shortcut for copying filename (let @+ = expand("%:t")) (or for creating class file, a la
-  jetbrains?)
-- telescope picker for projects
-- get snippets working?
-- obsidian.nvim https://github.com/epwalsh/obsidian.nvim
+- add saving buffer to test running command
 - shortcut for vim.diagnostic.setqflist({ severity = ERROR }) (project-level errors)
 - async dotnet build (plenary?), esp for tests
+- https://github.com/mfussenegger/nvim-dap/wiki/Cookbook#making-debugging-net-easier
+- find dotnet process https://github.com/mfussenegger/nvim-dap/issues/356#issuecomment-975825270
+- dotnet build output
+
+### small things
+- filter autocompletion by type
+  jetbrains?)
+- get snippets working?
+- obsidian.nvim https://github.com/epwalsh/obsidian.nvim
 - closing buffers from renamed files
 - command to generate namespace based on File location
 - sessions management (open up last tabs used on startup
-- azure devops + nu tool (open prs, tickets in next column)
-- https://github.com/mfussenegger/nvim-dap/wiki/Cookbook#making-debugging-net-easier
-- find dotnet process https://github.com/mfussenegger/nvim-dap/issues/356#issuecomment-975825270
 - use text objects treesitter?
 - nu lsp setup
-
-### small things
-- shorcut to cd to nvim folder (leader cn)
-- shortcut to cd home (leader ch?)
-- shorcut to cd to current dir (:cd %:h) (leader cb)
-
 - dap integrations (fzf, telescope)
 - close buffers through telescope?
 - telescope git buffer preview fitting in preview window
