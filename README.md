@@ -2,8 +2,8 @@
 
 ### big wins
 - add nvim-gui niceities
-    - shortcut for call FullScreen()
     - integrate pasteing into telescope from system clipboard
+    - shortcut for call FullScreen()
     - enhance terminal to all nushell terminal by default (fix PATH / Path problem)
 
 - shortcut for copying filename (let @+ = expand("%:t")) (or for creating class file, a la

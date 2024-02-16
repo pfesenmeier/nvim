@@ -4,7 +4,7 @@
 vim.loader.enable()
 
 vim.g.mapleader = " "
-vim.g.db = "postgres://postgres:postgres@localhost:5433/testdb"
+vim.g.db = "postgres://postgres:password@localhost:5432/db"
 
 -- install paq-nvim if not already installed ( from savq/paq-nvim )
 -- commenting out... does not work on windows

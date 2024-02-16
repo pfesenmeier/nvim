@@ -31,27 +31,27 @@ require('lspconfig').yamlls.setup{
 --   capabilities = capabilities,
 --   on_attach = on_attach
 -- }
--- require('lspconfig').html.setup{
---   capabilities = capabilities,
---   on_attach = on_attach
--- }
+require('lspconfig').html.setup{
+  capabilities = capabilities,
+  on_attach = on_attach
+}
 require('lspconfig').jsonls.setup{
   capabilities = capabilities,
   on_attach = on_attach
 }
--- require('lspconfig').cssls.setup{
---   capabilities = capabilities,
---   on_attach = on_attach
--- }
+require('lspconfig').cssls.setup{
+  capabilities = capabilities,
+  on_attach = on_attach
+}
 -- require('lspconfig').tailwindcss.setup{
 --   capabilities = capabilities,
 --   on_attach = on_attach
 -- }
 
-require('lspconfig').bashls.setup{
-  capabilities = capabilities,
-  on_attach = on_attach
-}
+-- require('lspconfig').bashls.setup{
+--   capabilities = capabilities,
+--   on_attach = on_attach
+-- }
 
 -- require('lspconfig').sqlls.setup{
 --   capabilities = capabilities,
