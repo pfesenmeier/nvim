@@ -1,6 +1,8 @@
 #! /usr/bin/env bash
 
-wget https://github.com/BurntSushi/ripgrep/releases/latest/download/ripgrep_13.0.0_amd64.deb
+set -o errexit
 
-sudo dpkg -i ripgrep_13.0.0_amd64.deb
-rm ripgrep_13.0.0_amd64.deb
+file=ripgrep_14.1.0-1_amd64.deb
+wget https://github.com/BurntSushi/ripgrep/releases/latest/download/$file
+sudo dpkg -i $file
+rm $file

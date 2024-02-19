@@ -6,13 +6,6 @@ vim.loader.enable()
 vim.g.mapleader = " "
 vim.g.db = "postgres://postgres:password@localhost:5432/db"
 
--- install paq-nvim if not already installed ( from savq/paq-nvim )
--- commenting out... does not work on windows
--- local install_path = fn.stdpath('data') .. '/site/pack/paqs/start/paq-nvim'
--- if fn.empty(fn.glob(install_path)) > 0 then
-  -- fn.system({'git', 'clone', '--depth=1', 'https://github.com/savq/paq-nvim.git', install_path})
--- end
-
 -- from https://oroques.dev/notes/neovim-init/
 require "paq" {
   "savq/paq-nvim";
