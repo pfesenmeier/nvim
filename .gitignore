@@ -2,4 +2,4 @@ dotfishlocal
 dotbashlocal
 lua-language-server
 **/local.ps1
-lib/ra-env.nu
+**/ra-env.nu
