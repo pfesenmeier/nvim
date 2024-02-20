@@ -1,6 +1,7 @@
 # Ra - personal dev config
 
 ### big wins
+- add "let $FZF_DEFAULT_COMMAND = 'rg --files --hidden'"
 - add nvim-gui niceities
     - integrate pasteing into telescope from system clipboard
     - shortcut for call FullScreen()
