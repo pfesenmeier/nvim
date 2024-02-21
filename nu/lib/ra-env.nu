@@ -1,0 +1,1 @@
+$env.Path = ($env.PATH | prepend /home/paul/.local/bin/OmniSharp/omnisharp-roslyn)

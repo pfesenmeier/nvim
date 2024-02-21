@@ -32,6 +32,10 @@ require "paq" {
   "tpope/vim-dadbod";
   "kristijanhusak/vim-dadbod-completion";
 
+  -- workspace errors
+  "folke/trouble.nvim";
+  "nvim-tree/nvim-web-devicons";
+
   -- completion
   "hrsh7th/cmp-nvim-lsp";
   "hrsh7th/cmp-nvim-lua";
@@ -52,6 +56,7 @@ require "paq" {
   -- fuzzy search
   "nvim-lua/plenary.nvim";
   "nvim-telescope/telescope.nvim";
+  { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
 
   -- git
   "lewis6991/gitsigns.nvim";
@@ -159,6 +164,10 @@ require("neotest").setup({
             discovery_root = "solution"
         })
   }
+})
+
+require("trouble").setup({
+
 })
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
