@@ -15,6 +15,7 @@ o.scrolloff = 999 -- keep cursor in middle of screen
 o.scrolloff = 999
 o.expandtab = true
 
+c('set noshellslash')
 -- theme stuff
 -- o.syntax = 'on'
 -- o.termguicolors = true

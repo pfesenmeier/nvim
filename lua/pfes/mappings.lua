@@ -95,7 +95,8 @@ end
 
 vim.keymap.set('n', '<leader>tr', function() return DotNetTest() end, { noremap = true })
 vim.keymap.set('n', '<leader>tf', function() return DotNetTest(vim.fn.expand("%")) end, { noremap = true })
-vim.keymap.set('n', '<leader>td', function() return DotNetTest({vim.fn.expand("%"), strategy = "dap"}) end, { noremap = true })
+-- vim.keymap.set('n', '<leader>td', function() return DotNetTest({vim.fn.expand("%"), strategy = "dap"}) end, { noremap = true })
+vim.keymap.set('n', '<leader>td', function() return DotNetTest({strategy = "dap"}) end, { noremap = true })
 vim.keymap.set('n', '<leader>tt', function()
     require('neotest').summary.toggle()
 end, opts)
