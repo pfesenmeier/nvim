@@ -83,7 +83,7 @@ def "env path add" [
       touch $env_path
   }
 
-  let new_path =  $"$env.Path = \($env.($path_variable) | prepend ($path))" 
+  let new_path =  $"$env.($path_variable) = \($env.($path_variable) | prepend ($path))" 
   let current_path = open $env_path | lines;
 
   if ($current_path | find $new_path | is-empty) {

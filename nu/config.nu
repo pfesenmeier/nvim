@@ -772,6 +772,8 @@ alias a = git add
 alias c = git commit
 alias b = git branch
 alias l = git log --oneline
+alias z = zellij
+alias fd = fdfind
 
 source ra.nu
 source util.nu
