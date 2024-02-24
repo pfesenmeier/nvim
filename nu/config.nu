@@ -764,6 +764,7 @@ $env.config = {
     ]
 }
 
+
 alias exa = eza
 alias tree = eza -T
 alias e = nvim
@@ -779,4 +780,5 @@ source ra.nu
 source util.nu
 source install.nu
 source ra-env.nu
+source brew-env.nu
 source clean.nu

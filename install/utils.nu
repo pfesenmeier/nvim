@@ -14,7 +14,7 @@ export def 'github install' [
 
    let install_dir = ([$app_dir $repo] | path join)
 
-   if not (ls $install_dir | is-empty) {
+   if ($install_dir | path exists) {
       rm -rf $install_dir
    }
 
@@ -24,6 +24,8 @@ export def 'github install' [
      $asset
      $install_dir
    )
+
+   extract $install_dir $asset
 
    let executable = find-file $install_dir $executable;
 
@@ -48,7 +50,7 @@ def "find-file" [
         return
     }
 
-    let search_results = ls $"($folder)/**/($file)"
+    let search_results = ls $"($folder)/**/($file)" | where type == 'file'
 
     if ($search_results | is-empty) {
         log error $"could not find ($file) in ($folder)"
@@ -105,20 +107,27 @@ def 'github download' [
   dir: string
   tag?: string
 ] {
-
-  if ($file | path parse | get extension) != 'zip' {
-    log error "only zip files are supported"
-    return
-  } 
-
   if ($tag | is-empty) {
     # creates directory path if does not exist
     run-external gh release download "--repo" $repo "--pattern" $file "--dir" $dir
   } else {
     run-external gh release download $tag "--repo" $repo "--pattern" $file "--dir" $dir
   }
+}
 
+def 'extract' [
+  dir: string
+  file: string
+] {
   let zip_path = [$dir $file] | path join
-  run-external unzip $zip_path "-d" $dir 
+  let ext = $zip_path | path parse | get extension;
+
+  if $ext == 'zip' {
+    run-external unzip $zip_path "-d" $dir 
+  } else if ($zip_path | str ends-with 'tar.gz') {
+    run-external tar "-xzf" $zip_path "-C" $dir
+  } else {
+    error make { msg: $"tried to extract ($file), but extension ($ext) is not supported" }
+  }
   rm $zip_path
 }

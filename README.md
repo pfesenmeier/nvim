@@ -1,6 +1,8 @@
 # Ra - personal dev config
 
 ### big wins
+- install netcoredbg (cross platform)
+- put all c# stuff into one file
 - add "let $FZF_DEFAULT_COMMAND = 'rg --files --hidden'"
 - add nvim-gui niceities
     - integrate pasteing into telescope from system clipboard

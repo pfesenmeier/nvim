@@ -18,6 +18,7 @@ require "paq" {
   -- debug
   'mfussenegger/nvim-dap';
   'theHamsta/nvim-dap-virtual-text';
+  'rcarriga/nvim-dap-ui';
   'antoinemadec/FixCursorHold.nvim';
   'nvim-neotest/neotest';
   'Issafalcon/neotest-dotnet';
