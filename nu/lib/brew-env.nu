@@ -2,11 +2,13 @@ $env.HOMEBREW_PREFIX = "/home/linuxbrew/.linuxbrew"
 $env.HOMEBREW_CELLAR = "/home/linuxbrew/.linuxbrew/Cellar"
 $env.HOMEBREW_REPOSITORY = "/home/linuxbrew/.linuxbrew/Homebrew"
 
-$env.PATH = (
-  $env.PATH 
-  | prepend
+let brew_paths = [
     "/home/linuxbrew/.linuxbrew/bin"
     "/home/linuxbrew/.linuxbrew/sbin"
+]
+$env.PATH = (
+  $env.PATH 
+  | prepend $brew_paths
   | uniq
 )
 
