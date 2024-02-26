@@ -1,4 +1,4 @@
-let config_path = [$nu.home-path nvim]
+let config_path = [$nu.home-path nvim] | path join;
 
 # https://www.nushell.sh/blog/2023-08-23-happy-birthday-nushell-4.html
 def symlink [
@@ -19,20 +19,26 @@ def symlink [
     }
 }
 
-([config.nu env.nu lib] | each {|x|
-  let source = $config_path | append [nu $x] | path join;
-  let dest = $nu.default-config-dir;
+def create_parent_dirs [target: string] {
+  let dir = $target | path dirname;
+  mkdir $dir;
+}
 
+([config.nu env.nu lib] | each {|x|
+  let source = [$config_path nu $x] | path join;
+  let dest = $nu.default-config-dir;
+  create_parent_dirs $dest;
   symlink $source $dest;
 });
 
 
-let omnifolder = [$nu.home-path .omnisharp] | path join;
-mkdir $omnifolder;
-(symlink omnisharp.json ([$omnifolder omnisharp.json] | path join))
+let omni_dest = [$nu.home-path .omnisharp omnisharp.json] | path join;
+let omni_src = [$config_path omnisharp.json] | path join;
+create_parent_dirs $omni_dest;
+symlink $omni_src $omni_dest;
 
 ([init.lua ginit.vim lua] | each {|x|
-  let source = $config_path | append $x | path join;
+  let source = [$config_path $x] | path join;
 
   let dest_folder = (
     $nu.home-path 
@@ -51,4 +57,9 @@ mkdir $omnifolder;
 
   symlink $source $dest;
 })
+
+let zellij_dest = [$nu.home-path .config zellij config.kdl] | path join;
+let zellij_src = [$config_path zellij.kdl] | path join;
+create_parent_dirs $zellij_dest;
+symlink $zellij_src $zellij_dest;
 
