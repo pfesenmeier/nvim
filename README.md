@@ -1,14 +1,10 @@
 # Ra - personal dev config
 
 ### big wins
-- install netcoredbg (cross platform)
-- put all c# stuff into one file
+- enhance cross-platform (PATH / Path), fzf plugin, omnisharp path
 - add "let $FZF_DEFAULT_COMMAND = 'rg --files --hidden'"
 - add nvim-gui niceities
-    - integrate pasteing into telescope from system clipboard
-    - shortcut for call FullScreen()
     - enhance terminal to all nushell terminal by default (fix PATH / Path problem)
-- integrate pasteing into telescope from system clipboard (nvim-gui, ubuntu)
 
 - be smarter about rebuilding before running tests
     - Omnisharp-vim... just for runnig tests?
@@ -56,3 +52,8 @@ https://open-vsx.org/extension/josefpihrt-vscode/roslynator
 
 ## done
 - enhance terminal to all nushell terminal by default (fix PATH / Path problem)
+- install netcoredbg (cross platform)
+- put all c# stuff into one file
+- integrate pasteing into telescope from system clipboard
+- shortcut for call FullScreen()
+- integrate pasteing into telescope from system clipboard (nvim-gui, ubuntu)
