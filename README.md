@@ -1,6 +1,7 @@
 # Ra - personal dev config
 
 ### big wins
+- pin netcoredbg, neotest
 - do I really need to build before running tests?
 - https://csharpier.com/ with neoformat
 - install fd from github (winget breaks path on every upgrade)
