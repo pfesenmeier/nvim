@@ -21,8 +21,7 @@ require "paq" {
   'rcarriga/nvim-dap-ui';
   'antoinemadec/FixCursorHold.nvim';
   'nvim-neotest/neotest';
-  'Issafalcon/neotest-dotnet';
-
+  { 'Issafalcon/neotest-dotnet', branch = 'v1.5.3' },
   -- workspace defaults to closest .git 
   -- trying to use tcd (tab), lcd (window), cd
   "airblade/vim-rooter";

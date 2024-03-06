@@ -1,6 +1,9 @@
 # Ra - personal dev config
 
 ### big wins
+- do I really need to build before running tests?
+- https://csharpier.com/ with neoformat
+- install fd from github (winget breaks path on every upgrade)
 - enhance cross-platform (PATH / Path), fzf plugin, omnisharp path
 - add "let $FZF_DEFAULT_COMMAND = 'rg --files --hidden'"
 - add nvim-gui niceities
@@ -48,6 +51,7 @@ https://open-vsx.org/extension/josefpihrt-vscode/roslynator
 - Container Apps (aca)
 - cli tools with AOT
 - https://smartwindows.app/
+
 
 
 ## done

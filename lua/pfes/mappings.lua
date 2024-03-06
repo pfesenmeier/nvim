@@ -69,12 +69,12 @@ map("n", "<c-p>", ":files", opts)
 -- :b, :f (buffer/file name) auto-completes!!
 function DotNetTest(runArgs)
   vim.notify("building solution...")
-  local build_result = os.execute("dotnet build")
-
-  if build_result ~= 0 then
-    vim.print("build failed")
-    return
-  end
+  -- local build_result = os.execute("dotnet build")
+  --
+  -- if build_result ~= 0 then
+  --   vim.print("build failed")
+  --   return
+  -- end
 
   require("neotest").run.run(runArgs)
   vim.notify("build succeed and tests have begun")
