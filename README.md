@@ -1,6 +1,8 @@
 # Ra - personal dev config
 
 ### big wins
+- eunuch.vim for moving files?
+- add save buffer to test commands
 - pin netcoredbg, neotest
 - do I really need to build before running tests?
 - https://csharpier.com/ with neoformat

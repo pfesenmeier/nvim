@@ -32,7 +32,9 @@ vim.cmd('set foldexpr=nvim_treesitter#foldexpr()')
 
 vim.filetype.add({
     extension = {
-        razor = "html"
+        razor = "html",
+        tf = "hcl",
+        tfvars = "hcl"
     }
 })
 
