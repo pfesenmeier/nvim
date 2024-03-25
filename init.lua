@@ -21,6 +21,7 @@ require "paq" {
   'rcarriga/nvim-dap-ui';
   'antoinemadec/FixCursorHold.nvim';
   'nvim-neotest/neotest';
+  'nvim-neotest/nvim-nio';
   { 'Issafalcon/neotest-dotnet', branch = 'v1.5.3' },
   -- workspace defaults to closest .git 
   -- trying to use tcd (tab), lcd (window), cd
@@ -35,7 +36,12 @@ require "paq" {
   -- workspace errors
   "folke/trouble.nvim";
 
-  -- completion
+  -- fs
+  "lambdalisue/fern.vim";
+  "tpope/vim-eunuch";
+  -- "tpope/vim-vinegar";
+
+  -- completion 
   "hrsh7th/cmp-nvim-lsp";
   "hrsh7th/cmp-nvim-lua";
   "hrsh7th/cmp-buffer";
@@ -66,8 +72,8 @@ require "paq" {
 
   -- merges
   -- need to install https://github.com/Shougo/vimproc.vim: see windows binaries
-  "Shougo/vimproc.vim";
-  "idanarye/vim-merginal";
+  -- "Shougo/vimproc.vim";
+  -- "idanarye/vim-merginal";
 
   -- comments
   "numToStr/Comment.nvim";
