@@ -98,7 +98,7 @@ local pid = vim.fn.getpid()
 -- local omnisharp_bin = "/path/to/omnisharp-repo/run"
 
 -- on Windows
-local omnisharp_bin = "/Program Files/omnisharp/bin/OmniSharp.exe"
+local omnisharp_bin = "/Users/pfese/AppData/Local/OmniSharp/omnisharp-roslyn/OmniSharp.exe"
 
 require'lspconfig'.omnisharp.setup {
 
