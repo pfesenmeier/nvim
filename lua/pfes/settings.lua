@@ -1,5 +1,6 @@
 vim.g.mapleader = " "
 vim.g.netrw_browsex_viewer= "msedge.exe"
+vim.g.netrw_banner=0
 
 local o = vim.opt
 local c = vim.cmd
@@ -15,6 +16,7 @@ o.scrolloff = 999 -- keep cursor in middle of screen
 o.scrolloff = 999
 o.expandtab = true
 
+c('set noshellslash')
 -- theme stuff
 -- o.syntax = 'on'
 -- o.termguicolors = true
@@ -43,3 +45,4 @@ require('telescope').setup{
 		path_display={"truncate"}
 	}
 }
+require('telescope').load_extension('fzf')

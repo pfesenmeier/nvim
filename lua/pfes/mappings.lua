@@ -21,28 +21,15 @@ vim.keymap.set('n', '<leader>r', ReloadConfig, { noremap = true })
 
 -- to wipe out all buffers: %bw
 
-vim.cmd([[
-  " Expand
-  imap <expr> <C-j>   vsnip#expandable()  ? '<Plug>(vsnip-expand)'         : '<C-j>'
-  smap <expr> <C-j>   vsnip#expandable()  ? '<Plug>(vsnip-expand)'         : '<C-j>'
+-- :h Trouble
+vim.keymap.set("n", "<leader>ox", function() require("trouble").toggle() end)
+vim.keymap.set("n", "<leader>ow", function() require("trouble").toggle("workspace_diagnostics") end)
+vim.keymap.set("n", "<leader>od", function() require("trouble").toggle("document_diagnostics") end)
+vim.keymap.set("n", "<leader>oq", function() require("trouble").toggle("quickfix") end)
+vim.keymap.set("n", "<leader>ol", function() require("trouble").toggle("loclist") end)
+vim.keymap.set("n", "gR", function() require("trouble").toggle("lsp_references") end)
 
-  " Expand or jump
-  imap <expr> <C-l>   vsnip#available(1)  ? '<Plug>(vsnip-expand-or-jump)' : '<C-l>'
-  smap <expr> <C-l>   vsnip#available(1)  ? '<Plug>(vsnip-expand-or-jump)' : '<C-l>'
-
-  " Jump forward or backward
-  imap <expr> <Tab>   vsnip#jumpable(1)   ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
-  smap <expr> <Tab>   vsnip#jumpable(1)   ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
-  imap <expr> <S-Tab> vsnip#jumpable(-1)  ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
-  smap <expr> <S-Tab> vsnip#jumpable(-1)  ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
-
-  " Select or cut text to use as $TM_SELECTED_TEXT in the next snippet.
-  " See https://github.com/hrsh7th/vim-vsnip/pull/50
-  " nmap        s   <Plug>(vsnip-select-text)
-  " xmap        s   <Plug>(vsnip-select-text)
-  " nmap        S   <Plug>(vsnip-cut-text)
-  " xmap        S   <Plug>(vsnip-cut-text)
-]])
+-- :h vsnip-mapping
 
 -- paste over something in visual mode without changing buffer
 vim.api.nvim_set_keymap("x", "<leader>p", "\"_dP", opts)
@@ -59,9 +46,10 @@ vim.api.nvim_set_keymap('c', '<Esc>f', '<S-Right>', opts )
 map("n", "<leader>w", ":w<CR>", { noremap = true })
 map("n", "<leader>x", ":x<CR>", { noremap = true })
 vim.keymap.set("n", "<leader>q", ":silent :w <bar> :DB < %<CR>", opts)
+vim.keymap.set("n", "<leader>c", ":e %:h", { noremap = true })
 map("n", "<leader>;", ":", { noremap = true })
 -- go to folder view of current file
-map("n", "<leader>o", ":Explore<cr>", opts)
+map("n", "<leader>e", ":Explore<cr>", opts)
 -- toggle buffers
 map("n", "<leader><leader>", "<c-^>", opts)
 -- idea is to have quick solution to paste same content multiple times
@@ -81,12 +69,12 @@ map("n", "<c-p>", ":files", opts)
 -- :b, :f (buffer/file name) auto-completes!!
 function DotNetTest(runArgs)
   vim.notify("building solution...")
-  local build_result = os.execute("dotnet build")
-
-  if build_result ~= 0 then
-    vim.print("build failed")
-    return
-  end
+  -- local build_result = os.execute("dotnet build")
+  --
+  -- if build_result ~= 0 then
+  --   vim.print("build failed")
+  --   return
+  -- end
 
   require("neotest").run.run(runArgs)
   vim.notify("build succeed and tests have begun")
@@ -94,7 +82,8 @@ end
 
 vim.keymap.set('n', '<leader>tr', function() return DotNetTest() end, { noremap = true })
 vim.keymap.set('n', '<leader>tf', function() return DotNetTest(vim.fn.expand("%")) end, { noremap = true })
-vim.keymap.set('n', '<leader>td', function() return DotNetTest({vim.fn.expand("%"), strategy = "dap"}) end, { noremap = true })
+-- vim.keymap.set('n', '<leader>td', function() return DotNetTest({vim.fn.expand("%"), strategy = "dap"}) end, { noremap = true })
+vim.keymap.set('n', '<leader>td', function() return DotNetTest({strategy = "dap"}) end, { noremap = true })
 vim.keymap.set('n', '<leader>tt', function()
     require('neotest').summary.toggle()
 end, opts)

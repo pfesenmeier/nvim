@@ -6,13 +6,6 @@ vim.loader.enable()
 vim.g.mapleader = " "
 vim.g.db = "postgres://postgres:password@localhost:5432/db"
 
--- install paq-nvim if not already installed ( from savq/paq-nvim )
--- commenting out... does not work on windows
--- local install_path = fn.stdpath('data') .. '/site/pack/paqs/start/paq-nvim'
--- if fn.empty(fn.glob(install_path)) > 0 then
-  -- fn.system({'git', 'clone', '--depth=1', 'https://github.com/savq/paq-nvim.git', install_path})
--- end
-
 -- from https://oroques.dev/notes/neovim-init/
 require "paq" {
   "savq/paq-nvim";
@@ -25,10 +18,11 @@ require "paq" {
   -- debug
   'mfussenegger/nvim-dap';
   'theHamsta/nvim-dap-virtual-text';
+  'rcarriga/nvim-dap-ui';
   'antoinemadec/FixCursorHold.nvim';
   'nvim-neotest/neotest';
-  'Issafalcon/neotest-dotnet';
-
+  'nvim-neotest/nvim-nio';
+  { 'Issafalcon/neotest-dotnet', branch = 'v1.5.3' },
   -- workspace defaults to closest .git 
   -- trying to use tcd (tab), lcd (window), cd
   "airblade/vim-rooter";
@@ -39,7 +33,15 @@ require "paq" {
   "tpope/vim-dadbod";
   "kristijanhusak/vim-dadbod-completion";
 
-  -- completion
+  -- workspace errors
+  "folke/trouble.nvim";
+
+  -- fs
+  "lambdalisue/fern.vim";
+  "tpope/vim-eunuch";
+  -- "tpope/vim-vinegar";
+
+  -- completion 
   "hrsh7th/cmp-nvim-lsp";
   "hrsh7th/cmp-nvim-lua";
   "hrsh7th/cmp-buffer";
@@ -59,6 +61,7 @@ require "paq" {
   -- fuzzy search
   "nvim-lua/plenary.nvim";
   "nvim-telescope/telescope.nvim";
+  { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
 
   -- git
   "lewis6991/gitsigns.nvim";
@@ -69,8 +72,8 @@ require "paq" {
 
   -- merges
   -- need to install https://github.com/Shougo/vimproc.vim: see windows binaries
-  "Shougo/vimproc.vim";
-  "idanarye/vim-merginal";
+  -- "Shougo/vimproc.vim";
+  -- "idanarye/vim-merginal";
 
   -- comments
   "numToStr/Comment.nvim";
@@ -83,89 +86,27 @@ require("pfes/settings")
 require("pfes/mappings")
 require("pfes/treesitter")
 require("pfes/lsp")
+require("pfes/dap")
 
 vim.cmd('au BufRead,BufNewFile *.nu		set filetype=nu')
 require('Comment').setup()
 
 require('gitsigns').setup()
 
-local dap = require('dap')
-local home = os.getenv('HOME')
-
-vim.g.dotnet_build_project = function()
-    local default_path = vim.fn.getcwd() .. '/'
-    if vim.g['dotnet_last_proj_path'] ~= nil then
-        default_path = vim.g['dotnet_last_proj_path']
-    end
-    local path = vim.fn.input('Path to your *proj file ', default_path, 'file')
-    vim.g['dotnet_last_proj_path'] = path
-    local cmd = 'dotnet build -c Debug ' .. path 
-    print('')
-    print('Cmd to execute: ' .. cmd)
-    local f = os.execute(cmd)
-    if f == 0 then
-        print('\nBuild: ✔️ ')
-    else
-        print('\nBuild: ❌ (code: ' .. f .. ')')
-    end
-end
-
--- https://github.com/mfussenegger/nvim-dap/wiki/Cookbook#making-debugging-net-easier
-vim.g.dotnet_get_dll_path = function()
-    local request = function()
-        return vim.fn.input('Path to dll', vim.fn.getcwd(), 'file')
-    end
-
-    if vim.g['dotnet_last_dll_path'] == nil then
-        vim.g['dotnet_last_dll_path'] = request()
-    else
-        if vim.fn.confirm('Do you want to change the path to dll?\n' .. vim.g['dotnet_last_dll_path'], '&yes\n&no', 2) == 1 then
-            vim.g['dotnet_last_dll_path'] = request()
-        end
-    end
-
-    return vim.g['dotnet_last_dll_path']
-end
-
-local config = {
-  {
-    type = "netcoredbg",
-    name = "launch - netcoredbg",
-    request = "launch",
-    program = function()
-        if vim.fn.confirm('Should I recompile first?', '&yes\n&no', 2) == 1 then
-            vim.g.dotnet_build_project()
-        end
-        return vim.g.dotnet_get_dll_path()
-    end,
-  },
-  {
-    type = "netcoredbg",
-    request = "attach",
-    name = "attach - netcoredbg",
-    processId = require('dap.utils').pick_process,
-    args = {},
-  },
-}
-
--- if experiencing problems, make sure treesitter is up to date first!
-dap.adapters.netcoredbg = {
-  type = 'executable',
-  command = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe',
-  args = {'--interpreter=vscode'}
-}
-
-dap.configurations.cs = config
-dap.configurations.fsharp = config
-
-require("nvim-dap-virtual-text").setup()
-
-require("neotest").setup({
-  adapters = {
-    require("neotest-dotnet")({
-            discovery_root = "solution"
-        })
-  }
+require("trouble").setup({
+-- settings without a patched font or icons
+    icons = false,
+    fold_open = "v", -- icon used for open folds
+    fold_closed = ">", -- icon used for closed folds
+    -- indent_lines = true, -- add an indent guide below the fold icons
+    signs = {
+        -- icons / text used for a diagnostic
+        error = "error",
+        warning = "warn",
+        hint = "hint",
+        information = "info"
+    },
+    -- use_diagnostic_signs = true -- enabling this will use the signs defined in your lsp client
 })
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim

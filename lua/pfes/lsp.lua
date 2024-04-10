@@ -95,10 +95,10 @@ require('lspconfig').cssls.setup{
 local pid = vim.fn.getpid()
 
 -- On linux/darwin if using a release build, otherwise under scripts/OmniSharp(.Core)(.cmd)
--- local omnisharp_bin = "/path/to/omnisharp-repo/run"
+local omnisharp_bin = "/home/paul/.local/bin/OmniSharp/omnisharp-roslyn/OmniSharp"
 
 -- on Windows
-local omnisharp_bin = "/Users/pfese/AppData/Local/OmniSharp/omnisharp-roslyn/OmniSharp.exe"
+-- local omnisharp_bin = "/Users/pfese/AppData/Local/OmniSharp/omnisharp-roslyn/OmniSharp.exe"
 
 require'lspconfig'.omnisharp.setup {
 
