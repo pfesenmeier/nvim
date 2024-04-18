@@ -9,4 +9,7 @@
 
 launch fzf to change directories
 3. tiny cli tools (cleanup ra)
+2. working with plain text
+- pass json into cli tool (dotnet user-secrets)
+3. tiny cli tools (guard)
 4. Pandas (dataframe)
