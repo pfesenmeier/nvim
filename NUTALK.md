@@ -13,3 +13,8 @@ launch fzf to change directories
 - pass json into cli tool (dotnet user-secrets)
 3. tiny cli tools (guard)
 4. Pandas (dataframe)
+
+- mass rename files
+- concat csv files
+
+- opening very large json files
