@@ -1,10 +1,9 @@
 # Ra - personal dev config
 
 ### big wins
-- eunuch.vim for moving files?
+- add "rg this selection", "fd this selection"
 - add save buffer to test commands
 - pin netcoredbg, neotest
-- do I really need to build before running tests?
 - https://csharpier.com/ with neoformat
 - install fd from github (winget breaks path on every upgrade)
 - enhance cross-platform (PATH / Path), fzf plugin, omnisharp path

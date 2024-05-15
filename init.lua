@@ -9,20 +9,23 @@ vim.g.db = "postgres://postgres:password@localhost:5432/db"
 -- from https://oroques.dev/notes/neovim-init/
 require "paq" {
   "savq/paq-nvim";
-  { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
-  "nvim-treesitter/nvim-treesitter-textobjects";
+  { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate', branch = 'v0.9.2', pin = true },
+  { "nvim-treesitter/nvim-treesitter-textobjects", pin = true },
   "neovim/nvim-lspconfig";
   -- prevent remote code execution
   "ciaranm/securemodelines";
 
   -- debug
-  'mfussenegger/nvim-dap';
+  { 'mfussenegger/nvim-dap', branch = '0.7.0', pin = true },
   'theHamsta/nvim-dap-virtual-text';
   'rcarriga/nvim-dap-ui';
+
+  --testing
   'antoinemadec/FixCursorHold.nvim';
-  'nvim-neotest/neotest';
-  'nvim-neotest/nvim-nio';
-  { 'Issafalcon/neotest-dotnet', branch = 'v1.5.3' },
+  { 'nvim-neotest/neotest', branch = 'v5.2.3', pin = true },
+  { 'nvim-neotest/nvim-nio', branch = 'v1.9.3', pin = true },
+  { 'Issafalcon/neotest-dotnet', branch = 'v1.5.3', pin = true },
+
   -- workspace defaults to closest .git 
   -- trying to use tcd (tab), lcd (window), cd
   "airblade/vim-rooter";
@@ -34,12 +37,11 @@ require "paq" {
   "kristijanhusak/vim-dadbod-completion";
 
   -- workspace errors
-  "folke/trouble.nvim";
+  { "folke/trouble.nvim", branch = 'v2.10.0', pin  = true },
 
   -- fs
   "lambdalisue/fern.vim";
   "tpope/vim-eunuch";
-  -- "tpope/vim-vinegar";
 
   -- completion 
   "hrsh7th/cmp-nvim-lsp";
@@ -61,7 +63,7 @@ require "paq" {
   -- fuzzy search
   "nvim-lua/plenary.nvim";
   "nvim-telescope/telescope.nvim";
-  { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
+  -- { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
 
   -- git
   "lewis6991/gitsigns.nvim";
