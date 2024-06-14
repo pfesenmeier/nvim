@@ -1,6 +1,7 @@
 # Ra - personal dev config
 
 ### big wins
+- stop adding newlines to end of files
 - add "rg this selection", "fd this selection"
 - add save buffer to test commands
 - pin netcoredbg, neotest
