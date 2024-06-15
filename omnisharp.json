@@ -6,7 +6,7 @@
     "enableAnalyzersSupport": true,
     "diagnosticWorkersThreadCount": 8,
     "locationPaths": [
-      "<home>/.omnisharp/roslynator"
+      "/Users/pfese/.omnisharp/roslynator"
     ],
     "inlayHintsOptions": {
         "enableForParameters": true,
