@@ -33,7 +33,7 @@ def 'download lua-language-server' [] {
       lua-language-server.exe
     )
   } else {
-    log error "unsupported platform"
+    brew install lua-language-server
   }
 }
 

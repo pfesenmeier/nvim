@@ -1,6 +1,8 @@
 local dap = require('dap')
 local home = os.getenv('HOME')
 
+local vim = vim
+
 vim.g.dotnet_build_project = function()
     local default_path = vim.fn.getcwd() .. '/'
     if vim.g['dotnet_last_proj_path'] ~= nil then
@@ -57,8 +59,13 @@ local config = {
   },
 }
 
--- local netcoredbg = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe'
-local netcoredbg = '/home/paul/.local/bin/Samsung/netcoredbg/netcoredbg/netcoredbg'
+local netcoredbg
+
+if Env.islinux then
+  netcoredbg = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe'
+else
+  netcoredbg = home .. '/.local/bin/Samsung/netcoredbg/netcoredbg/netcoredbg'
+end
 
 -- if experiencing problems, make sure treesitter is up to date first!
 dap.adapters.netcoredbg = {

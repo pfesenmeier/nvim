@@ -1,7 +1,7 @@
 $env.HOMEBREW_PREFIX = "/home/linuxbrew/.linuxbrew"
 $env.HOMEBREW_CELLAR = "/home/linuxbrew/.linuxbrew/Cellar"
 $env.HOMEBREW_REPOSITORY = "/home/linuxbrew/.linuxbrew/Homebrew"
-$env.PATH = ($env.PATH | prepend ([.local share fnm] | path join))
+$env.PATH = ($env.PATH | prepend ([$env.HOME    .local share fnm] | path join))
 
 load-env (fnm env --shell bash
     | lines

@@ -1,29 +1,54 @@
-require'nvim-treesitter.configs'.setup {
-  ensure_installed = { "c_sharp", "javascript", "java", "lua", "glimmer", "rust", "python", "c", "jq", "json5", "json", "markdown", "toml", "typescript", "hcl", "html",
-    "regex", "sql", "yaml", "gitignore", "gitattributes", "vim", "vimdoc" }, -- one of "all", "maintained" (parsers with maintainers), or a list of languages
-  sync_install = true, -- install languages synchronously (only applied to `ensure_installed`)
-  ignore_install = { "gleam", "svelte" }, -- List of parsers to ignore installing
-  highlight = {
-    enable = true,              -- false will disable the whole extension
-    -- disable = { },  -- list of language that will be disabled
-    -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-    -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-    -- Using this option may slow down your editor, and you may see some duplicate highlights.
-    -- Instead of true it can also be a list of languages
-    additional_vim_regex_highlighting = false,
-  },
-  incremental_selection = {
-    enable = true,
-   -- keymaps = {
-   --   init_selection = "gnn",
-   --   node_incremental = "grn",
-    --  scope_incremental = "grc",
-    --  node_decremental = "grm",
-   -- },
-  },
-  indent = {
-    enable = true
-  }
+local treesitters = {
+    "c_sharp",
+    "javascript",
+    "java",
+    "lua",
+    "glimmer",
+    "rust",
+    "python",
+    "c",
+    "jq",
+    "json5",
+    "json",
+    "markdown",
+    "toml",
+    "typescript",
+    "hcl",
+    "html",
+    "regex",
+    "sql",
+    "yaml",
+    "gitignore",
+    "gitattributes",
+    "vim",
+    "vimdoc"
+}
+
+require 'nvim-treesitter.configs'.setup {
+    ensure_installed = treesitters,
+    sync_install = true,                    -- install languages synchronously (only applied to `ensure_installed`)
+    ignore_install = { "gleam", "svelte" }, -- List of parsers to ignore installing
+    highlight = {
+        enable = true,                      -- false will disable the whole extension
+        -- disable = { },  -- list of language that will be disabled
+        -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
+        -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
+        -- Using this option may slow down your editor, and you may see some duplicate highlights.
+        -- Instead of true it can also be a list of languages
+        additional_vim_regex_highlighting = false,
+    },
+    incremental_selection = {
+        enable = true,
+        -- keymaps = {
+        --   init_selection = "gnn",
+        --   node_incremental = "grn",
+        --  scope_incremental = "grc",
+        --  node_decremental = "grm",
+        -- },
+    },
+    indent = {
+        enable = true
+    }
 }
 
 -- enable tree-sitter base folding
@@ -169,6 +194,3 @@ vim.filetype.add({
 --
 -- vim.keymap.set({ "n", "x", "o" }, "]h", next_hunk_repeat)
 -- vim.keymap.set({ "n", "x", "o" }, "[h", prev_hunk_repeat)
-
-
-

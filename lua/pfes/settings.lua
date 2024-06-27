@@ -12,16 +12,11 @@ c('set clipboard=unnamedplus')
 o.tabstop = 4 -- tabs are tabstop spaces long
 o.shiftwidth = 4 -- indents are 4 widths long
 o.softtabstop = 4 -- colunmn??
-o.scrolloff = 999 -- keep cursor in middle of screen
-o.scrolloff = 999
+-- o.scrolloff = 999 -- keep cursor in middle of screen
 o.expandtab = true
 
 c('set noshellslash')
--- theme stuff
--- o.syntax = 'on'
--- o.termguicolors = true
-o.background = "dark"
-c([[colorscheme gruvbox]])
+
 -- default highlight group for nvim-dap is a bright blue
 vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F36' })
 
@@ -39,10 +34,33 @@ vim.cmd('set mps+=<:>')
 vim.opt.signcolumn = "yes:2"
 
 -- ongoing issue: https://github.com/nvim-telescope/telescope.nvim/issues/2712
--- TODO remove boilerplate from file display
 require('telescope').setup{
 	defaults = {
 		path_display={"truncate"}
 	}
 }
--- require('telescope').load_extension('fzf')
+
+vim.g.rooter_patterns = {'.git', 'Makefile', '*.sln', 'build/env.sh'}
+
+require('telescope').load_extension('fzf')
+
+vim.cmd('au BufRead,BufNewFile *.nu		set filetype=nu')
+require('Comment').setup()
+
+require('gitsigns').setup()
+
+require("trouble").setup({
+-- settings without a patched font or icons
+    icons = false,
+    fold_open = "v", -- icon used for open folds
+    fold_closed = ">", -- icon used for closed folds
+    -- indent_lines = true, -- add an indent guide below the fold icons
+    signs = {
+        -- icons / text used for a diagnostic
+        error = "error",
+        warning = "warn",
+        hint = "hint",
+        information = "info"
+    },
+    -- use_diagnostic_signs = true -- enabling this will use the signs defined in your lsp client
+})
