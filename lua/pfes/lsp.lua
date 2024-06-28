@@ -42,8 +42,6 @@ else
   omnisharp_bin = home .. "/AppData/Local/OmniSharp/omnisharp-roslyn/OmniSharp.exe"
 end
 
--- on Windows
-
 require 'lspconfig'.omnisharp.setup {
 
     handlers = {
@@ -54,7 +52,7 @@ require 'lspconfig'.omnisharp.setup {
     -- Enables support for reading code style, naming convention and analyzer
     -- settings from .editorconfig.
     enable_editorconfig_support = true,
-
+    --
     -- If true, MSBuild project system will only load projects for files that
     -- were opened in the editor. This setting is useful for big C# codebases
     -- and allows for faster initialization of code navigation features only

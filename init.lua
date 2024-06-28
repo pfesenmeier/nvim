@@ -84,6 +84,10 @@ end
 
 paq(packages)
 
+if Env.islinux then
+  require('telescope').load_extension('fzf')
+end
+
 require("pfes/completion")
 require("pfes/settings")
 require("pfes/mappings")

@@ -1,6 +1,8 @@
 # Ra - personal dev config
 
 ### big wins
+- sort buffers alphabetically?
+- import via autocomplete selection
 - stop adding newlines to end of files
 - add "rg this selection", "fd this selection"
 - add save buffer to test commands

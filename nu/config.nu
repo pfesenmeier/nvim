@@ -768,17 +768,18 @@ $env.config = {
 alias exa = eza
 alias tree = eza -T
 alias e = nvim
+alias ec = nvim --clean
 alias s = git status
 alias a = git add
 alias c = git commit
 alias b = git branch
 alias l = git log --oneline
 alias z = zellij
-alias fd = fdfind
+# alias fd = fdfind
+alias fd = fd.exe
 
 source ra.nu
 source util.nu
 source install.nu
 source ra-env.nu
-source brew-env.nu
 source clean.nu

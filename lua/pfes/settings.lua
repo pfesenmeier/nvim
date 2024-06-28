@@ -42,8 +42,6 @@ require('telescope').setup{
 
 vim.g.rooter_patterns = {'.git', 'Makefile', '*.sln', 'build/env.sh'}
 
-require('telescope').load_extension('fzf')
-
 vim.cmd('au BufRead,BufNewFile *.nu		set filetype=nu')
 require('Comment').setup()
 
