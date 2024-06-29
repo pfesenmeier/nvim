@@ -205,7 +205,7 @@ $env.config = {
     completions: {
         case_sensitive: false # set to true to enable case-sensitive completions
         quick: true    # set this to false to prevent auto-selecting completions when only one remains
-        partial: true    # set this to false to prevent partial filling of the prompt
+        partial: false    # set this to false to prevent partial filling of the prompt
         algorithm: "prefix"    # prefix or fuzzy
         external: {
             enable: false # set to false to prevent nushell looking into $env.PATH to find more suggestions, `false` recommended for WSL users as this look up may be very slow
@@ -233,7 +233,7 @@ $env.config = {
     use_ansi_coloring: true
     bracketed_paste: true # enable bracketed paste, currently useless on windows
     edit_mode: vi # emacs, vi
-    shell_integration: true
+    shell_integration: false
     render_right_prompt_on_last_line: false # true or false to enable or disable right prompt to be rendered on last line of the prompt.
 
     hooks: {
