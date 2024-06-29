@@ -208,7 +208,7 @@ $env.config = {
         partial: true    # set this to false to prevent partial filling of the prompt
         algorithm: "prefix"    # prefix or fuzzy
         external: {
-            enable: true # set to false to prevent nushell looking into $env.PATH to find more suggestions, `false` recommended for WSL users as this look up may be very slow
+            enable: false # set to false to prevent nushell looking into $env.PATH to find more suggestions, `false` recommended for WSL users as this look up may be very slow
             max_results: 100 # setting it lower can improve completion performance at the cost of omitting some options
             completer: $carapace_completer
         }
@@ -244,7 +244,7 @@ $env.config = {
           PWD: [
               # Enable Windows Terminal detect cwd to do "duplicate tab/pane"
               # https://github.com/nushell/nushell/issues/10166
-              {|before, after| print -n $"(ansi -o '9;9;')($after)(ansi "st")" }
+              # {|before, after| print -n $"(ansi -o '9;9;')($after)(ansi "st")" }
             ] 
         }
         display_output: "if (term size).columns >= 100 { table -e } else { table }" # run to display the output of a pipeline

@@ -2,30 +2,32 @@ use std log
 
 let config_path = [$nu.home-path nvim] | path join
 
+let neovim_config_folder = (
+  [$nu.home-path]
+  | append (if $nu.os-info.family == 'windows' {  [AppData Local] } else { [.config] })
+  | append nvim
+  | path join
+)
 
 def main [] {
-    ([config.nu env.nu lib] | each {|x|
-      let source = [$config_path nu $x] | path join
-      let dest = [$nu.default-config-dir $x] | path join
-      idempotent_symlink $source $dest
-    })
-
-    ([init.lua ginit.vim lua] | each {|x|
-      let source = [$config_path $x] | path join
-      let config_folder = if $nu.os-info.family == 'windows' {  [AppData Local] } else { [.config] } | path join
-      let dest =  [$nu.home-path $config_folder nvim $x] | path join
-
-      idempotent_symlink $source $dest
-    })
+    # ([config.nu env.nu lib] | each {|x|
+    #   let source = [$config_path nu $x] | path join
+    #   let dest = [$nu.default-config-dir $x] | path join
+    #   idempotent_symlink $source $dest
+    # })
 
     # src: relative to ~/nvim (this repo)
     # dest: relative to ~
     [{
-      name: "omnisharp"
+      src: [nushell]
+      dest: [$nu.default-config-dir]
+    } {
+      src:  [neovim]
+      dest: $neovim_config_folder
+    } {
       src:  [omnisharp.json]
       dest: [.omnisharp omnisharp.json]
     } {
-      name: "wezterm"
       src:  [wezterm.lua]
       dest: [.config wezterm wezterm.lua]
     }] | each {|x| 
@@ -59,15 +61,13 @@ def symlink [
     }
 }
 
-def create_parent_dirs [target: string] {
-  let dir = $target | path dirname
-  mkdir $dir
-}
-
 def idempotent_symlink [source: string, dest: string] {
-  create_parent_dirs $dest
+  let dest_dir = $dest | path dirname
+  mkdir $dest_dir
+
   if ($dest | path exists) {
-    rm $dest
+    rm --recursive $dest
   }
+
   symlink $source $dest
 }

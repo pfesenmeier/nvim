@@ -18,7 +18,7 @@ local lsps = {
     "tailwindcss",
 
     "bashls",
-    "lua_ls",
+    -- "lua_ls",
     "sqlls"
 }
 
