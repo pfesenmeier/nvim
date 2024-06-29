@@ -1,4 +1,42 @@
-let config_path = [$nu.home-path nvim] | path join;
+use std log
+
+let config_path = [$nu.home-path nvim] | path join
+
+
+def main [] {
+    ([config.nu env.nu lib] | each {|x|
+      let source = [$config_path nu $x] | path join
+      let dest = [$nu.default-config-dir $x] | path join
+      idempotent_symlink $source $dest
+    })
+
+    ([init.lua ginit.vim lua] | each {|x|
+      let source = [$config_path $x] | path join
+      let config_folder = if $nu.os-info.family == 'windows' {  [AppData Local] } else { [.config] } | path join
+      let dest =  [$nu.home-path $config_folder nvim $x] | path join
+
+      idempotent_symlink $source $dest
+    })
+
+    # src: relative to ~/nvim (this repo)
+    # dest: relative to ~
+    [{
+      name: "omnisharp"
+      src:  [omnisharp.json]
+      dest: [.omnisharp omnisharp.json]
+    } {
+      name: "wezterm"
+      src:  [wezterm.lua]
+      dest: [.config wezterm wezterm.lua]
+    }] | each {|x| 
+      let src = [$config_path] | append $x.src | path join
+      let dest = [$nu.home-path] | append $x.dest | path join
+
+      idempotent_symlink $src $dest
+    }
+
+    return
+}
 
 # https://www.nushell.sh/blog/2023-08-23-happy-birthday-nushell-4.html
 def symlink [
@@ -8,6 +46,8 @@ def symlink [
     let existing = ($existing | path expand -s)
     let link_name = ($link_name | path expand)
 
+    log debug $"existing: ($existing)"
+    log debug $"link name: ($link_name)"
     if $nu.os-info.family == 'windows' {
         if ($existing | path type) == 'dir' {
             mklink /D $link_name $existing
@@ -20,46 +60,14 @@ def symlink [
 }
 
 def create_parent_dirs [target: string] {
-  let dir = $target | path dirname;
-  mkdir $dir;
+  let dir = $target | path dirname
+  mkdir $dir
 }
 
-([config.nu env.nu lib] | each {|x|
-  let source = [$config_path nu $x] | path join;
-  let dest = $nu.default-config-dir;
-  create_parent_dirs $dest;
-  symlink $source $dest;
-});
-
-
-let omni_dest = [$nu.home-path .omnisharp omnisharp.json] | path join;
-let omni_src = [$config_path omnisharp.json] | path join;
-create_parent_dirs $omni_dest;
-symlink $omni_src $omni_dest;
-
-([init.lua ginit.vim lua] | each {|x|
-  let source = [$config_path $x] | path join;
-
-  let dest_folder = (
-    $nu.home-path 
-    | append (if ($nu.os-info.family == 'windows') {  [AppData Local] } else { [.config] })
-    | append nvim
-  )
-
-  mkdir ($dest_folder | path join)
-
-  let dest = (
-    $nu.home-path 
-    | append $dest_folder 
-    | append $x 
-    | path join
-  );
-
-  symlink $source $dest;
-})
-
-let zellij_dest = [$nu.home-path .config zellij config.kdl] | path join;
-let zellij_src = [$config_path zellij.kdl] | path join;
-create_parent_dirs $zellij_dest;
-symlink $zellij_src $zellij_dest;
-
+def idempotent_symlink [source: string, dest: string] {
+  create_parent_dirs $dest
+  if ($dest | path exists) {
+    rm $dest
+  }
+  symlink $source $dest
+}
