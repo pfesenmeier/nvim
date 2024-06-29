@@ -23,10 +23,6 @@ vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F36' })
 c('set relativenumber')
 c('set nofoldenable')
 
--- set background transparent (I have background photo via Windows Terminal)
-c('highlight Normal guibg=none')
-c('highlight NonText guibg=none')
-
 -- add <> for % motion
 -- see :h matchpairs
 vim.cmd('set mps+=<:>')
@@ -62,3 +58,9 @@ require("trouble").setup({
     },
     -- use_diagnostic_signs = true -- enabling this will use the signs defined in your lsp client
 })
+
+require("gruvbox").setup({
+  contrast = "hard", -- can be "hard", "soft" or empty string
+  transparent_mode = true,
+})
+vim.cmd("colorscheme gruvbox")

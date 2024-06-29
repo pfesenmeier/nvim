@@ -74,7 +74,10 @@ local packages = {
   "cedarbaum/fugitive-azure-devops.vim", -- with ADO
 
   -- comments
+  -- TODO comments now bundled with neovim
   "numToStr/Comment.nvim",
+
+  'ellisonleao/gruvbox.nvim' 
 }
 
 if Env.islinux then
