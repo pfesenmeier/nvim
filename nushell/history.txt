@@ -1,4 +1,0 @@
-sh
-ls $nu.default-config-dir
-e setup.nu
-git add -p
