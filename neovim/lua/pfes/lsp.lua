@@ -8,18 +8,19 @@ local lsps = {
     "rust_analyzer",
 
     -- enabled via vscode-langservers-extracted
-    "html",
-    "cssls",
+    -- "html",
+    -- "cssls",
     "jsonls",
-    "eslint",
+    -- "eslint",
 
-    "tsserver",
+    -- "tsserver",
     "yamlls",
-    "tailwindcss",
+    -- "tailwindcss",
 
     "bashls",
     -- "lua_ls",
-    "sqlls"
+    "sqlls",
+    "marksman"
 }
 
 for _, value in ipairs(lsps) do
