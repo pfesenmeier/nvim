@@ -3,24 +3,21 @@ use std log
 let config_path = [$nu.home-path nvim] | path join
 
 let neovim_config_folder = (
-  [$nu.home-path]
-  | append (if $nu.os-info.family == 'windows' {  [AppData Local] } else { [.config] })
+  (if $nu.os-info.family == 'windows' {  [AppData Local] } else { [.config] })
   | append nvim
-  | path join
+)
+
+let nushell_config_folder = (
+  (if $nu.os-info.family == 'windows' {  [AppData Roaming] } else { [.config] })
+  | append nushell
 )
 
 def main [] {
-    # ([config.nu env.nu lib] | each {|x|
-    #   let source = [$config_path nu $x] | path join
-    #   let dest = [$nu.default-config-dir $x] | path join
-    #   idempotent_symlink $source $dest
-    # })
-
     # src: relative to ~/nvim (this repo)
     # dest: relative to ~
     [{
       src: [nushell]
-      dest: [$nu.default-config-dir]
+      dest: $nushell_config_folder
     } {
       src:  [neovim]
       dest: $neovim_config_folder
@@ -50,6 +47,7 @@ def symlink [
 
     log debug $"existing: ($existing)"
     log debug $"link name: ($link_name)"
+
     if $nu.os-info.family == 'windows' {
         if ($existing | path type) == 'dir' {
             mklink /D $link_name $existing

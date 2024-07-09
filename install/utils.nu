@@ -50,7 +50,7 @@ def "find-file" [
         return
     }
 
-    let search_results = ls $"($folder)/**/($file)" | where type == 'file'
+    let search_results = ls ($"($folder)/**/($file)" | into glob) | where type == 'file'
 
     if ($search_results | is-empty) {
         log error $"could not find ($file) in ($folder)"
@@ -127,7 +127,7 @@ def 'extract' [
   } else if ($zip_path | str ends-with 'tar.gz') {
     run-external tar "-xzf" $zip_path "-C" $dir
   } else {
-    error make { msg: $"tried to extract ($file), but extension ($ext) is not supported" }
+    return
   }
   rm $zip_path
 }
