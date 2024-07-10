@@ -1,5 +1,0 @@
-name,install-cmd,platform
-winget,install,windows
-apt,install,linux
-npm,install -g,
-dotnet,tool install -g,

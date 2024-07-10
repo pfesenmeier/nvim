@@ -35,7 +35,7 @@ export def 'github install' [
          chmod u+x $executable
        }
 
-       env path add ($executable | path dirname)
+       print $"add ($executable | path dirname) to path (see paths.nu)"
    }
 }
 
@@ -63,42 +63,6 @@ def "find-file" [
     }
 
     $search_results | get 0.name
-}
-
-def "env path add" [
-  path: string
-] {
-  if ($path | path exists) == false {
-    log error "Path does not exist"
-    return
-  }
-
-  let path_variable = if $nu.os-info.family == 'windows' {
-    'Path'
-  } else {
-    'PATH'
-  };
-
-  let env_path = $nu.config-path | path basename -r lib | path join ra-env.nu
-
-  if ($env_path | path exists) == false {
-      touch $env_path
-  }
-
-  let new_path =  $"$env.($path_variable) = \($env.($path_variable) | prepend ($path))" 
-  let current_path = open $env_path | lines;
-
-  if ($current_path | find $new_path | is-empty) {
-    (
-        $current_path
-        | append $new_path
-        | str join (char newline)
-        | save -f $env_path
-    )
-    log info $"Successfully added ($path) to ($path_variable)"
-  } else {
-    log info $"($path) already in ($path_variable)"
-  }
 }
 
 def 'github download' [

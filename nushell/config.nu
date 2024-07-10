@@ -803,10 +803,8 @@ alias b = git branch
 alias l = git log --oneline
 alias z = zellij
 # alias fd = fdfind
-alias fd = fd.exe
 
-source ra.nu
 source util.nu
 source install.nu
-source ra-env.nu
+source paths.nu
 source clean.nu
