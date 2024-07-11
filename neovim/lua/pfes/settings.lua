@@ -22,6 +22,7 @@ vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F36' })
 
 c('set relativenumber')
 c('set nofoldenable')
+c('set nofixendofline') 
 
 -- add <> for % motion
 -- see :h matchpairs

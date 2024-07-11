@@ -25,6 +25,7 @@ local packages = {
   { 'mfussenegger/nvim-dap', branch = '0.7.0', pin = true },
   'theHamsta/nvim-dap-virtual-text',
 
+  "Pocco81/auto-save.nvim",
   -- testing
   'antoinemadec/FixCursorHold.nvim',
   { 'nvim-neotest/neotest', branch = 'v5.2.3', pin = true },
@@ -86,6 +87,8 @@ if Env.islinux then
 end
 
 paq(packages)
+
+require("auto-save").setup()
 
 if Env.islinux then
   require('telescope').load_extension('fzf')

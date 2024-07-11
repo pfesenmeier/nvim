@@ -18,6 +18,7 @@ local lsps = {
     -- "tailwindcss",
 
     "bashls",
+    "nushell",
     -- "lua_ls",
     "sqlls",
     "marksman"
@@ -60,7 +61,7 @@ require 'lspconfig'.omnisharp.setup {
     -- for projects that are relevant to code that is being edited. With this
     -- setting enabled OmniSharp may load fewer projects and may thus display
     -- incomplete reference lists for symbols.
-    enable_ms_build_load_projects_on_demand = false,
+    enable_ms_build_load_projects_on_demand = true,
 
     -- Enables support for roslyn analyzers, code fixes and rulesets.
     enable_roslyn_analyzers = true,

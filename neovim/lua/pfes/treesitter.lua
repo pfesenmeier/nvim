@@ -21,7 +21,20 @@ local treesitters = {
     "gitignore",
     "gitattributes",
     "vim",
-    "vimdoc"
+    "vimdoc",
+    "nu"
+}
+
+local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
+
+-- install highlight groups with nu_highlight_groups.nu
+parser_config.nu = {
+  install_info = {
+    url = "https://github.com/nushell/tree-sitter-nu",
+    files = { "src/parser.c" },
+    branch = "main",
+  },
+  filetype = "nu",
 }
 
 require 'nvim-treesitter.configs'.setup {
