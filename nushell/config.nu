@@ -241,14 +241,14 @@ $env.config = {
         # osc8 is also implemented as the deprecated setting ls.show_clickable_links, it shows clickable links in ls output if your terminal supports it. show_clickable_links is deprecated in favor of osc8
         osc8: true
         # osc9_9 is from ConEmu and is starting to get wider support. It's similar to osc7 in that it communicates the path to the terminal
-        osc9_9: false
+        osc9_9: true
         # osc133 is several escapes invented by Final Term which include the supported ones below.
         # 133;A - Mark prompt start
         # 133;B - Mark prompt end
         # 133;C - Mark pre-execution
         # 133;D;exit - Mark execution finished with exit code
         # This is used to enable terminals to know where the prompt is, the command is, where the command finishes, and where the output of the command is
-        # osc133: true
+        osc133: true
         # osc633 is closely related to osc133 but only exists in visual studio code (vscode) and supports their shell integration features
         # 633;A - Mark prompt start
         # 633;B - Mark prompt end
@@ -261,7 +261,7 @@ $env.config = {
         # reset_application_mode is escape \x1b[?1l and was added to help ssh work better
         reset_application_mode: true
     }
-    render_right_prompt_on_last_line: false # true or false to enable or disable right prompt to be rendered on last line of the prompt.
+    render_right_prompt_on_last_line: true # true or false to enable or disable right prompt to be rendered on last line of the prompt.
 
     hooks: {
         pre_prompt: [{ null }] # run before the prompt is shown
@@ -794,7 +794,7 @@ $env.config = {
 
 alias exa = eza
 alias tree = eza -T
-alias e = nvim
+alias e = nvim -c 'Fern %:h'
 alias ec = nvim --clean
 alias s = git status
 alias a = git add

@@ -62,9 +62,9 @@ local config = {
 local netcoredbg
 
 if Env.islinux then
-  netcoredbg = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe'
-else
   netcoredbg = home .. '/.local/bin/Samsung/netcoredbg/netcoredbg/netcoredbg'
+else
+  netcoredbg = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe'
 end
 
 -- if experiencing problems, make sure treesitter is up to date first!
