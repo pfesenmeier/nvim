@@ -17,8 +17,8 @@ local config = wezterm.config_builder()
 wezterm.font("CaskaydiaCove Nerd Font Mono", {weight="Regular", stretch="Normal", style="Normal"})
 wezterm.font("JetBrains Mono", {weight="DemiBold", stretch="Normal", style="Normal"})
 config.color_scheme = 'deep'
-config.window_background_opacity = 0.8
-config.font_size = 14.0
+-- config.window_background_opacity = 0.8
+config.font_size = 12.0
 
 
 return config

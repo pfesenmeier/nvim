@@ -12,6 +12,11 @@ let nushell_config_folder = (
   | append nushell
 )
 
+let alacritty_config_file = (
+  (if $nu.os-info.family == 'windows' {  [AppData Roaming] } else { [.config] })
+  | append [alacritty alacritty.toml]
+)
+
 def main [] {
     # src: relative to ~/nvim (this repo)
     # dest: relative to ~
@@ -27,6 +32,12 @@ def main [] {
     } {
       src:  [wezterm.lua]
       dest: [.config wezterm wezterm.lua]
+    } {
+      src:  [alacritty.toml]
+      dest: $alacritty_config_file
+    } {
+      src: [whkdrc]
+      dest: [.config whkdrc]
     }] | each {|x| 
       let src = [$config_path] | append $x.src | path join
       let dest = [$nu.home-path] | append $x.dest | path join

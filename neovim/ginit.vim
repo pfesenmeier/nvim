@@ -1,8 +1,8 @@
-:GuiWindowOpacity 0.75
-:call GuiWindowFullScreen(1)
+" :GuiWindowOpacity 0.75
+" :call GuiWindowFullScreen(1)
 :cd ~
 
-let s:fontsize = 12
+let s:fontsize = 8
 function! AdjustFontSize(amount)
   let s:fontsize = s:fontsize+a:amount
   :execute "GuiFont! Consolas:h" . s:fontsize

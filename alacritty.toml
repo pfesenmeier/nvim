@@ -1,0 +1,5 @@
+shell = "nu"
+working_directory = "C:\\Users\\pbfesenmeier"
+
+[font]
+normal = { family = "CaskaydiaCove Nerd Font Mono", style = "Regular" }

@@ -794,7 +794,7 @@ $env.config = {
 
 alias exa = eza
 alias tree = eza -T
-alias e = nvim -c 'Fern %:h'
+alias e = nvim
 alias ec = nvim --clean
 alias s = git status
 alias a = git add
