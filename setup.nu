@@ -36,6 +36,9 @@ def main [] {
       src:  [alacritty.toml]
       dest: $alacritty_config_file
     } {
+      src:  [sway]
+      dest: [.config regolith3 sway config.d]
+    } {
       src: [whkdrc]
       dest: [.config whkdrc]
     }] | each {|x| 

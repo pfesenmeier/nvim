@@ -1,0 +1,9 @@
+set $term alacritty
+
+set $laptop eDP-1
+
+# https://github.com/swaywm/sway/issues/3137#issuecomment-1781583764
+bindswitch --reload --locked lid:on exec "[ $(swaymsg -t get_outputs | jq '. | length') -gt 1 ] && swaymsg output EdP-1 disable"
+bindswitch --reload --locked lid:off output eDP-1 enable
+
+exec_always  $HOME/nvim/do-not-reset-display-when-config-loads.sh
