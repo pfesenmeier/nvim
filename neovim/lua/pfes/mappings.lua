@@ -38,9 +38,12 @@ vim.api.nvim_set_keymap("x", "<leader>p", "\"_dP", opts)
 vim.api.nvim_set_keymap('c', '<C-A>', '<Home>', opts )
 vim.api.nvim_set_keymap('c', '<C-F>', '<Right>', opts )
 vim.api.nvim_set_keymap('c', '<C-B>', '<Left>', opts )
+
 -- <S-Right> ... the name for word motion
 vim.api.nvim_set_keymap('c', '<Esc>b', '<S-Left>', opts )
 vim.api.nvim_set_keymap('c', '<Esc>f', '<S-Right>', opts )
+
+vim.api.nvim_set_keymap('n', '<leader>e', ':Fern %:h<CR>', opts )
 
 -- common command line motions
 map("n", "<leader>w", ":w<CR>", { noremap = true })
@@ -48,8 +51,6 @@ map("n", "<leader>x", ":x<CR>", { noremap = true })
 vim.keymap.set("n", "<leader>q", ":silent :w <bar> :DB < %<CR>", opts)
 vim.keymap.set("n", "<leader>c", ":e %:h", { noremap = true })
 map("n", "<leader>;", ":", { noremap = true })
--- go to folder view of current file
-map("n", "<leader>e", ":Explore<cr>", opts)
 -- toggle buffers
 map("n", "<leader><leader>", "<c-^>", opts)
 -- idea is to have quick solution to paste same content multiple times

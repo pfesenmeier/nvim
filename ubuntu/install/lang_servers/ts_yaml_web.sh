@@ -4,11 +4,14 @@
 npm install -g typescript-language-server \
   typescript \
   vscode-langservers-extracted \
-  @tailwindcss/language-server yarn
+  @tailwindcss/language-server \
+  yaml-language-server
+  
 
+# yarn \
 # requires node 16.1 or above
 # https://yarnpkg.com/getting-started/install
-corepack enable
-yarn global add yaml-language-server
+# corepack enable
+# yarn global add yaml-language-server
 
 

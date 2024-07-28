@@ -7,18 +7,16 @@
 - add "rg this selection", "fd this selection"
 - add save buffer to test commands
 - pin netcoredbg, neotest
+- connect formatters via lsp: 
+    - https://github.com/creativenull/efmls-configs-nvim
+    - https://github.com/creativenull/efmls-configs-nvim/
+- add save buffer to test commands
 - https://csharpier.com/ with neoformat
 - install fd from github (winget breaks path on every upgrade)
 - enhance cross-platform (PATH / Path), fzf plugin, omnisharp path
 - add "let $FZF_DEFAULT_COMMAND = 'rg --files --hidden'"
 - add nvim-gui niceities
     - enhance terminal to all nushell terminal by default (fix PATH / Path problem)
-
-- be smarter about rebuilding before running tests
-    - Omnisharp-vim... just for runnig tests?
-    - add saving buffer to test running command
-    - https://github.com/mfussenegger/nvim-dap/wiki/Cookbook#making-debugging-net-easier
-    - async dotnet build (plenary?), esp for tests
 
 - project-level errors
     - dotnet build output
@@ -28,6 +26,7 @@
     - find dotnet process https://github.com/mfussenegger/nvim-dap/issues/356#issuecomment-975825270
 
 - shortcut for copying filename (let @+ = expand("%:t")) (or for creating class file, a la
+- understanding tmux sessions
 
 ### small things
 - sessions management (open up last tabs used on startup
