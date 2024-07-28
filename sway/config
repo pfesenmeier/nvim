@@ -7,3 +7,5 @@ bindswitch --reload --locked lid:on exec "[ $(swaymsg -t get_outputs | jq '. | l
 bindswitch --reload --locked lid:off output eDP-1 enable
 
 exec_always  $HOME/nvim/do-not-reset-display-when-config-loads.sh
+
+# input <identifier> left_handed enabled

@@ -47,6 +47,7 @@ local packages = {
 
   -- fs
   "lambdalisue/fern.vim",
+  "lambdalisue/vim-fern-hijack",
   "tpope/vim-eunuch",
 
   -- completion 
