@@ -1,0 +1,5 @@
+shell = "/home/linuxbrew/.linuxbrew/bin/nu"
+working_directory = "/home/paulf"
+
+[font]
+# normal = { family = "CaskaydiaCove Nerd Font Mono", style = "Regular" }

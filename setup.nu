@@ -12,7 +12,15 @@ let nushell_config_folder = (
   | append nushell
 )
 
-let alacritty_config_file = (
+let alacritty_config_src = (
+  if $nu.os-info.family == 'windows' {
+      'alacritty.windows.toml'
+  } else {
+      'alacritty.linux.toml'
+  }
+)
+
+let alacritty_config_dest = (
   (if $nu.os-info.family == 'windows' {  [AppData Roaming] } else { [.config] })
   | append [alacritty alacritty.toml]
 )
@@ -33,8 +41,8 @@ def main [] {
       src:  [wezterm.lua]
       dest: [.config wezterm wezterm.lua]
     } {
-      src:  [alacritty.toml]
-      dest: $alacritty_config_file
+      src:  [$alacritty_config_src]
+      dest: $alacritty_config_dest
     } {
       src:  [sway]
       dest: [.config regolith3 sway config.d]
