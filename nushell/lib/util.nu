@@ -9,8 +9,16 @@ export def dump [] {
 export def clip [] {
      let stdin = $in;
      if ($stdin | is-empty) {
-         run-external "pwsh" "-noprofile" "-c" "Get-Clipboard"
+         if $nu.os-info.family == 'windows' {
+             run-external "pwsh" "-noprofile" "-c" "Get-Clipboard"
+         } else {
+             wl-paste
+         }
      } else {
-        run-external "pwsh" "-noprofile" "-c" $"Set-Clipboard ($stdin)"
+        if $nu.os-info.family == 'windows' {
+            run-external "pwsh" "-noprofile" "-c" $"Set-Clipboard ($stdin)"
+        } else {
+            $stdin | wl-copy
+        }
      }
 }

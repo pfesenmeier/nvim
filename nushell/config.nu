@@ -802,9 +802,9 @@ alias c = git commit
 alias b = git branch
 alias l = git log --oneline
 alias z = zellij
-# alias fd = fdfind
 
 source util.nu
 source install.nu
 source paths.nu
 source clean.nu
+# source brew-env.nu
