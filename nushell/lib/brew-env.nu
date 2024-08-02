@@ -28,25 +28,21 @@ $env.PATH = (
   | uniq
 )
 
-if "MANPATH" in $env {
-    $env.MANPATH = ($env.MANPATH | str path add "/home/linuxbrew/.linuxbrew/share/man")
-} else {
-    $env.MANPATH = "/home/linuxbrew/.linuxbrew/share/man"
-}
+$env.MANPATH = ($env.MANPATH? | concat-paths "/home/linuxbrew/.linuxbrew/share/man")
+$env.INFOPATH = ($env.INFOPATH? | concat-paths  "/home/linuxbrew/.linuxbrew/share/info")
 
-if "INFOPATH" in $env {
-    $env.INFOPATH = ($env.INFOPATH | str path add "/home/linuxbrew/.linuxbrew/share/info";)
-} else {
-    $env.INFOPATH = "/home/linuxbrew/.linuxbrew/share/info";
-}
+def "concat-paths" [...path] {
+    let current = if ($in | is-not-empty) {
+      $in | split row (char esep)
+    } else {
+      []
+    }
 
-def "str path add" [path] {
     (
-      $in
-      | split row (char esep) 
+      $current  
       | prepend $path
       | uniq
-      | str join esep
+      | str join (char esep)
     )
 }
 
