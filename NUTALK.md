@@ -18,3 +18,9 @@ launch fzf to change directories
 - concat csv files
 
 - opening very large json files
+
+Cross-platform
+ $nu.os-info
+ path join
+ ps
+ line delimiter?

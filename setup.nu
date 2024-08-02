@@ -49,9 +49,14 @@ def main [] {
     } {
       src: [whkdrc]
       dest: [.config whkdrc]
+    } {
+      src: [komorebi.json]
+      dest: [komorebi.json]
     }] | each {|x| 
       let src = [$config_path] | append $x.src | path join
       let dest = [$nu.home-path] | append $x.dest | path join
+    
+      print $"linking ($src) to ($dest)" 
 
       idempotent_symlink $src $dest
     }
