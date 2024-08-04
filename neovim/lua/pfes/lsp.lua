@@ -19,7 +19,7 @@ local lsps = {
 
     "bashls",
     "nushell",
-    -- "lua_ls",
+    "lua_ls",
     "sqlls",
     "marksman"
 }
@@ -36,12 +36,10 @@ local pid = vim.fn.getpid()
 
 local omnisharp_bin
 
-local home = os.getenv("HOME")
-
 if Env.islinux then
-  omnisharp_bin = home .. "/.local/bin/OmniSharp/omnisharp-roslyn/OmniSharp"
+  omnisharp_bin = Env.home .. "/.local/bin/OmniSharp/omnisharp-roslyn/OmniSharp"
 else
-  omnisharp_bin = home .. "/AppData/Local/OmniSharp/omnisharp-roslyn/OmniSharp.exe"
+  omnisharp_bin = Env.home .. "/AppData/Local/OmniSharp/omnisharp-roslyn/OmniSharp.exe"
 end
 
 require 'lspconfig'.omnisharp.setup {

@@ -26,40 +26,9 @@ def download [
 # available in winget, but need 3.7.0 to avoid bug on windows
 def 'download lua-language-server' [] {
   if $nu.os-info.family == 'windows' {
-    (
-      download
-      LuaLS/lua-language-server 
-      lua-language-server-3.7.2-win32-x64.zip
-      lua-language-server.exe
-    )
+    scoop install lua-language-server
   } else {
     brew install lua-language-server
-  }
-}
-
-def 'download omnisharp' [] {
-  if $nu.os-info.family == 'windows' {
-    (
-      download
-      OmniSharp/omnisharp-roslyn 
-      omnisharp-win-x64.zip
-      OmniSharp.exe
-    )
-  } else {
-    log error "unsupported platform"
-  }
-}
-
-def 'download difft' [] {
-  if $nu.os-info.family == 'windows' {
-    (
-      download
-      Wilfred/difftastic 
-      difft-x86_64-pc-windows-msvc.zip
-      difft.exe
-    )
-  } else {
-    log error "unsupported platform"
   }
 }
 

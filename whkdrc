@@ -7,8 +7,9 @@ alt + shift + o         : komorebic reload-configuration
 
 # App shortcuts - these require shell to be pwsh / powershell
 # The apps will be focused if open, or launched if not open
-# alt + f                 : if ($wshell.AppActivate('Firefox') -eq $False) { start firefox }
-# alt + b                 : if ($wshell.AppActivate('Chrome') -eq $False) { start chrome }
+alt + shift + return    : if ($wshell.AppActivate('Firefox') -eq $False) { start firefox }
+alt + return            : start alacritty
+# alt + b               : if ($wshell.AppActivate('Chrome') -eq $False) { start chrome }
 
 alt + q                 : komorebic close
 alt + m                 : komorebic minimize
@@ -30,7 +31,7 @@ alt + shift + h         : komorebic move left
 alt + shift + j         : komorebic move down
 alt + shift + k         : komorebic move up
 alt + shift + l         : komorebic move right
-alt + shift + return    : komorebic promote
+alt + space             : komorebic promote
 
 # Stack windows
 alt + shift + left      : komorebic stack left
