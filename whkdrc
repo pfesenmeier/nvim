@@ -53,7 +53,8 @@ alt + t                 : komorebic toggle-float
 alt + f                 : komorebic toggle-monocle
 
 # Window manager options
-alt + shift + r         : komorebic retile
+alt + shift + t         : komorebic retile
+alt + shift + r         : komorebic stop; komorebic start --whkd
 alt + s                 : komorebic toggle-pause
 
 # Layouts
