@@ -5,10 +5,7 @@ let local = if $nu.os-info.family == 'windows' {
 } else {
     [$env.HOME .local share nvim]
 } | append [
-  site
-  pack
-  paqs
-  start
+  lazy
   nvim-treesitter
   queries
   nu
