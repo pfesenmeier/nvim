@@ -1,7 +1,7 @@
 let remote = "https://raw.githubusercontent.com/nushell/tree-sitter-nu/main/queries/nu/"
 
 let local = if $nu.os-info.family == 'windows' {
-    [$env.HOME AppData Local nvim-data]
+    [$env.USERPROFILE AppData Local nvim-data]
 } else {
     [$env.HOME .local share nvim]
 } | append [

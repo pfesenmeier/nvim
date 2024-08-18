@@ -1,5 +1,4 @@
 local dap = require('dap')
-local home = os.getenv('HOME')
 
 local vim = vim
 
@@ -62,9 +61,9 @@ local config = {
 local netcoredbg
 
 if Env.islinux then
-  netcoredbg = home .. '/.local/bin/Samsung/netcoredbg/netcoredbg/netcoredbg'
+  netcoredbg = Env.home .. '/.local/bin/Samsung/netcoredbg/netcoredbg/netcoredbg'
 else
-  netcoredbg = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe'
+  netcoredbg = Env.home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe'
 end
 
 -- if experiencing problems, make sure treesitter is up to date first!

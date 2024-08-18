@@ -4,6 +4,11 @@ local function islinux()
     return string.sub(home, 1, #home) == "/home" or nil
 end
 
+local function gethome()
+    return vim.fn.expand("$HOME") or vim.fn.expand("USERPROFILE")
+end
+
 return {
-    islinux = islinux()
+    islinux = islinux(),
+    home = gethome()
 }
