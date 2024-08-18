@@ -1,8 +1,9 @@
 # bootstrap new windows environment
 def main [
   --all (-a) # install all tools
-  --neovim (-n) # install neovim, paq and neovim packages
+  --neovim (-n) # install neovim
   --scoop (-s) # install all scoop packages 
+  --dotnet
 ] {
 
   if ([$all $neovim $scoop] | all {|| $in == false}) {
@@ -17,8 +18,11 @@ def main [
 
   if ([$neovim $all] | any {|| $in }) {
     scoop install neovim
-    nu ($env.FILE_PWD | path join paq.nu)
-    nvim --headless -u NONE -c 'lua require("bootstrap").headless_paq()'
+  }
+
+  # TODO - add in dotnet tools
+  if $dotnet {
+    winget install Microsoft.DotNet.SDK.8
   }
 
 

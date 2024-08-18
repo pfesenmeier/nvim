@@ -1,7 +1,5 @@
 local packages = {
-  -- "savq/paq-nvim";
-  -- build :TSUpdate .. how not to run every time?
-  { 'nvim-treesitter/nvim-treesitter', tag = 'v0.9.2' },
+  { 'nvim-treesitter/nvim-treesitter', build = ":TSUpdate", tag = 'v0.9.2' },
   { "nvim-treesitter/nvim-treesitter-textobjects" },
   "neovim/nvim-lspconfig",
   -- prevent remote code execution
