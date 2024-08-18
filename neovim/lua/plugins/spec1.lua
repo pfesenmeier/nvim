@@ -1,38 +1,22 @@
--- Paq Command: PaqSync
-
--- hack to silence lsp warning
-local vim = vim
-
-Env = require"pfes/env"
-
--- https://neovim.io/doc/user/lua.html#vim.loader
-vim.loader.enable()
-
-vim.g.mapleader = " "
-vim.g.db = "postgres://postgres:password@localhost:5432/db"
-
-require("config.lazy")
-
--- from https://oroques.dev/notes/neovim-init/
--- local paq = require"paq"
 local packages = {
-  "savq/paq-nvim";
-  { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate', branch = 'v0.9.2', pin = true },
-  { "nvim-treesitter/nvim-treesitter-textobjects", pin = true },
+  -- "savq/paq-nvim";
+  -- build :TSUpdate .. how not to run every time?
+  { 'nvim-treesitter/nvim-treesitter', tag = 'v0.9.2' },
+  { "nvim-treesitter/nvim-treesitter-textobjects" },
   "neovim/nvim-lspconfig",
   -- prevent remote code execution
   "ciaranm/securemodelines",
 
   -- debug
-  { 'mfussenegger/nvim-dap', branch = '0.7.0', pin = true },
+  { 'mfussenegger/nvim-dap', tag = '0.7.0' },
   'theHamsta/nvim-dap-virtual-text',
 
   "Pocco81/auto-save.nvim",
   -- testing
   'antoinemadec/FixCursorHold.nvim',
-  { 'nvim-neotest/neotest', branch = 'v5.2.3', pin = true },
-  { 'nvim-neotest/nvim-nio', branch = 'v1.9.3', pin = true },
-  { 'Issafalcon/neotest-dotnet', branch = 'v1.5.3', pin = true },
+  { 'nvim-neotest/neotest', tag = 'v5.2.3' },
+  { 'nvim-neotest/nvim-nio', tag = 'v1.9.3' },
+  { 'Issafalcon/neotest-dotnet', tag = 'v1.5.3' },
 
   -- workspace defaults to closest .git 
   -- trying to use tcd (tab), lcd (window), cd
@@ -45,7 +29,7 @@ local packages = {
   "kristijanhusak/vim-dadbod-completion",
 
   -- workspace errors
-  { "folke/trouble.nvim", branch = 'v2.10.0', pin  = true },
+  { "folke/trouble.nvim", tag = 'v2.10.0' },
 
   -- fs
   "lambdalisue/fern.vim",
@@ -89,19 +73,4 @@ if Env.islinux then
   table.insert(packages, { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' })
 end
 
--- paq(packages)
-
-require("auto-save").setup()
-
-if Env.islinux then
-  require('telescope').load_extension('fzf')
-end
-
-require("pfes/completion")
-require("pfes/settings")
-require("pfes/mappings")
-require("pfes/treesitter")
-require("pfes/lsp")
-require("pfes/dap")
-
--- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
+return packages
