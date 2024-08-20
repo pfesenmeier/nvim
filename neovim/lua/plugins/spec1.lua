@@ -1,74 +1,104 @@
 local packages = {
-  { 'nvim-treesitter/nvim-treesitter', build = ":TSUpdate", tag = 'v0.9.2' },
-  { "nvim-treesitter/nvim-treesitter-textobjects" },
-  "neovim/nvim-lspconfig",
-  -- prevent remote code execution
-  "ciaranm/securemodelines",
+    {
+        'nvim-treesitter/nvim-treesitter',
+        build = ":TSUpdate",
+        -- tag = 'v0.9.2',
+        dependencies = "nvim-treesitter/nvim-treesitter-textobjects"
+    },
+    "neovim/nvim-lspconfig",
+    -- prevent remote code execution
+    { "ciaranm/securemodelines", lazy = true, event = "VeryLazy" },
 
-  -- debug
-  { 'mfussenegger/nvim-dap', tag = '0.7.0' },
-  'theHamsta/nvim-dap-virtual-text',
+    -- debug
+    {
+        'mfussenegger/nvim-dap',
+        tag = '0.7.0',
+        dependencies = { 'theHamsta/nvim-dap-virtual-text' }
+    },
 
-  "Pocco81/auto-save.nvim",
-  -- testing
-  'antoinemadec/FixCursorHold.nvim',
-  { 'nvim-neotest/neotest', tag = 'v5.2.3' },
-  { 'nvim-neotest/nvim-nio', tag = 'v1.9.3' },
-  { 'Issafalcon/neotest-dotnet', tag = 'v1.5.3' },
+    { "Pocco81/auto-save.nvim",  lazy = true, event = "VeryLazy" },
 
-  -- workspace defaults to closest .git 
-  -- trying to use tcd (tab), lcd (window), cd
-  "airblade/vim-rooter",
+    -- testing
+    {
+        'nvim-neotest/neotest',
+        tag = 'v5.2.3',
+        dependencies = {
+            'antoinemadec/FixCursorHold.nvim',
+            'nvim-neotest/nvim-nio',
+            'Issafalcon/neotest-dotnet',
+        }
+    },
+    { 'nvim-neotest/nvim-nio',         tag = 'v1.9.3' },
+    { 'Issafalcon/neotest-dotnet',     tag = 'v1.5.3' },
 
-  "editorconfig/editorconfig-vim",
+    -- workspace defaults to closest .git
+    -- trying to use tcd (tab), lcd (window), cd
+    { "airblade/vim-rooter",           lazy = true,   event = "VeryLazy" },
 
-  -- database
-  "tpope/vim-dadbod",
-  "kristijanhusak/vim-dadbod-completion",
+    { "editorconfig/editorconfig-vim", lazy = true,   event = "VeryLazy" },
 
-  -- workspace errors
-  { "folke/trouble.nvim", tag = 'v2.10.0' },
+    -- database
+    {
+        "tpope/vim-dadbod",
+        ft = "sql",
+        lazy = false,
+        dependencies = { "kristijanhusak/vim-dadbod-completion" }
+    },
 
-  -- fs
-  "lambdalisue/fern.vim",
-  "lambdalisue/vim-fern-hijack",
-  "tpope/vim-eunuch",
+    -- workspace errors
+    { "folke/trouble.nvim",   tag = 'v2.10.0' },
 
-  -- completion 
-  "hrsh7th/cmp-nvim-lsp",
-  "hrsh7th/cmp-nvim-lua",
-  "hrsh7th/cmp-buffer",
-  "hrsh7th/cmp-path",
-  "hrsh7th/cmp-cmdline",
-  "hrsh7th/nvim-cmp",
-  "hrsh7th/cmp-vsnip",
-  "hrsh7th/vim-vsnip",
-  "hrsh7th/cmp-nvim-lsp-signature-help",
+    -- fs
+    { "lambdalisue/fern.vim", dependencies = { "lambdalisue/vim-fern-hijack", } },
+    "tpope/vim-eunuch",
 
-  -- inspect decompiled C#
-  "Hoffs/omnisharp-extended-lsp.nvim",
+    -- completion
+    {
+        "hrsh7th/nvim-cmp",
+        dependencies = {
+            "hrsh7th/cmp-nvim-lsp",
+            "hrsh7th/cmp-nvim-lua",
+            "hrsh7th/cmp-buffer",
+            "hrsh7th/cmp-path",
+            "hrsh7th/cmp-cmdline",
+            "hrsh7th/cmp-vsnip",
+            "hrsh7th/vim-vsnip",
+            "hrsh7th/cmp-nvim-lsp-signature-help",
+        }
+    },
 
-  -- fuzzy search
-  "nvim-lua/plenary.nvim",
-  "nvim-telescope/telescope.nvim",
+    -- inspect decompiled C#
+    { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true, ft = "cs" },
 
-  -- git
-  "lewis6991/gitsigns.nvim",
-  "tpope/vim-fugitive",
-  -- enable Gbrowse
-  "tpope/vim-rhubarb", -- with Github
-  "cedarbaum/fugitive-azure-devops.vim", -- with ADO
+    -- fuzzy search
+    {
+        "nvim-telescope/telescope.nvim",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+        }
+    },
 
-  -- comments
-  -- TODO comments now bundled with neovim
-  "numToStr/Comment.nvim",
+    -- git
+    "lewis6991/gitsigns.nvim",
+    {
+        "tpope/vim-fugitive",
+        dependencies = {
+            -- enable Gbrowse
+            "tpope/vim-rhubarb",                   -- with Github
+            "cedarbaum/fugitive-azure-devops.vim", -- with ADO
+        }
+    },
 
-  'ellisonleao/gruvbox.nvim' 
+    -- comments
+    -- TODO comments now bundled with neovim
+    "numToStr/Comment.nvim",
+
+    'ellisonleao/gruvbox.nvim'
 }
 
 if Env.islinux then
-  -- depends on mingw on windows, which I never setup...
-  table.insert(packages, { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' })
+    -- depends on mingw on windows, which I never setup...
+    table.insert(packages, { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' })
 end
 
 return packages
