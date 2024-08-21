@@ -9,6 +9,9 @@ local packages = {
     -- prevent remote code execution
     { "ciaranm/securemodelines", lazy = true, event = "VeryLazy" },
 
+    -- format
+    { "sbdchd/neoformat", lazy = true, event = "VeryLazy" },
+
     -- debug
     {
         'mfussenegger/nvim-dap',
@@ -16,7 +19,7 @@ local packages = {
         dependencies = { 'theHamsta/nvim-dap-virtual-text' }
     },
 
-    { "Pocco81/auto-save.nvim",  lazy = true, event = "VeryLazy" },
+    { "Pocco81/auto-save.nvim", enable = false, lazy = true, event = "VeryLazy" },
 
     -- testing
     {
@@ -55,6 +58,8 @@ local packages = {
     -- completion
     {
         "hrsh7th/nvim-cmp",
+        lazy = true,
+        event = "BufEnter",
         dependencies = {
             "hrsh7th/cmp-nvim-lsp",
             "hrsh7th/cmp-nvim-lua",
