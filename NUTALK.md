@@ -6,6 +6,7 @@
   - parse json from az cli
   - find duplicates
   - explore a very large json file (schema)
+  boorar
 
 launch fzf to change directories
 3. tiny cli tools (cleanup ra)
