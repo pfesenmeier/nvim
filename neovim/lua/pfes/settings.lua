@@ -30,37 +30,4 @@ vim.cmd('set mps+=<:>')
 
 vim.opt.signcolumn = "yes:2"
 
--- ongoing issue: https://github.com/nvim-telescope/telescope.nvim/issues/2712
-require('telescope').setup{
-	defaults = {
-		path_display={"truncate"}
-	}
-}
-
-
 vim.cmd('au BufRead,BufNewFile *.nu		set filetype=nu')
-require('Comment').setup()
-
-require('gitsigns').setup()
-
-require("trouble").setup({
--- settings without a patched font or icons
-    icons = false,
-    fold_open = "v", -- icon used for open folds
-    fold_closed = ">", -- icon used for closed folds
-    -- indent_lines = true, -- add an indent guide below the fold icons
-    signs = {
-        -- icons / text used for a diagnostic
-        error = "error",
-        warning = "warn",
-        hint = "hint",
-        information = "info"
-    },
-    -- use_diagnostic_signs = true -- enabling this will use the signs defined in your lsp client
-})
-
-require("gruvbox").setup({
-  contrast = "hard", -- can be "hard", "soft" or empty string
-  transparent_mode = true,
-})
-vim.cmd("colorscheme gruvbox")

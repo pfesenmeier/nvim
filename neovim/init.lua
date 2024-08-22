@@ -22,6 +22,5 @@ end
 
 require("pfes/settings")
 require("pfes/mappings")
-require("pfes/treesitter")
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
