@@ -5,20 +5,35 @@ local packages = {
         -- tag = 'v0.9.2',
         dependencies = "nvim-treesitter/nvim-treesitter-textobjects"
     },
-    "neovim/nvim-lspconfig",
     -- prevent remote code execution
-    { "ciaranm/securemodelines", lazy = true, event = "VeryLazy" },
+    { "ciaranm/securemodelines",       lazy = true, event = "VeryLazy" },
 
     -- format
-    { "sbdchd/neoformat",        lazy = true, event = "VeryLazy" },
+    {
+        "sbdchd/neoformat",
+        lazy = true,
+        event = "VeryLazy"
+    },
 
-    { "Pocco81/auto-save.nvim",        enabled = false, lazy = true,       event = "VeryLazy" },
+    {
+        "Pocco81/auto-save.nvim",
+        enabled = false,
+        lazy = true,
+        event = "VeryLazy"
+    },
 
     -- workspace defaults to closest .git
     -- trying to use tcd (tab), lcd (window), cd
-    { "airblade/vim-rooter",           lazy = true,     event = "VeryLazy" },
+    {
+        "airblade/vim-rooter",
+        lazy = false,
+        event = "UIEnter",
+        init = function()
+            vim.g.rooter_patterns = { '.git', 'Makefile', '*.sln', 'build/env.sh' }
+        end
+    },
 
-    { "editorconfig/editorconfig-vim", lazy = true,     event = "VeryLazy" },
+    { "editorconfig/editorconfig-vim", lazy = true, event = "VeryLazy" },
 
     -- database
     {
@@ -36,7 +51,7 @@ local packages = {
     "tpope/vim-eunuch",
 
     -- inspect decompiled C#
-    { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true,    ft = "cs" },
+    { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true, ft = "cs" },
 
     -- fuzzy search
     {
@@ -47,7 +62,7 @@ local packages = {
     },
 
     -- git
-    { "lewis6991/gitsigns.nvim", lazy = true, event = "VeryLazy" },
+    { "lewis6991/gitsigns.nvim",           lazy = true, event = "VeryLazy" },
 
     {
         "tpope/vim-fugitive",
@@ -62,7 +77,7 @@ local packages = {
     -- TODO comments now bundled with neovim
     "numToStr/Comment.nvim",
 
-    { 'ellisonleao/gruvbox.nvim',          priority = 1000 }
+    { 'ellisonleao/gruvbox.nvim', priority = 1000 }
 }
 
 if Env.islinux then
