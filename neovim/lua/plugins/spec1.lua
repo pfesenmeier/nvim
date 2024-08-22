@@ -10,41 +10,21 @@ local packages = {
     { "ciaranm/securemodelines", lazy = true, event = "VeryLazy" },
 
     -- format
-    { "sbdchd/neoformat", lazy = true, event = "VeryLazy" },
+    { "sbdchd/neoformat",        lazy = true, event = "VeryLazy" },
 
-    -- debug
-    {
-        'mfussenegger/nvim-dap',
-        tag = '0.7.0',
-        dependencies = { 'theHamsta/nvim-dap-virtual-text' }
-    },
-
-    { "Pocco81/auto-save.nvim", enable = false, lazy = true, event = "VeryLazy" },
-
-    -- testing
-    {
-        'nvim-neotest/neotest',
-        tag = 'v5.2.3',
-        dependencies = {
-            'antoinemadec/FixCursorHold.nvim',
-            'nvim-neotest/nvim-nio',
-            'Issafalcon/neotest-dotnet',
-        }
-    },
-    { 'nvim-neotest/nvim-nio',         tag = 'v1.9.3' },
-    { 'Issafalcon/neotest-dotnet',     tag = 'v1.5.3' },
+    { "Pocco81/auto-save.nvim",        enabled = false, lazy = true,       event = "VeryLazy" },
 
     -- workspace defaults to closest .git
     -- trying to use tcd (tab), lcd (window), cd
-    { "airblade/vim-rooter",           lazy = true,   event = "VeryLazy" },
+    { "airblade/vim-rooter",           lazy = true,     event = "VeryLazy" },
 
-    { "editorconfig/editorconfig-vim", lazy = true,   event = "VeryLazy" },
+    { "editorconfig/editorconfig-vim", lazy = true,     event = "VeryLazy" },
 
     -- database
     {
         "tpope/vim-dadbod",
         ft = "sql",
-        lazy = false,
+        lazy = true,
         dependencies = { "kristijanhusak/vim-dadbod-completion" }
     },
 
@@ -52,28 +32,11 @@ local packages = {
     { "folke/trouble.nvim",   tag = 'v2.10.0' },
 
     -- fs
-    { "lambdalisue/fern.vim", dependencies = { "lambdalisue/vim-fern-hijack", } },
+    { "lambdalisue/fern.vim", dependencies = { "lambdalisue/vim-fern-hijack", }, priority = 999 },
     "tpope/vim-eunuch",
 
-    -- completion
-    {
-        "hrsh7th/nvim-cmp",
-        lazy = true,
-        event = "BufEnter",
-        dependencies = {
-            "hrsh7th/cmp-nvim-lsp",
-            "hrsh7th/cmp-nvim-lua",
-            "hrsh7th/cmp-buffer",
-            "hrsh7th/cmp-path",
-            "hrsh7th/cmp-cmdline",
-            "hrsh7th/cmp-vsnip",
-            "hrsh7th/vim-vsnip",
-            "hrsh7th/cmp-nvim-lsp-signature-help",
-        }
-    },
-
     -- inspect decompiled C#
-    { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true, ft = "cs" },
+    { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true,    ft = "cs" },
 
     -- fuzzy search
     {
@@ -84,7 +47,8 @@ local packages = {
     },
 
     -- git
-    "lewis6991/gitsigns.nvim",
+    { "lewis6991/gitsigns.nvim", lazy = true, event = "VeryLazy" },
+
     {
         "tpope/vim-fugitive",
         dependencies = {
@@ -98,7 +62,7 @@ local packages = {
     -- TODO comments now bundled with neovim
     "numToStr/Comment.nvim",
 
-    'ellisonleao/gruvbox.nvim'
+    { 'ellisonleao/gruvbox.nvim',          priority = 1000 }
 }
 
 if Env.islinux then
