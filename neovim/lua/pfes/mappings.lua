@@ -101,6 +101,10 @@ map("n", "L", "$", opts)
 -- :h telescope.defaults
 vim.keymap.set("n", "<leader>rg", function() return require('telescope.builtin').live_grep({ path_display = { "truncate" }}) end, opts)
 vim.keymap.set("n", "<leader>fd", function() return require('telescope.builtin').find_files({ path_display = { "truncate" }}) end, opts)
+
+vim.keymap.set("n", "<leader>rG", function() return require('telescope.builtin').live_grep({ cwd = Env.home, path_display = { "truncate" }}) end, opts)
+vim.keymap.set("n", "<leader>fD", function() return require('telescope.builtin').find_files({ cwd = Env.home, path_display = { "truncate" }}) end, opts)
+
 vim.keymap.set("n", "<leader>fb", function() return require('telescope.builtin').buffers() end, opts)
 vim.keymap.set("n", "<leader>fh", function() return require('telescope.builtin').help_tags() end, opts)
 vim.keymap.set("n", "<leader>ft", function() return require('telescope.builtin').treesitter() end, opts)
