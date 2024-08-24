@@ -16,7 +16,8 @@ export def clip [] {
          }
      } else {
         if $nu.os-info.family == 'windows' {
-            run-external "powershell" "-noprofile" "-c" $"Set-Clipboard ($stdin)"
+            let quoted = $stdin | str replace --all "'" "''"
+            run-external "powershell" "-noprofile" "-c" $"Set-Clipboard '($quoted)'"
         } else {
             $stdin | wl-copy
         }

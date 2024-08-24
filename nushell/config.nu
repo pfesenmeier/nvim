@@ -333,6 +333,16 @@ $env.config = {
 
     keybindings: [
         {
+          name: yank_last_command
+          modifier: control
+          keycode: char_y
+          mode: [vi_normal vi_insert]
+          event: {
+            send: executehostcommand,
+            cmd: "history | skip 1 | last | get command | clip"
+          }
+        }
+        {
           name: change_dir_with_fzf_from_home_dir
           modifier: control
           keycode: char_g
