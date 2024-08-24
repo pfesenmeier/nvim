@@ -333,6 +333,16 @@ $env.config = {
 
     keybindings: [
         {
+          name: change_dir_with_fzf
+          modifier: control
+          keycode: char_t
+          mode: [emacs vi_normal vi_insert]
+          event: {
+            send: executehostcommand,
+            cmd: "cd (fd -t d | fzf | decode utf-8 | str trim)"
+          }
+        }
+        {
             name: completion_menu
             modifier: none
             keycode: tab
@@ -559,18 +569,18 @@ $env.config = {
                 ]
             }
         }
-        {
-            name: move_down
-            modifier: control
-            keycode: char_t
-            mode: [emacs, vi_normal, vi_insert]
-            event: {
-                until: [
-                    {send: menudown}
-                    {send: down}
-                ]
-            }
-        }
+        # {
+        #     name: move_down
+        #     modifier: control
+        #     keycode: char_t
+        #     mode: [emacs, vi_normal, vi_insert]
+        #     event: {
+        #         until: [
+        #             {send: menudown}
+        #             {send: down}
+        #         ]
+        #     }
+        # }
         {
             name: delete_one_character_backward
             modifier: none
@@ -694,13 +704,13 @@ $env.config = {
             mode: emacs
             event: {edit: cutfromstart}
         }
-        {
-            name: swap_graphemes
-            modifier: control
-            keycode: char_t
-            mode: emacs
-            event: {edit: swapgraphemes}
-        }
+        # {
+        #     name: swap_graphemes
+        #     modifier: control
+        #     keycode: char_t
+        #     mode: emacs
+        #     event: {edit: swapgraphemes}
+        # }
         {
             name: move_one_word_left
             modifier: alt

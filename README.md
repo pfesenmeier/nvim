@@ -1,4 +1,4 @@
-# Ra - personal dev config
+# personal dev config
 
 ### big wins
 - sort buffers alphabetically?

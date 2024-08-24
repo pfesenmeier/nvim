@@ -20,6 +20,7 @@ def main [] {
    }
 
    try {
+       cleanup
        mkdir $dest
        mkdir $exdir
 
@@ -28,9 +29,10 @@ def main [] {
 
        let dlls = $"($exdir)/**/*.dll" | into glob 
        ls $dlls | get name | each { print $in; print $dest; cp $in $dest }
+       cleanup
        ls $dest
    } catch {|err|
-       # cleanup
+       cleanup
        print "error occurred"
        print -e $err
        exit 1

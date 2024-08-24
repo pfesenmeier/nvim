@@ -11,7 +11,7 @@ local packages = {
 
     {
         "Pocco81/auto-save.nvim",
-        enabled = false,
+        enabled = true,
         lazy = true,
         event = "VeryLazy"
     },
@@ -73,11 +73,25 @@ local packages = {
     },
 
     -- fs
-    { "lambdalisue/fern.vim",              dependencies = { "lambdalisue/vim-fern-hijack", }, priority = 999 },
-    { "tpope/vim-eunuch",                  lazy = true,                                       event = "VeryLazy" },
+    {
+        "lambdalisue/fern.vim",
+        dependencies = { "lambdalisue/vim-fern-hijack", },
+        lazy = true,
+        event = "VeryLazy",
+        priority = 999
+    },
+    {
+        "tpope/vim-eunuch",
+        lazy = true,
+        event = "VeryLazy"
+    },
 
     -- inspect decompiled C#
-    { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true,                                       ft = "cs" },
+    {
+        "Hoffs/omnisharp-extended-lsp.nvim",
+        lazy = true,
+        ft = "cs"
+    },
 
     -- fuzzy search
     {
@@ -139,13 +153,16 @@ local packages = {
                 map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
             end
         },
-        enabled = false,
+        enabled = true,
+        tag = "v0.9.0",
         lazy = true,
         event = "VeryLazy"
     },
 
     {
         "tpope/vim-fugitive",
+        lazy = true,
+        event = "VeryLazy",
         dependencies = {
             -- enable Gbrowse
             "tpope/vim-rhubarb",                   -- with Github
@@ -155,7 +172,11 @@ local packages = {
 
     -- comments
     -- TODO comments now bundled with neovim
-    { "numToStr/Comment.nvim", opts = {} },
+    { "numToStr/Comment.nvim",
+        opts = {},
+        lazy = true,
+        event = "BufEnter"
+    },
 
     {
         'ellisonleao/gruvbox.nvim',
