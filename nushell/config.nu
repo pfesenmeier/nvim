@@ -220,9 +220,9 @@ $env.config = {
     }
 
     cursor_shape: {
-        emacs: line # block, underscore, line, blink_block, blink_underscore, blink_line, inherit to skip setting cursor shape (line is the default)
-        vi_insert: block # block, underscore, line, blink_block, blink_underscore, blink_line, inherit to skip setting cursor shape (block is the default)
-        vi_normal: underscore # block, underscore, line, blink_block, blink_underscore, blink_line, inherit to skip setting cursor shape (underscore is the default)
+        emacs: blink_block # block, underscore, line, blink_block, blink_underscore, blink_line, inherit to skip setting cursor shape (line is the default)
+        vi_insert: line # block, underscore, line, blink_block, blink_underscore, blink_line, inherit to skip setting cursor shape (block is the default)
+        vi_normal: block # block, underscore, line, blink_block, blink_underscore, blink_line, inherit to skip setting cursor shape (underscore is the default)
     }
 
     color_config: $dark_theme # if you want a more interesting theme, you can replace the empty record with `$dark_theme`, `$light_theme` or another custom record
@@ -333,13 +333,33 @@ $env.config = {
 
     keybindings: [
         {
-          name: change_dir_with_fzf
+          name: change_dir_with_fzf_from_home_dir
           modifier: control
-          keycode: char_t
-          mode: [emacs vi_normal vi_insert]
+          keycode: char_g
+          mode: [vi_normal vi_insert]
           event: {
             send: executehostcommand,
-            cmd: "cd (fd -t d | fzf | decode utf-8 | str trim)"
+            cmd: "cd (fd -t d . ($env.HOME? | default $env.USERPROFILE?) | fzf | decode utf-8 | str trim)"
+          }
+        }
+        {
+          name: open_neovim_with_fzf
+          modifier: control
+          keycode: char_t
+          mode: [vi_normal vi_insert]
+          event: {
+            send: executehostcommand,
+            cmd: "fd -t f | fzf | decode utf-8 | str trim | if ($in != '') { nvim $in }"
+          }
+        }
+        {
+          name: open_neovim_with_fzf_from_home_dir
+          modifier: control
+          keycode: char_v
+          mode: [vi_normal vi_insert]
+          event: {
+            send: executehostcommand,
+            cmd: "fd -t f . ($env.HOME? | default $env.USERPROFILE?) | fzf | decode utf-8 | str trim | if ($in != '') { nvim $in }"
           }
         }
         {
