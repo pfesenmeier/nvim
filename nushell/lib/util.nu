@@ -10,13 +10,13 @@ export def clip [] {
      let stdin = $in;
      if ($stdin | is-empty) {
          if $nu.os-info.family == 'windows' {
-             run-external "pwsh" "-noprofile" "-c" "Get-Clipboard"
+             run-external "powershell" "-noprofile" "-c" "Get-Clipboard"
          } else {
              wl-paste
          }
      } else {
         if $nu.os-info.family == 'windows' {
-            run-external "pwsh" "-noprofile" "-c" $"Set-Clipboard ($stdin)"
+            run-external "powershell" "-noprofile" "-c" $"Set-Clipboard ($stdin)"
         } else {
             $stdin | wl-copy
         }
