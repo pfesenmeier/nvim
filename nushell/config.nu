@@ -847,4 +847,5 @@ source util.nu
 source install.nu
 source paths.nu
 source clean.nu
-# source brew-env.nu
+source brew-env.nu
+source booker/booker.nu
