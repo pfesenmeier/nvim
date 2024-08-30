@@ -12,6 +12,7 @@ return {
             local function on_attach(_, bufnr)
                 -- Enable completion triggered by <c-x><c-o>
                 vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+                vim.lsp.inlay_hint.enable()
 
                 -- Mappings.
                 -- See `:help vim.lsp.*` for documentation on any of the below functions
