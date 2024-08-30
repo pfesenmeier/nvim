@@ -72,8 +72,8 @@ return {
             if Env.islinux then
                 omnisharp_bin = Env.home .. "/.local/bin/OmniSharp/omnisharp-roslyn/OmniSharp"
             else
-                -- omnisharp_bin = Env.home .. "/AppData/Local/OmniSharp/omnisharp-roslyn/OmniSharp.exe"
-                omnisharp_bin = Env.home .. "/scoop/shims/omnisharp.exe"
+                omnisharp_bin = Env.home .. "/AppData/Local/OmniSharp/omnisharp-roslyn/OmniSharp.exe"
+                -- omnisharp_bin = Env.home .. "/scoop/shims/omnisharp.exe"
             end
 
             opts.omnisharp.setup {

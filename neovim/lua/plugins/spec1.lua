@@ -76,8 +76,7 @@ local packages = {
     {
         "lambdalisue/fern.vim",
         dependencies = { "lambdalisue/vim-fern-hijack", },
-        lazy = true,
-        event = "VeryLazy",
+        lazy = false,
         priority = 999
     },
     {
