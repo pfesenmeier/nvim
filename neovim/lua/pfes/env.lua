@@ -1,7 +1,6 @@
 local function islinux()
-    local home = vim.fn.expand("$HOME")
-
-    return string.sub(home, 1, #home) == "/home" or nil
+    -- if fails to expand, it's linux
+    return vim.fn.expand("$USERPROFILE") == "$USERPROFILE"
 end
 
 local function gethome()

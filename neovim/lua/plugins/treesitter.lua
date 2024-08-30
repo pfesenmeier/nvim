@@ -62,7 +62,8 @@ return {
                 extension = {
                     razor = "html",
                     tf = "hcl",
-                    tfvars = "hcl"
+                    tfvars = "hcl",
+                    hurl = "hurl"
                 }
             })
         end,
@@ -82,6 +83,7 @@ return {
                 "jq",
                 "json5",
                 "json",
+                "hurl",
                 "markdown",
                 "toml",
                 "typescript",

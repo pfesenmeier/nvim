@@ -1,5 +1,6 @@
 shell = "/home/linuxbrew/.linuxbrew/bin/nu"
-working_directory = "/home/paulf"
+# working_directoy = "/home/paul"
 
 [font]
+size = 17
 # normal = { family = "CaskaydiaCove Nerd Font Mono", style = "Regular" }

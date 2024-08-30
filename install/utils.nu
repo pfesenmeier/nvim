@@ -35,7 +35,7 @@ export def 'github install' [
          chmod u+x $executable
        }
 
-       print $"add ($executable | path dirname) to path (see paths.nu)"
+       print $"add ($executable | path dirname) to path \(see paths.nu\)"
    }
 }
 
