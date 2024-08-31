@@ -8,6 +8,12 @@ local packages = {
         lazy = true,
         event = "VeryLazy"
     },
+    {
+        'stevearc/oil.nvim',
+        opts = {},
+        -- Optional dependencies
+        -- dependencies = { { "echasnovski/mini.icons", opts = {} } },
+    },
 
     {
         "Pocco81/auto-save.nvim",
@@ -72,14 +78,7 @@ local packages = {
         end
     },
 
-    -- fs
-    {
-        "lambdalisue/fern.vim",
-        dependencies = { "lambdalisue/vim-fern-hijack", },
-        lazy = false,
-        priority = 999
-    },
-    {
+   {
         "tpope/vim-eunuch",
         lazy = true,
         event = "VeryLazy"
@@ -171,7 +170,8 @@ local packages = {
 
     -- comments
     -- TODO comments now bundled with neovim
-    { "numToStr/Comment.nvim",
+    {
+        "numToStr/Comment.nvim",
         opts = {},
         lazy = true,
         event = "BufEnter"
