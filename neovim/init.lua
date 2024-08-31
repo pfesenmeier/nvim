@@ -14,8 +14,6 @@ vim.g.db = "postgres://postgres:password@localhost:5432/db"
 
 require("config.lazy")
 
--- require("auto-save").setup()
-
 if Env.islinux then
   require('telescope').load_extension('fzf')
 end

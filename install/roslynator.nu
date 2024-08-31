@@ -28,7 +28,7 @@ def main [] {
        unzip -o $zip -d $exdir
 
        let dlls = $"($exdir)/**/*.dll" | into glob 
-       ls $dlls | get name | each { print $in; print $dest; cp $in $dest }
+       ls $dlls | get name | each { cp $in $dest }
        cleanup
        ls $dest
    } catch {|err|

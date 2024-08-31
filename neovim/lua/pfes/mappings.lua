@@ -35,13 +35,12 @@ vim.api.nvim_set_keymap('c', '<C-B>', '<Left>', opts )
 vim.api.nvim_set_keymap('c', '<Esc>b', '<S-Left>', opts )
 vim.api.nvim_set_keymap('c', '<Esc>f', '<S-Right>', opts )
 
-vim.api.nvim_set_keymap('n', '<leader>e', ':Fern %:h<CR>', opts )
+vim.api.nvim_set_keymap('n', '<leader>e', ':e %:h<CR>', opts )
 
 -- common command line motions
 map("n", "<leader>w", ":w<CR>", { noremap = true })
 map("n", "<leader>x", ":x<CR>", { noremap = true })
 vim.keymap.set("n", "<leader>q", ":silent :w <bar> :DB < %<CR>", opts)
-vim.keymap.set("n", "<leader>c", ":e %:h", { noremap = true })
 map("n", "<leader>;", ":", { noremap = true })
 -- toggle buffers
 map("n", "<leader><leader>", "<c-^>", opts)

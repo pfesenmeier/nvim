@@ -19,7 +19,10 @@ local packages = {
         "Pocco81/auto-save.nvim",
         enabled = true,
         lazy = true,
-        event = "VeryLazy"
+        event = "VeryLazy",
+        init = function()
+            vim.api.nvim_set_keymap("n", "<leader>n", ":ASToggle<CR>", {})
+        end
     },
 
     -- workspace defaults to closest .git
