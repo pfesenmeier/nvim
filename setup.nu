@@ -52,6 +52,9 @@ def main [] {
     } {
       src: [komorebi.json]
       dest: [komorebi.json]
+    } {
+      src: [applications.yaml]
+      dest: [applications.yaml]
     }] | each {|x| 
       let src = [$config_path] | append $x.src | path join
       let dest = [$nu.home-path] | append $x.dest | path join

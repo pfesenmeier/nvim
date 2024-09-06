@@ -1,5 +1,6 @@
 {
     "stackbar": {
         "label": "Title"
-    }
+    },
+    "app_specific_configuration_path": "C:\\Users\\me\\nvim\\applications.yaml"
 }
