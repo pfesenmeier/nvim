@@ -45,10 +45,6 @@ local packages = {
         lazy = true,
         dependencies = { "kristijanhusak/vim-dadbod-completion" }
     },
-    {
-        'stevearc/dressing.nvim',
-        opts = {},
-    },
 
     -- workspace errors
     {
