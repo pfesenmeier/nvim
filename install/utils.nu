@@ -4,6 +4,7 @@ export def 'github install' [
   repo: string
   asset: string
   executable: string
+  tag?: string
 ] {
 
     let app_dir = if $nu.os-info.family == 'windows' {
@@ -23,6 +24,7 @@ export def 'github install' [
      $repo
      $asset
      $install_dir
+     $tag
    )
 
    extract $install_dir $asset

@@ -6,7 +6,7 @@ def main [] {
     (
       utils github install
       OmniSharp/omnisharp-roslyn 
-      omnisharp-win-x64.zip
+      omnisharp-win-x64-net6.0.zip
       OmniSharp.exe
     )
   } else {
