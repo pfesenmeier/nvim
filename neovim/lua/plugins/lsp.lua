@@ -79,7 +79,6 @@ return {
                 omnisharp_dll = Env.home .. "/.local/bin/OmniSharp/omnisharp-roslyn/OmniSharp.dll"
             else
                 omnisharp_dll = Env.home .. "/AppData/Local/OmniSharp/omnisharp-roslyn/OmniSharp.dll"
-                -- omnisharp_bin = Env.home .. "/scoop/shims/omnisharp.exe"
             end
 
             opts.omnisharp.setup {

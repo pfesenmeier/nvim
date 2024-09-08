@@ -1,5 +1,5 @@
 shell = "nu"
-working_directory = "C:\\Users\\pbfesenmeier"
+working_directory = "C:\\Users\\pfese"
 
 [font]
 normal = { family = "CaskaydiaCove Nerd Font Mono", style = "Regular" }
