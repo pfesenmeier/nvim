@@ -9,15 +9,6 @@ local packages = {
         event = "VeryLazy"
     },
     {
-        'stevearc/oil.nvim',
-        opts = {
-          default_file_explorer = true,
-        },
-        -- Optional dependencies
-        -- dependencies = { { "echasnovski/mini.icons", opts = {} } },
-    },
-
-    {
         "Pocco81/auto-save.nvim",
         enabled = true,
         lazy = true,
@@ -79,7 +70,7 @@ local packages = {
         end
     },
 
-   {
+    {
         "tpope/vim-eunuch",
         lazy = true,
         event = "VeryLazy"
@@ -195,5 +186,34 @@ if Env.islinux then
     -- depends on mingw on windows, which I never setup...
     table.insert(packages, { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' })
 end
+
+local fs_plugin
+if Env.islinux then
+    fs_plugin = { 'stevearc/oil.nvim', };
+else
+    fs_plugin = {
+        "lambdalisue/fern.vim",
+        dependencies = {
+            "lambdalisue/vim-fern-hijack",
+            "yuki-yano/fern-preview.vim"
+        },
+        init = function()
+            vim.cmd([[
+                function! s:fern_settings() abort
+                  nmap <silent> <buffer> p     <Plug>(fern-action-preview:toggle)
+                  nmap <silent> <buffer> <C-p> <Plug>(fern-action-preview:auto:toggle)
+                  nmap <silent> <buffer> <C-d> <Plug>(fern-action-preview:scroll:down:half)
+                  nmap <silent> <buffer> <C-u> <Plug>(fern-action-preview:scroll:up:half)
+                endfunction
+
+                augroup fern-settings
+                  autocmd!
+                  autocmd FileType fern call s:fern_settings()
+                augroup END
+            ]]);
+        end
+    };
+end
+table.insert(packages, fs_plugin);
 
 return packages
