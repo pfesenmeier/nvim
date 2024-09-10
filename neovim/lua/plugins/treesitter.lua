@@ -87,6 +87,7 @@ return {
                 "markdown",
                 "toml",
                 "typescript",
+                "terraform",
                 "hcl",
                 "html",
                 "regex",
