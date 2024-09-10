@@ -3,7 +3,7 @@ return {
         "neovim/nvim-lspconfig",
         lazy = true,
         -- currently will load when nvim-cmp loads cmp-nvim-lsp
-        config = function()
+        init  = function()
             local opts = require "lspconfig"
 
             -- Use an on_attach function to only map the following keys
@@ -55,6 +55,7 @@ return {
                 -- "tsserver",
                 "yamlls",
                 -- "tailwindcss",
+                "terraformls",
 
                 "bashls",
                 "nushell",

@@ -61,8 +61,6 @@ return {
             vim.filetype.add({
                 extension = {
                     razor = "html",
-                    tf = "hcl",
-                    tfvars = "hcl",
                     hurl = "hurl"
                 }
             })
