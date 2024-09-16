@@ -187,11 +187,12 @@ if Env.islinux then
     table.insert(packages, { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' })
 end
 
-local fs_plugin
 if Env.islinux then
-    fs_plugin = { 'stevearc/oil.nvim', };
+    table.insert(packages, { 'stevearc/oil.nvim' });
 else
-    fs_plugin = {
+    table.insert(packages,
+        { 'stevearc/oil.nvim', opts = { default_file_explorer = false }, lazy = true, event = "VeryLazy" });
+    table.insert(packages, {
         "lambdalisue/fern.vim",
         dependencies = {
             "lambdalisue/vim-fern-hijack",
@@ -212,8 +213,7 @@ else
                 augroup END
             ]]);
         end
-    };
+    });
 end
-table.insert(packages, fs_plugin);
 
 return packages

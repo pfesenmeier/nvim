@@ -12,7 +12,7 @@ c('set clipboard=unnamedplus')
 o.tabstop = 4 -- tabs are tabstop spaces long
 o.shiftwidth = 4 -- indents are 4 widths long
 o.softtabstop = 4 -- colunmn??
--- o.scrolloff = 999 -- keep cursor in middle of screen
+o.scrolloff = 999 -- keep cursor in middle of screen
 o.expandtab = true
 
 c('set noshellslash')
