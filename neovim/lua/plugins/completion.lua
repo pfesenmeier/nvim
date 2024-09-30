@@ -1,7 +1,7 @@
 -- completion
 return {
     "hrsh7th/nvim-cmp",
-    lazy = true,
+    lazy = false,
     event = { "InsertEnter", "CmdlineEnter" },
     dependencies = {
         { "hrsh7th/cmp-nvim-lsp", dependencies = { 'neovim/nvim-lspconfig' } },

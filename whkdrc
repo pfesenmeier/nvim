@@ -20,10 +20,6 @@ alt + h                 : komorebic focus left
 alt + j                 : komorebic focus down
 alt + k                 : komorebic focus up
 alt + l                 : komorebic focus right
-alt + left              : komorebic focus left
-alt + down              : komorebic focus down
-alt + up                : komorebic focus up
-alt + right             : komorebic focus right
 alt + p                 : komorebic cycle-focus previous # oem_4 is [
 alt + n                 : komorebic cycle-focus next # oem_6 is ]
 
@@ -56,7 +52,7 @@ alt + shift + f         : komorebic toggle-maximize
 
 # Window manager options
 alt + shift + t         : komorebic retile
-alt + shift + r         : komorebic stop; komorebic start --whkd
+alt + shift + r         : komorebic stop --whkd; komorebic start --whkd
 alt + s                 : komorebic toggle-pause
 
 # Layouts
