@@ -841,11 +841,10 @@ alias a = git add
 alias c = git commit
 alias b = git branch
 alias l = git log --oneline
-alias z = zellij
 
 source util.nu
 source install.nu
 source paths.nu
 source clean.nu
-# source brew-env.nu
+source brew-env.nu
 source booker/booker.nu
