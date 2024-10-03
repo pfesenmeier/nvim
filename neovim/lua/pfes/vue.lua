@@ -1,3 +1,5 @@
+local Env = require("pfes.env")
+
 local vue = {}
 
 vue.addToLspConfig = function(opts, capabilities, on_attach)
@@ -6,7 +8,7 @@ vue.addToLspConfig = function(opts, capabilities, on_attach)
             plugins = {
                 {
                     name = "@vue/typescript-plugin",
-                    location = Env.home .. ".local/share/fnm/node-versions/v20.11.1/installation/lib/node_modules/@vue/typescript-plugin",
+                    location = Env.home .. "/.local/share/fnm/node-versions/v20.11.1/installation/lib/node_modules/@vue/typescript-plugin",
                     languages = { "javascript", "typescript", "vue" },
                 },
             },
@@ -20,4 +22,6 @@ vue.addToLspConfig = function(opts, capabilities, on_attach)
         on_attach = on_attach
     }
 end
+
 return vue
+
