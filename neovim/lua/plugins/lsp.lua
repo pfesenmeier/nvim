@@ -1,4 +1,5 @@
-local csharp = require"pfes.csharp"
+local csharp = require "pfes.csharp"
+local vue = require "pfes.vue"
 
 return {
     {
@@ -8,9 +9,6 @@ return {
         init = function()
             local opts = require "lspconfig"
 
-            -- Use an on_attach function to only map the following keys
-            -- after the language server attaches to the current buffer
-            -- see lsp.lua where this is being used
             local function on_attach(_, bufnr)
                 -- Enable completion triggered by <c-x><c-o>
                 vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
@@ -54,7 +52,7 @@ return {
                 "jsonls",
                 "eslint",
 
-                "volar",
+                "volar", --vue
                 "yamlls",
                 "tailwindcss",
                 "terraformls",
@@ -73,27 +71,8 @@ return {
                 }
             end
 
-            csharp.addToLspConfig(opts, capabilities, on_attach);
-
-            opts.ts_ls.setup {
-                init_options = {
-                    plugins = {
-                        {
-                            name = "@vue/typescript-plugin",
-                            location = Env.home .. ".local/share/fnm/node-versions/v20.11.1/installation/lib/node_modules/@vue/typescript-plugin",
-                            languages = { "javascript", "typescript", "vue" },
-                        },
-                    },
-                },
-                filetypes = {
-                    "javascript",
-                    "typescript",
-                    "vue",
-                },
-                capabilities = capabilities,
-                on_attach = on_attach
-            }
-
+            csharp.addToLspConfig(opts, capabilities, on_attach)
+            vue.addToLspConfig(opts, capabilities, on_attach)
         end
     }
 }
