@@ -188,7 +188,7 @@ if Env.islinux then
 end
 
 if Env.islinux then
-    table.insert(packages, { 'stevearc/oil.nvim' });
+    table.insert(packages, { 'stevearc/oil.nvim', opts = {} });
 else
     table.insert(packages,
         { 'stevearc/oil.nvim', opts = { default_file_explorer = false }, lazy = true, event = "VeryLazy" });

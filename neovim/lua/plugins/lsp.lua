@@ -3,7 +3,7 @@ return {
         "neovim/nvim-lspconfig",
         lazy = true,
         -- currently will load when nvim-cmp loads cmp-nvim-lsp
-        init  = function()
+        init = function()
             local opts = require "lspconfig"
 
             -- Use an on_attach function to only map the following keys
@@ -50,11 +50,11 @@ return {
                 -- "html",
                 -- "cssls",
                 "jsonls",
-                -- "eslint",
+                "eslint",
 
-                -- "tsserver",
+                "volar",
                 "yamlls",
-                -- "tailwindcss",
+                "tailwindcss",
                 "terraformls",
 
                 "bashls",
@@ -71,8 +71,24 @@ return {
                 }
             end
 
-            -- OmniSharp Extended Setup
-            -- local pid = vim.fn.getpid()
+            opts.ts_ls.setup {
+                init_options = {
+                    plugins = {
+                        {
+                            name = "@vue/typescript-plugin",
+                            location = Env.home .. ".local/share/fnm/node-versions/v20.11.1/installation/lib/node_modules/@vue/typescript-plugin",
+                            languages = { "javascript", "typescript", "vue" },
+                        },
+                    },
+                },
+                filetypes = {
+                    "javascript",
+                    "typescript",
+                    "vue",
+                },
+                capabilities = capabilities,
+                on_attach = on_attach
+            }
 
             local omnisharp_dll
 
@@ -87,7 +103,6 @@ return {
                 handlers = {
                     ["textDocument/definition"] = require('omnisharp_extended').handler,
                 },
-               -- cmd = { omnisharp_bin, '--languageserver', '--hostPID', tostring(pid) },
                 cmd = { "dotnet", omnisharp_dll },
 
                 settings = {
