@@ -1,3 +1,4 @@
+local env = require"pfes.env"
 -- gx opens links!!
 
 -- https://www.notonlycode.org/neovim-lua-config/
@@ -101,8 +102,8 @@ map("n", "L", "$", opts)
 vim.keymap.set("n", "<leader>rg", function() return require('telescope.builtin').live_grep({ path_display = { "truncate" }}) end, opts)
 vim.keymap.set("n", "<leader>fd", function() return require('telescope.builtin').find_files({ path_display = { "truncate" }}) end, opts)
 
-vim.keymap.set("n", "<leader>rG", function() return require('telescope.builtin').live_grep({ cwd = Env.home, path_display = { "truncate" }}) end, opts)
-vim.keymap.set("n", "<leader>fD", function() return require('telescope.builtin').find_files({ cwd = Env.home, path_display = { "truncate" }}) end, opts)
+vim.keymap.set("n", "<leader>rG", function() return require('telescope.builtin').live_grep({ cwd = env.home, path_display = { "truncate" }}) end, opts)
+vim.keymap.set("n", "<leader>fD", function() return require('telescope.builtin').find_files({ cwd = env.home, path_display = { "truncate" }}) end, opts)
 
 vim.keymap.set("n", "<leader>fb", function() return require('telescope.builtin').buffers() end, opts)
 vim.keymap.set("n", "<leader>fh", function() return require('telescope.builtin').help_tags() end, opts)

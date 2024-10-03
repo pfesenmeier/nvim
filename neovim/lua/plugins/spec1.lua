@@ -1,3 +1,5 @@
+local env = require"pfes.env"
+
 local packages = {
     -- prevent remote code execution
     { "ciaranm/securemodelines",       lazy = true, event = "VeryLazy" },
@@ -182,12 +184,12 @@ local packages = {
     }
 }
 
-if Env.islinux then
+if env.islinux then
     -- depends on mingw on windows, which I never setup...
     table.insert(packages, { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' })
 end
 
-if Env.islinux then
+if env.islinux then
     table.insert(packages, { 'stevearc/oil.nvim', opts = {} });
 else
     table.insert(packages,

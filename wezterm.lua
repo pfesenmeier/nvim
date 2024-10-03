@@ -5,7 +5,7 @@ local wezterm = require 'wezterm'
 -- require'env.lua'
 --
 -- local nubin
--- if Env.islinux then
+-- if env.islinux then
 --     nubin =  '/home/linuxbrew/.linuxbrew/bin/nu'
 -- end
 --

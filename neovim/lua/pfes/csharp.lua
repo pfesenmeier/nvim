@@ -1,12 +1,14 @@
+local env = require"pfes.env";
+
 local csharp          = {}
 
 csharp.addToLspConfig = function(opts, capabilities, on_attach)
     local omnisharp_dll
 
-    if Env.islinux then
-        omnisharp_dll = Env.home .. "/.local/bin/OmniSharp/omnisharp-roslyn/OmniSharp.dll"
+    if env.islinux then
+        omnisharp_dll = env.home .. "/.local/bin/OmniSharp/omnisharp-roslyn/OmniSharp.dll"
     else
-        omnisharp_dll = Env.home .. "/AppData/Local/OmniSharp/omnisharp-roslyn/OmniSharp.dll"
+        omnisharp_dll = env.home .. "/AppData/Local/OmniSharp/omnisharp-roslyn/OmniSharp.dll"
     end
 
     opts.omnisharp.setup {
@@ -119,10 +121,10 @@ csharp.addToDap       = function(dap, vim)
 
     local netcoredbg
 
-    if Env.islinux then
-        netcoredbg = Env.home .. '/.local/bin/Samsung/netcoredbg/netcoredbg/netcoredbg'
+    if env.islinux then
+        netcoredbg = env.home .. '/.local/bin/Samsung/netcoredbg/netcoredbg/netcoredbg'
     else
-        netcoredbg = Env.home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe'
+        netcoredbg = env.home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe'
     end
 
     -- if experiencing problems, make sure treesitter is up to date first!

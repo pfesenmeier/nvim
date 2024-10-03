@@ -1,9 +1,7 @@
--- Paq Command: PaqSync
-
--- hack to silence lsp warning
+---@diagnostic disable-next-line: undefined-global
 local vim = vim
 
-Env = require"pfes/env"
+local env = require"pfes/env"
 
 -- https://neovim.io/doc/user/lua.html#vim.loader
 -- disabling because of lazy
@@ -14,7 +12,7 @@ vim.g.db = "postgres://postgres:password@localhost:5432/db"
 
 require("config.lazy")
 
-if Env.islinux then
+if env.islinux then
   require('telescope').load_extension('fzf')
 end
 
