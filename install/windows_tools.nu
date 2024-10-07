@@ -1,23 +1,27 @@
+# run winget install git.git --interactive
+# run git clone https://github.com/pfesenmeier/nvim
+# run winget install nushell.nushell
+# Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+# Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+
 # bootstrap new windows environment
 def main [
   --all (-a) # install all tools
-  --neovim (-n) # install neovim
-  --scoop (-s) # install all scoop packages 
+  --dev (-d) # install all general dev tools packages 
   --dotnet
 ] {
 
-  if ([$all $neovim $scoop] | all {|| $in == false}) {
+  if ([$all $dev] | all {|| $in == false}) {
     return (help main)
   }
 
-  if ([$scoop $all] | any {|| $in }) {
-    scoop bucket add ...(get_buckets)
+  if ([$dev $all] | any {|| $in }) {
+    for bucket in (get_buckets) {
+       scoop bucket add $bucket
+    }
+    
     scoop install ...(get_tools)
-  }
-
-
-  if ([$neovim $all] | any {|| $in }) {
-    scoop install neovim
+    winget install ...(get_utils)
   }
 
   # TODO - add in dotnet tools
@@ -25,31 +29,40 @@ def main [
     winget install Microsoft.DotNet.SDK.8
   }
 
-
-  # use to install linux tools
-  if (which git | is-empty) {
-    winget install git.git --interactive
-  }
-
-  gsudo nu ($env.USERPROFILE | path join nvim setup.nu)
+  print "run setup.nu with elevated permissions if have not already"
 }
 
 def get_buckets [] {
   [
     extras
-    # nerd-fonts
+    nerd-fonts
   ]
 }
 
+def get_utils [] {
+  [
+     "discord.discord"
+     "google.chrome"
+     "microsoft.visualstudiocode"
+     "docker.dockerdesktop"
+     "dbeaver.dbeaver"
+     # firefox
+     # linqpad
+  ]
+}
+
+
 def get_tools [] {
   [ 
-    # utilties
-    vcredist2022 # needed for alacritty
+    neovim
+    vcredist2022 # needed for neovim
     nvm
     zig # used for treesitter
+
+    starship
+    "nerd-fonts/CascadiaCode-NF-Mono"
   
     # cmdline
-    nu
     ripgrep
     fd
     eza
@@ -62,15 +75,9 @@ def get_tools [] {
     # neovim lsps
     marksman
     lua-language-server
-    # omnisharp
-    # netcoredbg
      
-    # gui
-    alacritty
-    # CascadiaCode-NF-Mono
-    # firefox
-    # linqpad
-  
+    CascadiaCode-NF-Mono
+
     # tiling window managers
     komorebi 
     whkd
