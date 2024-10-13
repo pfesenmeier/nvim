@@ -52,7 +52,8 @@ return {
                 "jsonls",
                 "eslint",
 
-                "volar", --vue
+                "volar",
+                "denols",
                 "yamlls",
                 "tailwindcss",
                 "terraformls",
@@ -71,8 +72,13 @@ return {
                 }
             end
 
+            -- deno
+            vim.g.markdown_fenced_languages = {
+              "ts=typescript"
+            }
             csharp.addToLspConfig(opts, capabilities, on_attach)
-            vue.addToLspConfig(opts, capabilities, on_attach)
+            -- removing ts_ls
+            -- vue.addToLspConfig(opts, capabilities, on_attach)
         end
     }
 }

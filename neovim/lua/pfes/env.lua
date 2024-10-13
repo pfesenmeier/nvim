@@ -1,13 +1,10 @@
-local function islinux()
-    -- if fails to expand, it's linux
-    return vim.fn.expand("$USERPROFILE") == "$USERPROFILE"
-end
+local env = {}
 
-local function gethome()
-    return vim.fn.expand("$HOME") or vim.fn.expand("USERPROFILE")
-end
+env.home = vim.fn.expand("$HOME") or vim.fn.expand("USERPROFILE")
 
-return {
-    islinux = islinux(),
-    home = gethome()
-}
+-- if fails to expand, it's linux
+env.islinux = vim.fn.expand("$USERPROFILE") == "$USERPROFILE"
+
+env.binDir = env.home .. (env.islinux and "/.local/bin" or "/AppData/Local")
+
+return env

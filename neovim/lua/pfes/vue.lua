@@ -24,4 +24,3 @@ vue.addToLspConfig = function(opts, capabilities, on_attach)
 end
 
 return vue
-

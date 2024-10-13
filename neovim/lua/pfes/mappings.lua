@@ -36,7 +36,13 @@ vim.api.nvim_set_keymap('c', '<C-B>', '<Left>', opts )
 vim.api.nvim_set_keymap('c', '<Esc>b', '<S-Left>', opts )
 vim.api.nvim_set_keymap('c', '<Esc>f', '<S-Right>', opts )
 
-vim.api.nvim_set_keymap('n', '<leader>e', ':e %:h<CR>', opts )
+if (env.islinux) then
+    vim.api.nvim_set_keymap('n', '<leader>e', ':Oil %:h<CR>', opts )
+else
+    vim.api.nvim_set_keymap('n', '<leader>e', ':Fern %:h<CR>', opts )
+end
+
+vim.keymap.set("n", "<leader>c", ":e %:h", { noremap = true })
 
 -- common command line motions
 map("n", "<leader>w", ":w<CR>", { noremap = true })
@@ -60,23 +66,14 @@ map("n", "<leader>p", "\"0p", { noremap = true })
 map("n", "<c-p>", ":files", opts)
 
 -- :b, :f (buffer/file name) auto-completes!!
-function DotNetTest(runArgs)
-  vim.notify("building solution...")
-  -- local build_result = os.execute("dotnet build")
-  --
-  -- if build_result ~= 0 then
-  --   vim.print("build failed")
-  --   return
-  -- end
-
+local function neotest(runArgs)
   require("neotest").run.run(runArgs)
-  vim.notify("build succeed and tests have begun")
+  vim.notify("tests have begun")
 end
 
-vim.keymap.set('n', '<leader>tr', function() return DotNetTest() end, { noremap = true })
-vim.keymap.set('n', '<leader>tf', function() return DotNetTest(vim.fn.expand("%")) end, { noremap = true })
--- vim.keymap.set('n', '<leader>td', function() return DotNetTest({vim.fn.expand("%"), strategy = "dap"}) end, { noremap = true })
-vim.keymap.set('n', '<leader>td', function() return DotNetTest({strategy = "dap"}) end, { noremap = true })
+vim.keymap.set('n', '<leader>tr', function() return neotest() end, { noremap = true })
+vim.keymap.set('n', '<leader>tf', function() return neotest(vim.fn.expand("%")) end, { noremap = true })
+vim.keymap.set('n', '<leader>td', function() return neotest({strategy = "dap"}) end, { noremap = true })
 vim.keymap.set('n', '<leader>tt', function()
     require('neotest').summary.toggle()
 end, opts)

@@ -1,4 +1,5 @@
 local csharp = require"pfes.csharp"
+local deno = require"pfes.deno"
 
 return {
     {
@@ -12,6 +13,7 @@ return {
             local vim = vim
 
             csharp.addToDap(dap, vim)
+            deno.addToDap(dap)
         end
     },
 }
