@@ -14,7 +14,6 @@ return {
         lazy = true,
         dependencies = {
             'antoinemadec/FixCursorHold.nvim',
-            { 'nvim-neotest/nvim-nio', lazy = true, tag = 'v1.9.3' },
             'nvim-neotest/nvim-nio',
             "nvim-treesitter/nvim-treesitter",
             'Issafalcon/neotest-dotnet',

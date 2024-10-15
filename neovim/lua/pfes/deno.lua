@@ -17,10 +17,24 @@ deno.addToDap = function(dap)
         {
             type = 'pwa-node',
             request = 'launch',
-            name = "Launch file",
+            name = "Deno Run",
             runtimeExecutable = "deno",
             runtimeArgs = {
                 "run",
+                "--inspect-wait",
+                "--allow-all"
+            },
+            program = "${file}",
+            cwd = "${workspaceFolder}",
+            attachSimplePort = 9229,
+        },
+        {
+            type = 'pwa-node',
+            request = 'launch',
+            name = "Deno Test",
+            runtimeExecutable = "deno",
+            runtimeArgs = {
+                "test",
                 "--inspect-wait",
                 "--allow-all"
             },
