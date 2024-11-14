@@ -21,7 +21,7 @@ def main [
     }
     
     scoop install ...(get_tools)
-    winget install ...(get_utils)
+    winget install --no-upgrade ...(get_utils)
   }
 
   # TODO - add in dotnet tools
@@ -46,6 +46,8 @@ def get_utils [] {
      "microsoft.visualstudiocode"
      "docker.dockerdesktop"
      "dbeaver.dbeaver"
+     "GnuPG.Gpg4win" 
+     "DevToys-app.DevToys"
      # firefox
      # linqpad
   ]
@@ -67,10 +69,12 @@ def get_tools [] {
     fd
     eza
     gsudo
+    carapace-bin
     neovim
     gh
     fzf
     difftastic
+    mdcat
   
     # neovim lsps
     marksman

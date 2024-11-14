@@ -53,6 +53,7 @@ return {
                 "eslint",
 
                 "volar", --vue
+                "prismals",
                 "yamlls",
                 "tailwindcss",
                 "terraformls",

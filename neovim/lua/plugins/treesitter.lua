@@ -89,6 +89,7 @@ return {
                 "hcl",
                 "html",
                 "regex",
+                "prisma",
                 "sql",
                 "yaml",
                 "gitignore",
