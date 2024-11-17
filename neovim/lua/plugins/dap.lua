@@ -1,5 +1,6 @@
 local csharp = require"pfes.csharp"
 local deno = require"pfes.deno"
+local vue  = require "pfes.vue"
 
 return {
     {
@@ -14,6 +15,7 @@ return {
 
             csharp.addToDap(dap, vim)
             deno.addToDap(dap)
+            vue.addToDap(dap, vim)
         end
     },
 }

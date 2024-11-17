@@ -27,7 +27,7 @@ local packages = {
         lazy = false,
         event = "UIEnter",
         init = function()
-            vim.g.rooter_patterns = { '.git', 'Makefile', '*.sln', 'build/env.sh' }
+            vim.g.rooter_patterns = { 'package.json', 'deno.json', '.git', 'Makefile', '*.sln', 'build/env.sh' }
         end
     },
 

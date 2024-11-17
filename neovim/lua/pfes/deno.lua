@@ -13,7 +13,8 @@ deno.addToDap = function(dap)
         }
     }
 
-    dap.configurations.typescript = {
+
+    local configurations = {
         {
             type = 'pwa-node',
             request = 'launch',
@@ -43,11 +44,19 @@ deno.addToDap = function(dap)
             attachSimplePort = 9229,
         },
     }
+
+    if dap.configurations.typescript == nil then
+        dap.configurations.typescript = {}
+    end
+
+    for _, value in ipairs(configurations) do
+        table.insert(dap.configurations.typescript, value)
+    end
 end
 
 deno.addToLspConfig = function(opts, capabilities, on_attach)
     vim.g.markdown_fenced_languages = {
-      "ts=typescript"
+        "ts=typescript"
     }
 
     local util = require 'lspconfig.util'

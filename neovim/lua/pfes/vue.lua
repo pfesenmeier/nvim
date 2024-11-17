@@ -2,6 +2,33 @@ local env = require("pfes.env")
 
 local vue = {}
 
+vue.addToDap = function(dap)
+    if (dap.configurations.typescript == nil) then
+        dap.configurations.typescript = {}
+    end
+
+    local configurations = {
+        {
+            type = "pwa-node",
+            request = "launch",
+            name = "Vitest",
+            cwd = "${workspaceFolder}",
+            program = "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+            args = { "run", "${file}" },
+            autoAttachChildProcesses = true,
+            skipFiles = { "<node_internals>/**", "node_modules/**" },
+            -- trace = true,
+            console = "integratedTerminal",
+            sourceMaps = true,
+            smartStep = true,
+        },
+    }
+
+    for _, value in ipairs(configurations) do
+        table.insert(dap.configurations.typescript, value)
+    end
+end
+
 vue.addToLspConfig = function(opts, capabilities, on_attach)
     local util = require 'lspconfig.util'
     opts.volar.setup {
