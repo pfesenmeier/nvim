@@ -1,15 +1,8 @@
-local env = require"pfes.env"
+local env = require "pfes.env"
 
 local packages = {
     -- prevent remote code execution
     { "ciaranm/securemodelines",       lazy = true, event = "VeryLazy" },
-
-    -- format
-    {
-        "sbdchd/neoformat",
-        lazy = true,
-        event = "VeryLazy"
-    },
     {
         "Pocco81/auto-save.nvim",
         enabled = true,
@@ -27,7 +20,8 @@ local packages = {
         lazy = false,
         event = "UIEnter",
         init = function()
-            vim.g.rooter_patterns = { 'package.json', 'deno.json', '.git', 'Makefile', '*.sln', 'build/env.sh' }
+            vim.g.rooter_patterns = { 'package.json', 'deno.json', '.git', 'Makefile', '*.sln',
+                'build/env.sh' }
         end
     },
 
@@ -49,8 +43,8 @@ local packages = {
         opts = {
             -- settings without a patched font or icons
             icons = false,
-            fold_open = "v",   -- icon used for open folds
-            fold_closed = ">", -- icon used for closed folds
+            fold_open = "v",               -- icon used for open folds
+            fold_closed = ">",             -- icon used for closed folds
             -- indent_lines = true, -- add an indent guide below the fold icons
             signs = {
                 -- icons / text used for a diagnostic
@@ -64,8 +58,10 @@ local packages = {
         init = function()
             -- :h Trouble
             vim.keymap.set("n", "<leader>ox", function() require("trouble").toggle() end)
-            vim.keymap.set("n", "<leader>ow", function() require("trouble").toggle("workspace_diagnostics") end)
-            vim.keymap.set("n", "<leader>od", function() require("trouble").toggle("document_diagnostics") end)
+            vim.keymap.set("n", "<leader>ow",
+                function() require("trouble").toggle("workspace_diagnostics") end)
+            vim.keymap.set("n", "<leader>od",
+                function() require("trouble").toggle("document_diagnostics") end)
             vim.keymap.set("n", "<leader>oq", function() require("trouble").toggle("quickfix") end)
             vim.keymap.set("n", "<leader>ol", function() require("trouble").toggle("loclist") end)
             vim.keymap.set("n", "gR", function() require("trouble").toggle("lsp_references") end)
@@ -129,8 +125,10 @@ local packages = {
                 -- Actions
                 map('n', '<leader>hs', gs.stage_hunk)
                 map('n', '<leader>hr', gs.reset_hunk)
-                map('v', '<leader>hs', function() gs.stage_hunk { vim.fn.line('.'), vim.fn.line('v') } end)
-                map('v', '<leader>hr', function() gs.reset_hunk { vim.fn.line('.'), vim.fn.line('v') } end)
+                map('v', '<leader>hs',
+                    function() gs.stage_hunk { vim.fn.line('.'), vim.fn.line('v') } end)
+                map('v', '<leader>hr',
+                    function() gs.reset_hunk { vim.fn.line('.'), vim.fn.line('v') } end)
                 map('n', '<leader>hS', gs.stage_buffer)
                 map('n', '<leader>hu', gs.undo_stage_hunk)
                 map('n', '<leader>hR', gs.reset_buffer)
@@ -157,8 +155,8 @@ local packages = {
         event = "VeryLazy",
         dependencies = {
             -- enable Gbrowse
-            "tpope/vim-rhubarb",                   -- with Github
-            "cedarbaum/fugitive-azure-devops.vim", -- with ADO
+            "tpope/vim-rhubarb",                               -- with Github
+            "cedarbaum/fugitive-azure-devops.vim",             -- with ADO
         }
     },
 
@@ -172,13 +170,34 @@ local packages = {
     },
 
     {
+        "mhartington/formatter.nvim",
+        config = function(_)
+            require('formatter').setup{
+                filetype = {
+                    typescript = {
+                        require("formatter.filetypes.typescript").prettier,
+                    },
+                }
+            }
+        end,
+        init = function()
+            vim.keymap.set('n', '<leader><leader>f', ':Format<CR>')
+        end
+    },
+
+    {
+        'windwp/nvim-ts-autotag',
+        opts = {},
+    },
+
+    {
         'ellisonleao/gruvbox.nvim',
         priority = 1000,
         init = function()
             vim.cmd("colorscheme gruvbox")
         end,
         opts = {
-            contrast = "hard", -- can be "hard", "soft" or empty string
+            contrast = "hard",             -- can be "hard", "soft" or empty string
             transparent_mode = true,
         }
     }
