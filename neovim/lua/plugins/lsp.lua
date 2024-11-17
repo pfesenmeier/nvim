@@ -45,7 +45,7 @@ return {
             local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
             local lsps = {
-                "rust_analyzer",
+                -- "rust_analyzer",
 
                 -- enabled via vscode-langservers-extracted 
                 -- "html",
@@ -53,11 +53,12 @@ return {
                 "jsonls",
                 "eslint",
 
-                "yamlls",
+                "prismals",
+                -- "yamlls",
                 "tailwindcss",
-                "terraformls",
+                -- "terraformls",
 
-                "bashls",
+                -- "bashls",
                 "nushell",
                 "lua_ls",
                 "sqlls",

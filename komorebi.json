@@ -1,4 +1,6 @@
 {
+    "default_container_padding": 1,
+    "default_workspace_padding": 1,
     "stackbar": {
         "label": "Title"
     },
