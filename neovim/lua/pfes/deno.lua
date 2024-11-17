@@ -45,4 +45,18 @@ deno.addToDap = function(dap)
     }
 end
 
+deno.addToLspConfig = function(opts, capabilities, on_attach)
+    vim.g.markdown_fenced_languages = {
+      "ts=typescript"
+    }
+
+    local util = require 'lspconfig.util'
+    opts.denols.setup {
+        -- package.json for ts_ls
+        root_dir = util.root_pattern('deno.json'),
+        capabilities = capabilities,
+        on_attach = on_attach
+    }
+end
+
 return deno

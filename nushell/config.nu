@@ -343,6 +343,16 @@ $env.config = {
           }
         }
         {
+          name: run_last_command
+          modifier: control
+          keycode: char_r
+          mode: [vi_normal vi_insert]
+          event: {
+            send: executehostcommand,
+            cmd: "history | skip 1 | last | get command | nu -c $in"
+          }
+        }
+        {
           name: change_dir_with_fzf_from_home_dir
           modifier: control
           keycode: char_g
@@ -387,7 +397,7 @@ $env.config = {
         }
         {
             name: history_menu
-            modifier: control
+            modifier: control_alt
             keycode: char_r
             mode: [emacs, vi_insert, vi_normal]
             event: { send: menu name: history_menu }

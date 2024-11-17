@@ -1,5 +1,6 @@
 local csharp = require "pfes.csharp"
 local vue = require "pfes.vue"
+local deno= require "pfes.deno"
 
 return {
     {
@@ -46,14 +47,12 @@ return {
             local lsps = {
                 "rust_analyzer",
 
-                -- enabled via vscode-langservers-extracted
+                -- enabled via vscode-langservers-extracted 
                 -- "html",
                 -- "cssls",
                 "jsonls",
                 "eslint",
 
-                "volar",
-                "denols",
                 "yamlls",
                 "tailwindcss",
                 "terraformls",
@@ -72,13 +71,9 @@ return {
                 }
             end
 
-            -- deno
-            vim.g.markdown_fenced_languages = {
-              "ts=typescript"
-            }
             csharp.addToLspConfig(opts, capabilities, on_attach)
-            -- removing ts_ls
-            -- vue.addToLspConfig(opts, capabilities, on_attach)
+            vue.addToLspConfig(opts, capabilities, on_attach)
+            deno.addToLspConfig(opts, capabilities, on_attach)
         end
     }
 }
