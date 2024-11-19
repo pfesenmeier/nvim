@@ -105,6 +105,8 @@ vim.keymap.set("n", "<leader>fD", function() return require('telescope.builtin')
 vim.keymap.set("n", "<leader>fb", function() return require('telescope.builtin').buffers() end, opts)
 vim.keymap.set("n", "<leader>fh", function() return require('telescope.builtin').help_tags() end, opts)
 vim.keymap.set("n", "<leader>ft", function() return require('telescope.builtin').treesitter() end, opts)
+vim.keymap.set("n", "<leader>fe", function() return require('telescope.builtin').diagnostics() end, opts)
+vim.keymap.set("n", "<leader>fg", function() return require('telescope.builtin').git_branches() end, opts)
 vim.keymap.set("n", "<leader>fc", function() return require('telescope.builtin').git_bcommits() end, opts)
 vim.keymap.set("n", "<leader>rr", function() return require('telescope.builtin').resume() end, opts)
 
