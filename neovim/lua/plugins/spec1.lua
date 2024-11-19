@@ -43,8 +43,8 @@ local packages = {
         opts = {
             -- settings without a patched font or icons
             icons = false,
-            fold_open = "v",               -- icon used for open folds
-            fold_closed = ">",             -- icon used for closed folds
+            fold_open = "v",   -- icon used for open folds
+            fold_closed = ">", -- icon used for closed folds
             -- indent_lines = true, -- add an indent guide below the fold icons
             signs = {
                 -- icons / text used for a diagnostic
@@ -155,8 +155,8 @@ local packages = {
         event = "VeryLazy",
         dependencies = {
             -- enable Gbrowse
-            "tpope/vim-rhubarb",                               -- with Github
-            "cedarbaum/fugitive-azure-devops.vim",             -- with ADO
+            "tpope/vim-rhubarb",                   -- with Github
+            "cedarbaum/fugitive-azure-devops.vim", -- with ADO
         }
     },
 
@@ -172,13 +172,25 @@ local packages = {
     {
         "mhartington/formatter.nvim",
         config = function(_)
-            require('formatter').setup{
+            require('formatter').setup {
                 filetype = {
                     typescript = {
                         require("formatter.filetypes.typescript").prettier,
                     },
                 }
             }
+
+            local function prettier()
+                local cwd = vim.uv.cwd()
+                local dir = vim.fn.finddir('.git', '.;' .. env.home)
+
+                vim.uv.chdir(dir .. '/..')
+                print(vim.uv.cwd())
+                vim.api.nvim_exec2("!git diff HEAD --name-only | xargs prettier -w", { })
+                vim.uv.chdir(cwd)
+            end
+
+            vim.api.nvim_create_user_command("P", prettier, { bang = false })
         end,
         init = function()
             vim.keymap.set('n', '<leader><leader>f', ':Format<CR>')
@@ -197,7 +209,7 @@ local packages = {
             vim.cmd("colorscheme gruvbox")
         end,
         opts = {
-            contrast = "hard",             -- can be "hard", "soft" or empty string
+            contrast = "hard", -- can be "hard", "soft" or empty string
             transparent_mode = true,
         }
     }

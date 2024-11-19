@@ -1,6 +1,6 @@
  def "g prune" [] {
    (
-     run-external --redirect-stdout "git" "branch" 
+     run-external "git" "branch" 
      | str replace "* " "  " 
      | lines 
      | str trim 
