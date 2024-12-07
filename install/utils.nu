@@ -1,5 +1,14 @@
 use std log;
 
+export def settings [] {}
+export def 'settings app_dir' [] {
+    if $nu.os-info.family == 'windows' {
+      [$nu.home-path AppData Local] | path join
+    } else {
+      [$nu.home-path .local bin] | path join
+    }
+}
+
 export def 'github install' [
   repo: string
   asset: string
@@ -7,12 +16,7 @@ export def 'github install' [
   tag?: string
 ] {
 
-    let app_dir = if $nu.os-info.family == 'windows' {
-      [$nu.home-path AppData Local] | path join
-    } else {
-      [$nu.home-path .local bin] | path join
-    }
-
+   let app_dir = settings app_dir
    let install_dir = ([$app_dir $repo] | path join)
 
    if ($install_dir | path exists) {

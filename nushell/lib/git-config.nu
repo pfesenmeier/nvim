@@ -8,5 +8,5 @@ git config --global alias.committ commit
 
 git config --global diff.external difft
 git config --global push.autoSetupRemote true
-git config --global commit.gpgsign true
+# git config --global commit.gpgsign true
 

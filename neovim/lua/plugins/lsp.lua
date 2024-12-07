@@ -1,6 +1,7 @@
 local csharp = require "pfes.csharp"
 local vue = require "pfes.vue"
 local deno= require "pfes.deno"
+local lua_lang = require "pfes.lua-lang"
 
 return {
     {
@@ -75,6 +76,7 @@ return {
             csharp.addToLspConfig(opts, capabilities, on_attach)
             vue.addToLspConfig(opts, capabilities, on_attach)
             deno.addToLspConfig(opts, capabilities, on_attach)
+            lua_lang.addToLspConfig(opts, capabilities, on_attach)
         end
     }
 }
