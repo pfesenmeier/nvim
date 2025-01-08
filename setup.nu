@@ -44,9 +44,6 @@ def main [] {
       src:  [$alacritty_config_src]
       dest: $alacritty_config_dest
     } {
-      src:  [sway]
-      dest: [.config regolith3 sway config.d]
-    } {
       src: [whkdrc]
       dest: [.config whkdrc]
     } {

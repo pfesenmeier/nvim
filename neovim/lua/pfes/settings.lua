@@ -9,9 +9,9 @@ local c = vim.cmd
 c('set clipboard=unnamedplus')
 
 -- tabs are spaces
-o.tabstop = 4 -- tabs are tabstop spaces long
-o.shiftwidth = 4 -- indents are 4 widths long
-o.softtabstop = 4 -- colunmn??
+o.tabstop = 2 -- tabs are tabstop spaces long
+o.shiftwidth = 2 -- indents are 4 widths long
+o.softtabstop = 2 -- colunmn??
 o.scrolloff = 999 -- keep cursor in middle of screen
 o.expandtab = true
 

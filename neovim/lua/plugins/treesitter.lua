@@ -1,3 +1,6 @@
+local env = require "pfes.env"
+
+local islinux = env.islinux
 -- for more
 -- :h nvim-treesitter-commands
 
@@ -6,6 +9,7 @@ return {
     {
         "nvim-treesitter/nvim-treesitter-textobjects",
         lazy = true,
+        enabled = islinux,
         init = function()
             local ts_repeat_move = require "nvim-treesitter.textobjects.repeatable_move"
 
@@ -72,13 +76,13 @@ return {
             ensure_installed = {
                 "c_sharp",
                 "javascript",
-                "java",
+                -- "java",
                 "lua",
                 "glimmer",
-                "rust",
+                -- "rust",
                 "python",
-                "c",
-                "jq",
+                -- "c",
+                -- "jq",
                 "json5",
                 "json",
                 "hurl",
@@ -89,14 +93,14 @@ return {
                 "hcl",
                 "html",
                 "regex",
-                "prisma",
+                -- "prisma",
                 "sql",
                 "yaml",
                 "gitignore",
                 "gitattributes",
                 "vim",
                 "vimdoc",
-                "vue",
+                -- "vue",
                 "nu"
             },
 

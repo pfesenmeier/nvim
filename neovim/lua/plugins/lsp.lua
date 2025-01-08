@@ -52,17 +52,17 @@ return {
                 -- "html",
                 -- "cssls",
                 "jsonls",
-                "eslint",
+                -- "eslint",
 
-                "prismals",
+                -- "prismals",
                 -- "yamlls",
-                "tailwindcss",
+                -- "tailwindcss",
                 -- "terraformls",
 
                 -- "bashls",
                 "nushell",
                 "lua_ls",
-                "sqlls",
+                -- "sqlls",
                 "marksman"
             }
 
@@ -73,9 +73,9 @@ return {
                 }
             end
 
-            csharp.addToLspConfig(opts, capabilities, on_attach)
-            vue.addToLspConfig(opts, capabilities, on_attach)
-            deno.addToLspConfig(opts, capabilities, on_attach)
+            -- csharp.addToLspConfig(opts, capabilities, on_attach)
+            -- vue.addToLspConfig(opts, capabilities, on_attach)
+            -- deno.addToLspConfig(opts, capabilities, on_attach)
             lua_lang.addToLspConfig(opts, capabilities, on_attach)
         end
     }

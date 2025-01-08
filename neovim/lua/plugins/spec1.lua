@@ -1,18 +1,19 @@
 local env = require "pfes.env"
 
+local islinux = env.islinux
+
 local packages = {
     -- prevent remote code execution
     { "ciaranm/securemodelines",       lazy = true, event = "VeryLazy" },
     {
         "Pocco81/auto-save.nvim",
-        enabled = true,
+        enabled = islinux,
         lazy = true,
         event = "VeryLazy",
         init = function()
             vim.api.nvim_set_keymap("n", "<leader>n", ":ASToggle<CR>", {})
         end
     },
-
     -- workspace defaults to closest .git
     -- trying to use tcd (tab), lcd (window), cd
     {
@@ -24,17 +25,15 @@ local packages = {
                 'build/env.sh' }
         end
     },
-
-    { "editorconfig/editorconfig-vim", lazy = true, event = "VeryLazy" },
-
+    { "editorconfig/editorconfig-vim", lazy = true, enabled = islinux, event = "VeryLazy" },
     -- database
     {
         "tpope/vim-dadbod",
         ft = "sql",
         lazy = true,
+        enabled = islinux,
         dependencies = { "kristijanhusak/vim-dadbod-completion" }
     },
-
     -- workspace errors
     {
         "folke/trouble.nvim",
@@ -67,17 +66,11 @@ local packages = {
             vim.keymap.set("n", "gR", function() require("trouble").toggle("lsp_references") end)
         end
     },
-
-    {
-        "tpope/vim-eunuch",
-        lazy = true,
-        event = "VeryLazy"
-    },
-
     -- inspect decompiled C#
     {
         "Hoffs/omnisharp-extended-lsp.nvim",
         lazy = true,
+        enabled = islinux,
         ft = "cs"
     },
 
@@ -95,7 +88,6 @@ local packages = {
         }
 
     },
-
     -- git
     {
         "lewis6991/gitsigns.nvim",
@@ -143,7 +135,7 @@ local packages = {
                 map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
             end
         },
-        enabled = true,
+        enabled = islinux,
         tag = "v0.9.0",
         lazy = true,
         event = "VeryLazy"
@@ -155,22 +147,13 @@ local packages = {
         event = "VeryLazy",
         dependencies = {
             -- enable Gbrowse
-            "tpope/vim-rhubarb",                   -- with Github
-            "cedarbaum/fugitive-azure-devops.vim", -- with ADO
+            "tpope/vim-rhubarb", -- with Github
+            -- "cedarbaum/fugitive-azure-devops.vim", -- with ADO
         }
     },
-
-    -- comments
-    -- TODO comments now bundled with neovim
-    {
-        "numToStr/Comment.nvim",
-        opts = {},
-        lazy = true,
-        event = "BufEnter"
-    },
-
     {
         "mhartington/formatter.nvim",
+        enabled = islinux,
         config = function(_)
             require('formatter').setup {
                 filetype = {
@@ -186,7 +169,7 @@ local packages = {
 
                 vim.uv.chdir(dir .. '/..')
                 print(vim.uv.cwd())
-                vim.api.nvim_exec2("!git diff HEAD --name-only | xargs prettier -w", { })
+                vim.api.nvim_exec2("!git diff HEAD --name-only | xargs prettier -w", {})
                 vim.uv.chdir(cwd)
             end
 
@@ -196,15 +179,23 @@ local packages = {
             vim.keymap.set('n', '<leader><leader>f', ':Format<CR>')
         end
     },
-
     {
         'windwp/nvim-ts-autotag',
         opts = {},
     },
-
+    {
+        "zootedb0t/citruszest.nvim",
+        lazy = false,
+        init = function()
+            vim.cmd("colorscheme citruszest")
+        end,
+        enabled = not islinux,
+        priority = 1000,
+    },
     {
         'ellisonleao/gruvbox.nvim',
         priority = 1000,
+        enabled = islinux,
         init = function()
             vim.cmd("colorscheme gruvbox")
         end,
@@ -212,21 +203,18 @@ local packages = {
             contrast = "hard", -- can be "hard", "soft" or empty string
             transparent_mode = true,
         }
-    }
-}
-
-if env.islinux then
-    -- depends on mingw on windows, which I never setup...
-    table.insert(packages, { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' })
-end
-
-if env.islinux then
-    table.insert(packages, { 'stevearc/oil.nvim', opts = {} });
-else
-    table.insert(packages,
-        { 'stevearc/oil.nvim', opts = { default_file_explorer = false }, lazy = true, event = "VeryLazy" });
-    table.insert(packages, {
+    }, { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make', enabled = islinux },
+    {
+        'stevearc/oil.nvim',
+        opts = {
+            default_file_explorer = islinux
+        },
+        lazy = true,
+        event = "VeryLazy"
+    },
+    {
         "lambdalisue/fern.vim",
+        enabled = not islinux,
         dependencies = {
             "lambdalisue/vim-fern-hijack",
             "yuki-yano/fern-preview.vim"
@@ -246,7 +234,7 @@ else
                 augroup END
             ]]);
         end
-    });
-end
+    }
+}
 
 return packages

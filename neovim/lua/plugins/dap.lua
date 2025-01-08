@@ -1,3 +1,6 @@
+local env = require "pfes.env"
+
+local islinux = env.islinux
 local csharp   = require "pfes.csharp"
 local deno     = require "pfes.deno"
 local vue      = require "pfes.vue"
@@ -6,6 +9,7 @@ local lua_lang = require "pfes.lua-lang"
 return {
     {
         'mfussenegger/nvim-dap',
+        enabled = islinux,
         tag = '0.7.0',
         lazy = true,
         ft = { "ts", "tsx", "js", "jsx", "cs", "lua" },
@@ -24,6 +28,7 @@ return {
 
         'jbyuki/one-small-step-for-vimkind',
         dependencies = { 'mfussenegger/nvim-dap' },
+        enabled = islinux,
         init = function()
             vim.keymap.set('n', '<F6>', function()
                 require "osv".run_this(require "osv".run_this())

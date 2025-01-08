@@ -1,7 +1,12 @@
+local env = require "pfes.env"
+
+local islinux = env.islinux
+
 return {
     {
         'Issafalcon/neotest-dotnet',
         lazy = true,
+        enabled = islinux,
         tag = 'v1.5.3',
         ft = { "cs" },
         dependencies = {
@@ -12,6 +17,7 @@ return {
         'nvim-neotest/neotest',
         tag = 'v5.2.3',
         lazy = true,
+        enabled = islinux,
         dependencies = {
             'antoinemadec/FixCursorHold.nvim',
             'nvim-neotest/nvim-nio',
