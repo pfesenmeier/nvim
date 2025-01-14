@@ -43,7 +43,10 @@ return {
     {
         -- most of this copied from https://github.com/LazyVim/LazyVim/blob/12818a6cb499456f4903c5d8e68af43753ebc869/lua/lazyvim/plugins/treesitter.lua
         "nvim-treesitter/nvim-treesitter",
-        dependencies = "nvim-treesitter/nvim-treesitter-textobjects",
+        dependencies =  {
+           "nvim-treesitter/nvim-treesitter-textobjects"
+           "nushell/tree-sitter-nu"
+        },
         version = false, -- Lazy does this because does not work on Windows?,
         build = ":TSUpdate",
         event = { "VeryLazy" },
@@ -75,6 +78,7 @@ return {
         opts = {
             ensure_installed = {
                 "c_sharp",
+                "nu",
                 "javascript",
                 -- "java",
                 "lua",
@@ -242,6 +246,5 @@ return {
 
             require("nvim-treesitter.configs").setup(opts)
         end,
-    }
-
+    },
 }
