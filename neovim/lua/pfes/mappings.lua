@@ -38,7 +38,17 @@ vim.api.nvim_set_keymap('c', '<Esc>b', '<S-Left>', opts )
 vim.api.nvim_set_keymap('c', '<Esc>f', '<S-Right>', opts )
 
 if (env.islinux) then
-    vim.api.nvim_set_keymap('n', '<leader>e', ':Oil %:h<CR>', opts )
+    local function go_up()
+       local bufname = vim.api.nvim_buf_get_name(0)
+       if string.match(bufname, "oil:") then
+          require('oil').open()
+       elseif bufname == "" then
+         vim.cmd('Oil')
+       else
+         vim.cmd('Oil %:h')
+       end
+    end
+    vim.keymap.set('n', '<leader>e', go_up, opts )
 else
     vim.api.nvim_set_keymap('n', '<leader>e', ':Fern %:h<CR>', opts )
 end
