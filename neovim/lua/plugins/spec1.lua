@@ -189,13 +189,13 @@ local packages = {
         init = function()
             vim.cmd("colorscheme citruszest")
         end,
-        enabled = not islinux,
+        enabled = false,
         priority = 1000,
     },
     {
         'ellisonleao/gruvbox.nvim',
         priority = 1000,
-        enabled = islinux,
+        enabled = true,
         init = function()
             vim.cmd("colorscheme gruvbox")
         end,

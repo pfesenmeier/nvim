@@ -50,6 +50,9 @@ def main [] {
       src: [komorebi.json]
       dest: [komorebi.json]
     } {
+      src: [starship.toml]
+      dest: [.config starship.toml]
+    } {
       src: [applications.yaml]
       dest: [applications.yaml]
     }] | each {|x| 
