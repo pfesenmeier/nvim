@@ -42,7 +42,7 @@ if (env.islinux) then
        local bufname = vim.api.nvim_buf_get_name(0)
        if string.match(bufname, "oil:") then
           require('oil').open()
-       elseif bufname == "" then
+       elseif bufname == "" or string.match(bufname, "fugitive:") then
          vim.cmd('Oil')
        else
          vim.cmd('Oil %:h')
