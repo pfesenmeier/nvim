@@ -44,8 +44,8 @@ return {
         -- most of this copied from https://github.com/LazyVim/LazyVim/blob/12818a6cb499456f4903c5d8e68af43753ebc869/lua/lazyvim/plugins/treesitter.lua
         "nvim-treesitter/nvim-treesitter",
         dependencies =  {
-           "nvim-treesitter/nvim-treesitter-textobjects"
-           "nushell/tree-sitter-nu"
+           "nushell/tree-sitter-nu",
+           "nvim-treesitter/nvim-treesitter-textobjects",
         },
         version = false, -- Lazy does this because does not work on Windows?,
         build = ":TSUpdate",

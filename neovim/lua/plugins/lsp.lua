@@ -74,8 +74,8 @@ return {
             end
 
             -- csharp.addToLspConfig(opts, capabilities, on_attach)
-            -- vue.addToLspConfig(opts, capabilities, on_attach)
-            -- deno.addToLspConfig(opts, capabilities, on_attach)
+            vue.addToLspConfig(opts, capabilities, on_attach)
+            deno.addToLspConfig(opts, capabilities, on_attach)
             lua_lang.addToLspConfig(opts, capabilities, on_attach)
         end
     }
