@@ -47,6 +47,9 @@ def main [] {
       src: [whkdrc]
       dest: [.config whkdrc]
     } {
+      src: [tmux.conf]
+      dest: [.tmux.conf]
+    } {
       src: [komorebi.json]
       dest: [komorebi.json]
     } {

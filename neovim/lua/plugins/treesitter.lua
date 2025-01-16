@@ -53,6 +53,7 @@ return {
         lazy = vim.fn.argc(-1) == 0, -- Lazy does this: load treesitter early when opening a file from the cmdline
 
         init = function(plugin)
+            require 'nvim-treesitter.install'.compilers = { "gcc", "zig" }
             -- PERF: add nvim-treesitter queries to the rtp and it's custom query predicates early
             -- This is needed because a bunch of plugins no longer `require("nvim-treesitter")`, which
             -- no longer trigger the **nvim-treesitter** module to be loaded in time.
@@ -78,7 +79,6 @@ return {
         opts = {
             ensure_installed = {
                 "c_sharp",
-                "nu",
                 "javascript",
                 -- "java",
                 "lua",
@@ -104,7 +104,7 @@ return {
                 "gitattributes",
                 "vim",
                 "vimdoc",
-                -- "vue",
+                "vue",
                 "nu"
             },
 
@@ -230,21 +230,5 @@ return {
                 },
             },
         },
-        -- ---@param opts TSConfig
-        config = function(_, opts)
-            local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
-
-            -- install highlight groups with nu_highlight_groups.nu
-            parser_config.nu = {
-                install_info = {
-                    url = "https://github.com/nushell/tree-sitter-nu",
-                    files = { "src/parser.c" },
-                    branch = "main",
-                },
-                filetype = "nu",
-            }
-
-            require("nvim-treesitter.configs").setup(opts)
-        end,
     },
 }
