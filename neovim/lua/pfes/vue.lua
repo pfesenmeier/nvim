@@ -29,6 +29,14 @@ vue.addToDap = function(dap)
     end
 end
 
+--- @param nodeVersion string
+--- @return string
+local function findTypescript(nodeVersion)
+  -- too slow
+  -- local output = vim.fn.system{ 'npm', 'list', '--global', '--depth', '0', '--parseable', 'typescript' }
+  return env.home .. '/.local/share/fnm/node-versions/' .. nodeVersion .. '/installation/lib/node_modules/typescript/lib'
+end
+
 vue.addToLspConfig = function(opts, capabilities, on_attach)
     opts.volar.setup {
         capabilities = capabilities,
@@ -38,7 +46,7 @@ vue.addToLspConfig = function(opts, capabilities, on_attach)
           vue = {
             hybridMode = false,
           },
-          tsdk = '/home/paul/.local/share/fnm/node-versions/v20.11.1/installation/lib/node_modules/typescript/lib'
+          tsdk = findTypescript('v20.11.1')
         }
 
     }

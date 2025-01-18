@@ -7,7 +7,6 @@ local env = require"pfes/env"
 -- disabling because of lazy
 -- vim.loader.enable()
 
-vim.g.mapleader = " "
 vim.g.db = "postgres://postgres:password@localhost:5432/db"
 
 require("config.lazy")

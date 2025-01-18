@@ -5,6 +5,15 @@ local env = require"pfes.env"
 local map = vim.api.nvim_set_keymap
 local opts = { noremap = true, silent = true }
 
+-- leader maps below homerow on left hand for DVORAK
+map("n", "<leader>;", ":on<CR>", { noremap = true })
+map("n", "<leader>q", ":G<CR>", { noremap = true })
+vim.keymap.set("n", "<leader>j", function() return require('telescope.builtin').live_grep({ path_display = { "truncate" }}) end, opts)
+vim.keymap.set("n", "<leader>J", function() return require('telescope.builtin').live_grep({ cwd = env.home, path_display = { "truncate" }}) end, opts)
+vim.keymap.set("n", "<leader>k", function() return require('telescope.builtin').find_files({ path_display = { "truncate" }}) end, opts)
+vim.keymap.set("n", "<leader>K", function() return require('telescope.builtin').find_files({ cwd = env.home, path_display = { "truncate" }}) end, opts)
+map("n", "<leader>x", ":x<CR>", { noremap = true })
+
 -- reload lua files require'd by init.lua
 -- from https://neovim.discourse.group/t/reload-init-lua-and-all-require-d-scripts/971/11
 -- does not remove old keymaps
@@ -18,7 +27,6 @@ function _G.ReloadConfig()
   dofile(vim.env.MYVIMRC)
 end
 
-vim.keymap.set('n', '<leader>r', ReloadConfig, { noremap = true })
 vim.keymap.set('n', '<leader>l', ":%lua<CR>", { noremap = true })
 
 -- to wipe out all buffers: %bw
@@ -55,11 +63,9 @@ end
 
 vim.keymap.set("n", "<leader>c", ":e %:h", { noremap = true })
 
+
 -- common command line motions
 map("n", "<leader>w", ":w<CR>", { noremap = true })
-map("n", "<leader>x", ":x<CR>", { noremap = true })
-vim.keymap.set("n", "<leader>q", ":silent :w <bar> :DB < %<CR>", opts)
-map("n", "<leader>;", ":", { noremap = true })
 -- toggle buffers
 map("n", "<leader><leader>", "<c-^>", opts)
 -- idea is to have quick solution to paste same content multiple times
@@ -105,16 +111,13 @@ map("n", "H", "^", opts)
 map("n", "L", "$", opts)
 
 
+
 -- functions eagerly load module. see :help vim.keymap.set()
 -- :h telescope.defaults
-vim.keymap.set("n", "<leader>rg", function() return require('telescope.builtin').live_grep({ path_display = { "truncate" }}) end, opts)
-vim.keymap.set("n", "<leader>fd", function() return require('telescope.builtin').find_files({ path_display = { "truncate" }}) end, opts)
 
-vim.keymap.set("n", "<leader>rG", function() return require('telescope.builtin').live_grep({ cwd = env.home, path_display = { "truncate" }}) end, opts)
-vim.keymap.set("n", "<leader>fD", function() return require('telescope.builtin').find_files({ cwd = env.home, path_display = { "truncate" }}) end, opts)
 
-vim.keymap.set("n", "<leader>fb", function() return require('telescope.builtin').buffers() end, opts)
-vim.keymap.set("n", "<leader>fh", function() return require('telescope.builtin').help_tags() end, opts)
+vim.keymap.set("n", "<leader>b", function() return require('telescope.builtin').buffers() end, opts)
+vim.keymap.set("n", "<leader>h", function() return require('telescope.builtin').help_tags() end, opts)
 vim.keymap.set("n", "<leader>ft", function() return require('telescope.builtin').treesitter() end, opts)
 vim.keymap.set("n", "<leader>fe", function() return require('telescope.builtin').diagnostics() end, opts)
 vim.keymap.set("n", "<leader>fg", function() return require('telescope.builtin').git_branches() end, opts)
@@ -135,7 +138,7 @@ vim.keymap.set('n', '<F5>', function() require('dap').continue() end)
 vim.keymap.set('n', '<F10>', function() require('dap').step_over() end)
 vim.keymap.set('n', '<F11>', function() require('dap').step_into() end)
 vim.keymap.set('n', '<F12>', function() require('dap').step_out() end)
-vim.keymap.set('n', '<Leader>b', function() require('dap').toggle_breakpoint() end)
+vim.keymap.set('n', '<Leader><leader>b', function() require('dap').toggle_breakpoint() end)
 vim.keymap.set('n', '<leader>dc', function() require('dap').clear_breakpoints() end)
 vim.keymap.set('n', '<Leader>B', function() require('dap').set_breakpoint() end)
 -- vim.keymap.set('n', '<Leader>lp', function() require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: ')) end)

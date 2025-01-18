@@ -31,7 +31,7 @@ return {
                 end, bufopts)
                 vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, bufopts)
                 vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, bufopts)
-                vim.keymap.set({ 'v', 'n' }, '<leader>ca', vim.lsp.buf.code_action, bufopts)
+                vim.keymap.set({ 'v', 'n' }, '<leader>.', vim.lsp.buf.code_action, bufopts)
                 vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
 
                 vim.keymap.set('n', '<leader>dt',
