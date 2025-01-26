@@ -7,7 +7,6 @@ local packages = {
     { "ciaranm/securemodelines",       lazy = true, event = "VeryLazy" },
     {
         "Pocco81/auto-save.nvim",
-        enabled = islinux,
         lazy = true,
         event = "VeryLazy",
         init = function()
@@ -25,13 +24,13 @@ local packages = {
             vim.g.rooter_patterns = { '.git', 'Makefile', '*.sln', 'build/env.sh' }
         end
     },
-    { "editorconfig/editorconfig-vim", lazy = true, enabled = islinux, event = "VeryLazy" },
+    { "editorconfig/editorconfig-vim", lazy = true, enabled = false, event = "VeryLazy" },
     -- database
     {
         "tpope/vim-dadbod",
         ft = "sql",
         lazy = true,
-        enabled = islinux,
+        enabled = false,
         dependencies = { "kristijanhusak/vim-dadbod-completion" }
     },
     -- workspace errors
@@ -70,7 +69,7 @@ local packages = {
     {
         "Hoffs/omnisharp-extended-lsp.nvim",
         lazy = true,
-        enabled = islinux,
+        enabled = false,
         ft = "cs"
     },
 
@@ -135,7 +134,7 @@ local packages = {
                 map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
             end
         },
-        enabled = islinux,
+        enabled = true,
         tag = "v0.9.0",
         lazy = true,
         event = "VeryLazy"
@@ -153,7 +152,7 @@ local packages = {
     },
     {
         "mhartington/formatter.nvim",
-        enabled = islinux,
+        enabled = true,
         config = function(_)
             require('formatter').setup {
                 filetype = {
@@ -203,18 +202,19 @@ local packages = {
             contrast = "hard", -- can be "hard", "soft" or empty string
             transparent_mode = true,
         }
-    }, { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make', enabled = islinux },
+    }, { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make', enabled = true },
     {
         'stevearc/oil.nvim',
         opts = {
             default_file_explorer = islinux
         },
         lazy = true,
+        enabled = false,
         event = "VeryLazy"
     },
     {
         "lambdalisue/fern.vim",
-        enabled = not islinux,
+        enabled = true,
         dependencies = {
             "lambdalisue/vim-fern-hijack",
             "yuki-yano/fern-preview.vim"
