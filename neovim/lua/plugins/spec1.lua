@@ -49,7 +49,12 @@ local packages = {
     opts = {
       -- ongoing issue: https://github.com/nvim-telescope/telescope.nvim/issues/2712
       defaults = {
-        path_display = { "truncate" }
+        path_display = { "truncate" },
+        borderchars = {
+          prompt = { "─", " ", " ", " ", "─", "─", " ", " " },
+          results = { " " },
+          preview = { " " },
+        },
       }
     }
 
@@ -106,18 +111,16 @@ local packages = {
     opts = {},
   },
   {
-    'ellisonleao/gruvbox.nvim',
-    priority = 1000,
+    'luisiacc/gruvbox-baby',
     init = function()
-      vim.cmd("colorscheme gruvbox")
-    end,
-    opts = {
-      palette_overrides = {
-        dark0_hard = "#000000",
-      },
-      contrast = "hard", -- can be "hard", "soft" or empty string
-    }
-  }, { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
+      -- Enable telescope theme
+      vim.g.gruvbox_baby_background_color = 'dark'
+      vim.g.gruvbox_baby_transparent_mode = 1
+      vim.g.gruvbox_baby_telescope_theme = 1
+      vim.cmd('colorscheme gruvbox-baby')
+    end
+  },
+  { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
   {
     "lambdalisue/fern.vim",
     dependencies = {

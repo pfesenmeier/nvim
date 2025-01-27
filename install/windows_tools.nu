@@ -75,6 +75,10 @@ def get_tools [] {
     fzf
     difftastic
     mdcat
+
+    # building fzf-lua
+    make
+    gcc
   
     # neovim lsps
     marksman
