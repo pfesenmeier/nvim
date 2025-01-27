@@ -16,6 +16,7 @@ if env.islinux then
 end
 
 require("pfes/settings")
+require("pfes/autocmds")
 require("pfes/mappings")
 
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim
