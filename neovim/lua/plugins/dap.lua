@@ -9,7 +9,6 @@ local lua_lang = require "pfes.lua-lang"
 return {
     {
         'mfussenegger/nvim-dap',
-        enabled = islinux,
         tag = '0.7.0',
         lazy = true,
         ft = { "ts", "tsx", "js", "jsx", "cs", "lua" },

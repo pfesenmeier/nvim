@@ -1,32 +1,36 @@
-vim.g.netrw_browsex_viewer= "msedge.exe"
-vim.g.netrw_banner=0
-
-local o = vim.opt
-local c = vim.cmd
+vim.g.netrw_browsex_viewer = "msedge.exe"
+vim.g.netrw_banner = 0
 
 -- set windows clipboard
-c('set clipboard=unnamedplus')
+vim.opt.clipboard = "unnamedplus"
+
+-- set shell to nushell
+-- https://github.com/neovim/neovim/issues/19648#issuecomment-1212295560
+vim.opt.shell = "nu"
+vim.opt.shellcmdflag = "-c"
+vim.opt.shellquote = ""
+vim.opt.shellxquote = ""
+-- ":r !ls | to text" or ":r !ls | get name"
+vim.opt.shellredir = '| save %s'
 
 -- tabs are spaces
-o.tabstop = 2 -- tabs are tabstop spaces long
-o.shiftwidth = 2 -- indents are 4 widths long
-o.softtabstop = 2 -- colunmn??
-o.scrolloff = 999 -- keep cursor in middle of screen
-o.expandtab = true
-
-c('set noshellslash')
+vim.opt.tabstop = 2     -- tabs are tabstop spaces long
+vim.opt.shiftwidth = 2  -- indents are 4 widths long
+vim.opt.softtabstop = 2 -- colunmn??
+vim.opt.scrolloff = 999 -- keep cursor in middle of screen
+vim.opt.expandtab = true
+vim.opt.shellslash = false
 
 -- default highlight group for nvim-dap is a bright blue
 vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F36' })
-
-c('set relativenumber')
-c('set nofoldenable')
-c('set nofixendofline') 
-
--- add <> for % motion
--- see :h matchpairs
-vim.cmd('set mps+=<:>')
+vim.opt.relativenumber = true
+vim.opt.foldenable = false
 
 vim.opt.signcolumn = "yes:2"
+vim.opt.fixendofline = false
+
+-- add <> for % moti
+-- see :h matchpairs
+vim.cmd('set mps+=<:>')
 
 vim.cmd('au BufRead,BufNewFile *.nu		set filetype=nu')
