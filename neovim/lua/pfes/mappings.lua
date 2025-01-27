@@ -8,10 +8,10 @@ local opts = { noremap = true, silent = true }
 -- leader maps below homerow on left hand for DVORAK
 map("n", "<leader>;", ":on<CR>", { noremap = true })
 map("n", "<leader>q", ":G<CR>", { noremap = true })
-vim.keymap.set("n", "<leader>j", function() return require('telescope.builtin').live_grep({ path_display = { "truncate" }}) end, opts)
-vim.keymap.set("n", "<leader>J", function() return require('telescope.builtin').live_grep({ cwd = env.home, path_display = { "truncate" }}) end, opts)
-vim.keymap.set("n", "<leader>k", function() return require('telescope.builtin').find_files({ path_display = { "truncate" }}) end, opts)
-vim.keymap.set("n", "<leader>K", function() return require('telescope.builtin').find_files({ cwd = env.home, path_display = { "truncate" }}) end, opts)
+vim.keymap.set("n", "<leader>j", function() return require('telescope.builtin').find_files({ path_display = { "truncate" }}) end, opts)
+vim.keymap.set("n", "<leader>J", function() return require('telescope.builtin').find_files({ cwd = env.home, path_display = { "truncate" }}) end, opts)
+vim.keymap.set("n", "<leader>k", function() return require('telescope.builtin').live_grep({ path_display = { "truncate" }}) end, opts)
+vim.keymap.set("n", "<leader>K", function() return require('telescope.builtin').live_grep({ cwd = env.home, path_display = { "truncate" }}) end, opts)
 map("n", "<leader>x", ":x<CR>", { noremap = true })
 
 map("n", "<leader>u", ":G pull<CR>", { noremap = true })

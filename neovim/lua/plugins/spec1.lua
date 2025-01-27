@@ -82,10 +82,25 @@ local packages = {
     "mhartington/formatter.nvim",
     enabled = true,
     config = function(_)
+      local function prettierFmt()
+        local util = require "formatter.util"
+        return {
+          exe = "prettier",
+          args = {
+            "--stdin-filepath",
+            util.get_current_buffer_file_path(),
+          },
+          stdin = true,
+          try_node_modules = true,
+        }
+      end
       require('formatter').setup {
         filetype = {
           typescript = {
-            require("formatter.filetypes.typescript").prettier,
+            prettierFmt
+          },
+          vue = {
+            prettierFmt
           },
         }
       }
@@ -96,7 +111,7 @@ local packages = {
 
         vim.uv.chdir(dir .. '/..')
         print(vim.uv.cwd())
-        vim.api.nvim_exec2("!git diff HEAD --name-only | xargs prettier -w", {})
+        vim.api.nvim_exec2("!git diff --name-only | lines |  prettier -w ...$in", {})
         vim.uv.chdir(cwd)
       end
 
