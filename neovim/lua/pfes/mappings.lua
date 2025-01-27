@@ -14,6 +14,9 @@ vim.keymap.set("n", "<leader>k", function() return require('telescope.builtin').
 vim.keymap.set("n", "<leader>K", function() return require('telescope.builtin').find_files({ cwd = env.home, path_display = { "truncate" }}) end, opts)
 map("n", "<leader>x", ":x<CR>", { noremap = true })
 
+map("n", "<leader>u", ":G pull<CR>", { noremap = true })
+map("n", "<leader>p", ":G push<CR>", { noremap = true })
+
 -- reload lua files require'd by init.lua
 -- from https://neovim.discourse.group/t/reload-init-lua-and-all-require-d-scripts/971/11
 -- does not remove old keymaps
