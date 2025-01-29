@@ -1,3 +1,4 @@
+local env = require('pfes.env')
 vim.g.netrw_browsex_viewer = "msedge.exe"
 vim.g.netrw_banner = 0
 
@@ -7,7 +8,9 @@ vim.opt.clipboard = "unnamedplus"
 -- set shell to nushell
 -- https://github.com/neovim/neovim/issues/19648#issuecomment-1212295560
 vim.opt.shell = "nu"
-vim.opt.shellcmdflag = "-c"
+local config = '--config ' .. env.home .. '/nvim/nushell/config.nu'
+local envconfig = '--env-config ' .. env.home .. '/nvim/nushell/env.nu'
+vim.opt.shellcmdflag = config .. " " .. envconfig .. " " .. "-c"
 vim.opt.shellquote = ""
 vim.opt.shellxquote = ""
 -- ":r !ls | to text" or ":r !ls | get name"
@@ -34,3 +37,13 @@ vim.opt.fixendofline = false
 vim.cmd('set mps+=<:>')
 
 vim.cmd('au BufRead,BufNewFile *.nu		set filetype=nu')
+
+local groupId = vim.api.nvim_create_augroup("TerminalEvents", {})
+vim.api.nvim_create_autocmd({ "TermOpen" }, {
+  group = groupId,
+  callback = function()
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
+    vim.opt_local.signcolumn = 'no'
+  end
+})

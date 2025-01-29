@@ -954,3 +954,5 @@ source paths.nu
 source clean.nu
 source brew-env.nu
 source booker/booker.nu
+source git-cmds.nu
+source task_automation\run.nu
