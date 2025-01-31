@@ -17,22 +17,6 @@ map("n", "<leader>x", ":x<CR>", { noremap = true })
 map("n", "<leader>u", ":G pull<CR>", { noremap = true })
 map("n", "<leader>p", ":G push<CR>", { noremap = true })
 
--- user alt + jkhl to move from any mode
-vim.cmd([[
-    :tnoremap <A-h> <C-\><C-N><C-w>h
-    :tnoremap <A-j> <C-\><C-N><C-w>j
-    :tnoremap <A-k> <C-\><C-N><C-w>k
-    :tnoremap <A-l> <C-\><C-N><C-w>l
-    :inoremap <A-h> <C-\><C-N><C-w>h
-    :inoremap <A-j> <C-\><C-N><C-w>j
-    :inoremap <A-k> <C-\><C-N><C-w>k
-    :inoremap <A-l> <C-\><C-N><C-w>l
-    :nnoremap <A-h> <C-w>h
-    :nnoremap <A-j> <C-w>j
-    :nnoremap <A-k> <C-w>k
-    :nnoremap <A-l> <C-w>l
-]])
-
 -- reload lua files require'd by init.lua
 -- from https://neovim.discourse.group/t/reload-init-lua-and-all-require-d-scripts/971/11
 -- does not remove old keymaps
@@ -177,3 +161,7 @@ vim.keymap.set('n', '<Leader>ds', function()
   local widgets = require('dap.ui.widgets')
   widgets.centered_float(widgets.scopes)
 end)
+
+vim.keymap.set('t', '<Esc><Esc>', [[<c-\><C-N>]])
+vim.keymap.set('n', '<A-l>', ':cnext<cr>')
+vim.keymap.set('n', '<A-h>', ':cprev<cr>')
