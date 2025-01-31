@@ -62,7 +62,10 @@ local packages = {
           preview = { " " },
         },
       }
-    }
+    },
+    init = function()
+        require"pfes.telescope".setup()
+    end
 
   },
   -- git
