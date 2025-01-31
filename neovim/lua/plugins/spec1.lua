@@ -118,6 +118,7 @@ local packages = {
         vim.uv.chdir(dir .. '/..')
         print(vim.uv.cwd())
         vim.api.nvim_exec2("!git diff --name-only | lines |  prettier -w ...$in", {})
+        vim.api.nvim_exec2("!git diff --staged --name-only | lines |  prettier -w ...$in", {})
         vim.uv.chdir(cwd)
       end
 
