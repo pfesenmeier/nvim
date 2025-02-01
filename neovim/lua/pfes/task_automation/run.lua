@@ -1,0 +1,16 @@
+-- local job_id
+-- local function echo_hello()
+--   if not job_id then
+--     vim.cmd.buffer()
+--     vim.cmd.term()
+--     vim.cmd('norm G')
+--     job_id = vim.bo.channel
+--   end
+--
+--   vim.api.nvim_chan_send(job_id, "echo hello \r")
+--
+--
+-- end
+--
+-- vim.api.nvim_create_user_command("E", echo_hello, { bang = false })
+-- vim.cmd("E")
