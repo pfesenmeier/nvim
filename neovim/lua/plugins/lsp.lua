@@ -54,9 +54,9 @@ return {
         "jsonls",
         -- "eslint",
 
-        -- "prismals",
+        "prismals",
         -- "yamlls",
-        -- "tailwindcss",
+        "tailwindcss",
         -- "terraformls",
 
         -- "bashls",
@@ -75,7 +75,7 @@ return {
 
       -- csharp.addToLspConfig(opts, capabilities, on_attach)
       vue.addToLspConfig(opts, capabilities, on_attach)
-      deno.addToLspConfig(opts, capabilities, on_attach)
+      -- deno.addToLspConfig(opts, capabilities, on_attach)
       lua_lang.addToLspConfig(opts, capabilities, on_attach)
     end,
     dependencies = {
