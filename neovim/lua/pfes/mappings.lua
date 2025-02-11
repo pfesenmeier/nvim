@@ -84,7 +84,9 @@ vim.keymap.set("n", "<leader>c", ":e %:h", { noremap = true })
 -- common command line motions
 map("n", "<leader>w", ":w<CR>", { noremap = true })
 -- toggle buffers
-map("n", "<leader><leader>", "<c-^>", opts)
+-- 
+vim.keymap.set("n", "<leader>t", "<c-^>", { noremap = true, nowait = true})
+
 -- idea is to have quick solution to paste same content multiple times
 -- will not have access to cut content...
 -- v_P does same thing?
