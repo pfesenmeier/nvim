@@ -52,5 +52,10 @@ if vim.g.neovide then
   vim.o.guifont = "0xProto Nerd Font Mono:h14"
   vim.g.neovide_scale_factor = 0.9
   vim.g.neovide_title_background_color = '#000000'
-  vim.g.neovide_cursor_animation_length = 0.05
+  vim.g.neovide_cursor_animation_length = 0.06
+
+  vim.keymap.set('v', '<C-c>', '"+y')         -- Copy
+  vim.keymap.set('n', '<C-v>', '"+P')         -- Paste normal mode
+  vim.keymap.set('v', '<C-v>', '"+P')         -- Paste visual mode
+  vim.keymap.set('c', '<C-v>', '<C-R>+')      -- Paste command mode
 end
