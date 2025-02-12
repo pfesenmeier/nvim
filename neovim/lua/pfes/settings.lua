@@ -53,4 +53,5 @@ if vim.g.neovide then
   vim.g.neovide_scale_factor = 0.9
   vim.g.neovide_title_background_color = '#000000'
   vim.g.neovide_cursor_animation_length = 0.05
+  vim.cmd([[cd C:\Users\pbfesenmeier\Cabo\sfmono]])
 end
