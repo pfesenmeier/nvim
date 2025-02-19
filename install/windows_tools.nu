@@ -57,6 +57,7 @@ def get_utils [] {
 def get_tools [] {
   [ 
     neovim
+    neovide
     vcredist2022 # needed for neovim
     nvm
     zig # used for treesitter
