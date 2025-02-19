@@ -1,6 +1,6 @@
 local env = {}
 
-env.home = vim.fn.expand("$HOME") or vim.fn.expand("USERPROFILE")
+env.home = vim.fn.expand("$HOME") or vim.fn.expand("$USERPROFILE")
 
 -- if fails to expand, it's linux
 env.islinux = vim.fn.expand("$USERPROFILE") == "$USERPROFILE"
