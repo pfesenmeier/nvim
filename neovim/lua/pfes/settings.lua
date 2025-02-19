@@ -1,4 +1,5 @@
 local env = require('pfes.env')
+local path= require('pfes.path')
 vim.g.netrw_browsex_viewer = "msedge.exe"
 vim.g.netrw_banner = 0
 
@@ -58,4 +59,8 @@ if vim.g.neovide then
   vim.keymap.set('n', '<C-v>', '"+P')         -- Paste normal mode
   vim.keymap.set('v', '<C-v>', '"+P')         -- Paste visual mode
   vim.keymap.set('c', '<C-v>', '<C-R>+')      -- Paste command mode
+
+  local workdir = path.pathjoin(env.home, "Code", "StewLang")
+  vim.cmd("cd " .. workdir)
+  vim.cmd("e .")
 end

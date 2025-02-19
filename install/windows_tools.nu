@@ -62,7 +62,7 @@ def get_tools [] {
     zig # used for treesitter
 
     starship
-    "nerd-fonts/CascadiaCode-NF-Mono"
+    "nerd-fonts/0xProto-NF-Mono"
   
     # cmdline
     ripgrep
@@ -83,12 +83,13 @@ def get_tools [] {
     # neovim lsps
     marksman
     lua-language-server
-     
-    CascadiaCode-NF-Mono
 
     # tiling window managers
     komorebi 
     whkd
+
+    # personal 
+    deno
   # a hack, since cmd may be different
   ] | where {|pkg| which $pkg | is-empty }
 }

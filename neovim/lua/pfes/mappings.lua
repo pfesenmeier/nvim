@@ -67,12 +67,10 @@ if (env.islinux) then
 else
   local function go_up()
     local bufname = vim.api.nvim_buf_get_name(0)
-    if string.match(bufname, "fern:") then
-      vim.cmd("Fern .")
-    elseif bufname == "" or string.match(bufname, "fugitive:") then
-      vim.cmd('Fern .')
+    if bufname == "" or string.match(bufname, "fugitive:") then
+      vim.cmd('e .')
     else
-      vim.cmd('Fern %:h')
+      vim.cmd('e %:h')
     end
   end
   vim.keymap.set('n', '<leader>e', go_up, opts)

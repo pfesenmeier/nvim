@@ -146,29 +146,6 @@ local packages = {
     end
   },
   { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
-  {
-    "lambdalisue/fern.vim",
-    dependencies = {
-      "lambdalisue/vim-fern-hijack",
-      "yuki-yano/fern-preview.vim"
-    },
-    init = function()
-      vim.cmd([[
-                function! s:fern_settings() abort
-                  nmap <silent> <buffer> p     <Plug>(fern-action-preview:toggle)
-                  nmap <silent> <buffer> <C-p> <Plug>(fern-action-preview:auto:toggle)
-                  nmap <silent> <buffer> <C-d> <Plug>(fern-action-preview:scroll:down:half)
-                  nmap <silent> <buffer> <C-u> <Plug>(fern-action-preview:scroll:up:half)
-                  nmap <silent> <buffer> <leader>e <Plug>(fern-action-leave)
-                endfunction
-
-                augroup fern-settings
-                  autocmd!
-                  autocmd FileType fern call s:fern_settings()
-                augroup END
-            ]]);
-    end
-  }
 }
 
 return packages
