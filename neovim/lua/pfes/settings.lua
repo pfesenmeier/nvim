@@ -1,32 +1,67 @@
-vim.g.netrw_browsex_viewer= "msedge.exe"
-vim.g.netrw_banner=0
-
-local o = vim.opt
-local c = vim.cmd
+local env = require('pfes.env')
+local path= require('pfes.path')
+vim.g.netrw_browsex_viewer = "msedge.exe"
+vim.g.netrw_banner = 0
 
 -- set windows clipboard
-c('set clipboard=unnamedplus')
+vim.opt.clipboard = "unnamedplus"
+
+-- set shell to nushell
+-- https://github.com/neovim/neovim/issues/19648#issuecomment-1212295560
+vim.opt.shell = "nu"
+local config = '--config ' .. env.home .. '/nvim/nushell/config.nu'
+local envconfig = '--env-config ' .. env.home .. '/nvim/nushell/env.nu'
+vim.opt.shellcmdflag = config .. " " .. envconfig .. " " .. "-c"
+vim.opt.shellquote = ""
+vim.opt.shellxquote = ""
+-- ":r !ls | to text" or ":r !ls | get name"
+vim.opt.shellredir = '| save %s'
 
 -- tabs are spaces
-o.tabstop = 2 -- tabs are tabstop spaces long
-o.shiftwidth = 2 -- indents are 4 widths long
-o.softtabstop = 2 -- colunmn??
-o.scrolloff = 999 -- keep cursor in middle of screen
-o.expandtab = true
-
-c('set noshellslash')
+vim.opt.tabstop = 2     -- tabs are tabstop spaces long
+vim.opt.shiftwidth = 2  -- indents are 4 widths long
+vim.opt.softtabstop = 2 -- colunmn??
+vim.opt.scrolloff = 999 -- keep cursor in middle of screen
+vim.opt.expandtab = true
+vim.opt.shellslash = false
 
 -- default highlight group for nvim-dap is a bright blue
 vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F36' })
+vim.opt.relativenumber = true
+vim.opt.foldenable = false
 
-c('set relativenumber')
-c('set nofoldenable')
-c('set nofixendofline') 
+vim.opt.signcolumn = "yes:2"
+vim.opt.fixendofline = false
 
--- add <> for % motion
+-- add <> for % moti
 -- see :h matchpairs
 vim.cmd('set mps+=<:>')
 
-vim.opt.signcolumn = "yes:2"
-
 vim.cmd('au BufRead,BufNewFile *.nu		set filetype=nu')
+
+local groupId = vim.api.nvim_create_augroup("TerminalEvents", {})
+vim.api.nvim_create_autocmd({ "TermOpen" }, {
+  group = groupId,
+  callback = function()
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
+    vim.opt_local.signcolumn = 'no'
+  end
+})
+
+if vim.g.neovide then
+  vim.o.guifont = "0xProto Nerd Font Mono:h14"
+  vim.g.neovide_scale_factor = 0.9
+  vim.g.neovide_title_background_color = '#000000'
+  vim.cmd([[cd C:\Users\pbfesenmeier\Cabo\sfmono]])
+  vim.g.neovide_cursor_animation_length = 0.06
+
+  vim.keymap.set('v', '<C-c>', '"+y')         -- Copy
+  vim.keymap.set('n', '<C-v>', '"+P')         -- Paste normal mode
+  vim.keymap.set('v', '<C-v>', '"+P')         -- Paste visual mode
+  vim.keymap.set('c', '<C-v>', '<C-R>+')      -- Paste command mode
+
+  local workdir = path.pathjoin(env.home, "Code", "StewLang")
+  vim.cmd("cd " .. workdir)
+  vim.cmd("e .")
+end

@@ -57,12 +57,13 @@ def get_utils [] {
 def get_tools [] {
   [ 
     neovim
+    neovide
     vcredist2022 # needed for neovim
     nvm
     zig # used for treesitter
 
     starship
-    "nerd-fonts/CascadiaCode-NF-Mono"
+    "nerd-fonts/0xProto-NF-Mono"
   
     # cmdline
     ripgrep
@@ -75,16 +76,21 @@ def get_tools [] {
     fzf
     difftastic
     mdcat
+
+    # building fzf-lua
+    make
+    gcc
   
     # neovim lsps
     marksman
     lua-language-server
-     
-    CascadiaCode-NF-Mono
 
     # tiling window managers
     komorebi 
     whkd
+
+    # personal 
+    deno
   # a hack, since cmd may be different
   ] | where {|pkg| which $pkg | is-empty }
 }

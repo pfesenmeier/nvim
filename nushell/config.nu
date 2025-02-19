@@ -311,8 +311,7 @@ $env.config = {
     }
 
     filesize: {
-        metric: true # true => KB, MB, GB (ISO standard), false => KiB, MiB, GiB (Windows standard)
-        format: "auto" # b, kb, kib, mb, mib, gb, gib, tb, tib, pb, pib, eb, eib, auto
+        unit: metric
     }
 
     cursor_shape: {
@@ -326,7 +325,7 @@ $env.config = {
     footer_mode: "auto" # always, never, number_of_rows, auto
     float_precision: 2 # the precision for displaying floats in tables
     buffer_editor: "nvim" # command that will be used to edit the current line buffer with ctrl+o, if unset fallback to $env.EDITOR and $env.VISUAL
-    use_ansi_coloring: true
+    use_ansi_coloring: auto
     bracketed_paste: true # enable bracketed paste, currently useless on windows
     edit_mode: vi # emacs, vi
     shell_integration: {
@@ -954,3 +953,5 @@ source paths.nu
 source clean.nu
 source brew-env.nu
 source booker/booker.nu
+source git-cmds.nu
+source task_automation\run.nu
