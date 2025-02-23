@@ -52,29 +52,17 @@ vim.api.nvim_set_keymap('c', '<C-B>', '<Left>', opts)
 vim.api.nvim_set_keymap('c', '<Esc>b', '<S-Left>', opts)
 vim.api.nvim_set_keymap('c', '<Esc>f', '<S-Right>', opts)
 
-if (env.islinux) then
-  local function go_up()
-    local bufname = vim.api.nvim_buf_get_name(0)
-    if string.match(bufname, "oil:") then
-      require('oil').open()
-    elseif bufname == "" or string.match(bufname, "fugitive:") then
-      vim.cmd('Oil')
-    else
-      vim.cmd('Oil %:h')
-    end
+local function go_up()
+  local bufname = vim.api.nvim_buf_get_name(0)
+  if bufname == "" or string.match(bufname, "fugitive:") then
+    vim.cmd('e .')
+  elseif vim.o.buftype == "terminal" then
+    vim.cmd('e .')
+  else
+    vim.cmd('e %:h')
   end
-  vim.keymap.set('n', '<leader>e', go_up, opts)
-else
-  local function go_up()
-    local bufname = vim.api.nvim_buf_get_name(0)
-    if bufname == "" or string.match(bufname, "fugitive:") then
-      vim.cmd('e .')
-    else
-      vim.cmd('e %:h')
-    end
-  end
-  vim.keymap.set('n', '<leader>e', go_up, opts)
 end
+vim.keymap.set('n', '<leader>e', go_up, opts)
 
 vim.keymap.set("n", "<leader>c", ":e %:h", { noremap = true })
 
@@ -82,8 +70,8 @@ vim.keymap.set("n", "<leader>c", ":e %:h", { noremap = true })
 -- common command line motions
 map("n", "<leader>w", ":w<CR>", { noremap = true })
 -- toggle buffers
--- 
-vim.keymap.set("n", "<leader>t", "<c-^>", { noremap = true, nowait = true})
+--
+vim.keymap.set("n", "<leader>a", "<c-^>", { noremap = true, nowait = true })
 
 -- idea is to have quick solution to paste same content multiple times
 -- will not have access to cut content...
@@ -132,6 +120,8 @@ map("n", "L", "$", opts)
 -- functions eagerly load module. see :help vim.keymap.set()
 -- :h telescope.defaults
 
+vim.keymap.set("n", "<leader>t", function() return require('telescope.builtin').lsp_document_symbols() end, opts)
+vim.keymap.set("n", "<leader>T", function() return require('telescope.builtin').lsp_workspace_symbols() end, opts)
 
 vim.keymap.set("n", "<leader>b", function() return require('telescope.builtin').buffers() end, opts)
 vim.keymap.set("n", "<leader>h", function() return require('telescope.builtin').help_tags() end, opts)

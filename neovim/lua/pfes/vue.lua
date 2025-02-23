@@ -47,7 +47,7 @@ vue.addToLspConfig = function(opts, capabilities, on_attach)
             hybridMode = false,
           },
           typescript = {
-            tsdk = findTypescript('v22.13.1')
+            tsdk = findTypescript('v22.14.0')
           },
         }
 
