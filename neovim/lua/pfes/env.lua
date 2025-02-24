@@ -7,7 +7,9 @@ env.islinux = vim.fn.expand("$USERPROFILE") == "$USERPROFILE"
 
 env.binDir = env.home .. (env.islinux and "/.local/bin" or "/AppData/Local")
 
+env.monorepo = false
 env.c_sharp = false
 env.sql = false
+env.rust = true
 
 return env

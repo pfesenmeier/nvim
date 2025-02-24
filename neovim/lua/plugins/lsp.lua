@@ -2,6 +2,7 @@ local csharp = require "pfes.csharp"
 local vue = require "pfes.vue"
 local deno = require "pfes.deno"
 local lua_lang = require "pfes.lua-lang"
+local env      = require "pfes.env"
 
 return {
   {
@@ -46,8 +47,6 @@ return {
       local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
       local lsps = {
-        -- "rust_analyzer",
-
         -- enabled via vscode-langservers-extracted
         -- "html",
         -- "cssls",
@@ -66,6 +65,10 @@ return {
         "marksman"
       }
 
+      if env.rust then
+        table.insert(lsps, "rust_analyzer")
+      end
+
       for _, value in ipairs(lsps) do
         opts[value].setup {
           capabilities = capabilities,
@@ -73,7 +76,9 @@ return {
         }
       end
 
-      -- csharp.addToLspConfig(opts, capabilities, on_attach)
+      if env.c_sharp then
+        csharp.addToLspConfig(opts, capabilities, on_attach)
+      end
       vue.addToLspConfig(opts, capabilities, on_attach)
       deno.addToLspConfig(opts, capabilities, on_attach)
       lua_lang.addToLspConfig(opts, capabilities, on_attach)

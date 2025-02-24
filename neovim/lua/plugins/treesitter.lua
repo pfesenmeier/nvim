@@ -82,7 +82,7 @@ return {
           -- "java",
           "lua",
           "glimmer",
-          -- "rust",
+          "rust",
           "python",
           -- "c",
           -- "jq",

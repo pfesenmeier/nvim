@@ -88,24 +88,24 @@ map("n", "<leader>p", "\"0p", { noremap = true })
 map("n", "<c-p>", ":files", opts)
 
 -- :b, :f (buffer/file name) auto-completes!!
-local function neotest(runArgs)
-  require("neotest").run.run(runArgs)
-  vim.notify("tests have begun")
-end
+-- local function neotest(runArgs)
+--   require("neotest").run.run(runArgs)
+--   vim.notify("tests have begun")
+-- end
 
-vim.keymap.set('n', '<leader>tr', function() return neotest() end, { noremap = true })
-vim.keymap.set('n', '<leader>tf', function() return neotest(vim.fn.expand("%")) end, { noremap = true })
-vim.keymap.set('n', '<leader>td', function() return neotest({ strategy = "dap" }) end, { noremap = true })
-vim.keymap.set('n', '<leader>tt', function()
-  require('neotest').summary.toggle()
-end, opts)
-vim.keymap.set('n', '<leader>to', function()
-  require('neotest').summary.open()
-  vim.cmd(':wincmd l', opts)
-end, opts)
-vim.keymap.set('n', '<leader>tc', function()
-  require('neotest').summary.close()
-end, opts)
+-- vim.keymap.set('n', '<leader>tr', function() return neotest() end, { noremap = true })
+-- vim.keymap.set('n', '<leader>tf', function() return neotest(vim.fn.expand("%")) end, { noremap = true })
+-- vim.keymap.set('n', '<leader>td', function() return neotest({ strategy = "dap" }) end, { noremap = true })
+-- vim.keymap.set('n', '<leader>tt', function()
+--   require('neotest').summary.toggle()
+-- end, opts)
+-- vim.keymap.set('n', '<leader>to', function()
+--   require('neotest').summary.open()
+--   vim.cmd(':wincmd l', opts)
+-- end, opts)
+-- vim.keymap.set('n', '<leader>tc', function()
+--   require('neotest').summary.close()
+-- end, opts)
 
 -- switch buffers
 map("n", "<left>", ":bp<cr>", opts)
@@ -115,13 +115,68 @@ map("n", "<right>", ":bn<cr>", opts)
 map("n", "H", "^", opts)
 map("n", "L", "$", opts)
 
+local function show_next_term(o)
+  o = o or {}
+  local prev = o.prev or false
+  local current = vim.api.nvim_get_current_buf()
+  local current_is_term = vim.bo.buftype == "terminal"
 
+  local terms = {}
+  for _, value in ipairs(vim.api.nvim_list_bufs()) do
+    local type = vim.bo[value].buftype
+
+    if type == "terminal" then
+      table.insert(terms, value)
+    end
+  end
+
+  if #terms == 0 then
+    vim.print("no terminal buffers found")
+    return
+  end
+
+  if #terms == 1 and current_is_term then
+    vim.print("no other terminal buffers found")
+    return
+  end
+
+  if not current_is_term then
+    vim.api.nvim_set_current_buf(terms[1])
+    return
+  end
+
+  local indexOf = nil
+
+  for index, value in ipairs(terms) do
+    if value == current then
+      indexOf = index
+      break
+    end
+  end
+
+  local nextIndex = indexOf % #terms + 1
+
+  if prev then
+    if indexOf == 1 then
+      nextIndex = #terms
+    else
+      nextIndex = indexOf - 1
+    end
+  end
+
+  local next_buf = terms[nextIndex]
+
+  vim.api.nvim_set_current_buf(next_buf)
+end
+
+vim.keymap.set("n", "<leader>t", show_next_term, opts)
+vim.keymap.set("n", "<leader>T", function() show_next_term({ prev = true }) end, opts)
 
 -- functions eagerly load module. see :help vim.keymap.set()
 -- :h telescope.defaults
 
-vim.keymap.set("n", "<leader>t", function() return require('telescope.builtin').lsp_document_symbols() end, opts)
-vim.keymap.set("n", "<leader>T", function() return require('telescope.builtin').lsp_workspace_symbols() end, opts)
+vim.keymap.set("n", "<leader>s", function() return require('telescope.builtin').lsp_document_symbols() end, opts)
+vim.keymap.set("n", "<leader>S", function() return require('telescope.builtin').lsp_workspace_symbols() end, opts)
 
 vim.keymap.set("n", "<leader>b", function() return require('telescope.builtin').buffers() end, opts)
 vim.keymap.set("n", "<leader>h", function() return require('telescope.builtin').help_tags() end, opts)

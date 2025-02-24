@@ -91,6 +91,7 @@ def get_tools [] {
 
     # personal 
     deno
+    rustup
   # a hack, since cmd may be different
   ] | where {|pkg| which $pkg | is-empty }
 }

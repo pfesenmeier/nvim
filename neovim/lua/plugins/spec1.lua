@@ -1,7 +1,6 @@
 local env = require('pfes.env')
 local sql = env.sql
 local c_sharp = env.c_sharp
-local mono_repo = true
 
 local packages = {
   -- prevent remote code execution
@@ -21,12 +20,15 @@ local packages = {
     lazy = false,
     event = "UIEnter",
     init = function()
-      if mono_repo then
-        vim.g.rooter_patterns = { '.git', '*.sln' }
-        return
+      local patterns = { '.git', '*.sln' }
+
+      if not env.monorepo then
+        table.insert(patterns, "package.json")
+        table.insert(patterns, "deno.json")
+        table.insert(patterns, "Cargo.toml")
       end
 
-      vim.g.rooter_patterns = { '.git', 'package.json', 'deno.json', '*.sln' }
+      vim.g.rooter_patterns =  patterns
     end
   },
   -- database
