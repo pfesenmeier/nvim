@@ -1,5 +1,4 @@
-
-def run [
+export def run [
   dir: string
   cmd: string
 ] {
@@ -12,9 +11,5 @@ def run [
   } catch {
     cd $cwd
   }
-}
-
-def 'run test' [] {
-  run ([$env.home Code StewLang lang tests] | path join) 'deno test --watch *'
 }
 

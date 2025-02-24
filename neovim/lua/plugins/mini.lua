@@ -4,7 +4,7 @@ return {
     enabled = true,
     config = function()
       require "mini.ai".setup()
-      require "mini.operators".setup()
+      require "mini.bufremove".setup()
       require 'mini.statusline'.setup {
         use_icons = true
       }
