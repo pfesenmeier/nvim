@@ -101,6 +101,7 @@ return {
           "yaml",
           "gitignore",
           "gitattributes",
+          "todotxt",
           "vim",
           "vimdoc",
           "vue",
