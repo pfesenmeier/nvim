@@ -55,9 +55,6 @@ def main [] {
     } {
       src: [starship.toml]
       dest: [.config starship.toml]
-    } {
-      src: [applications.yaml]
-      dest: [applications.yaml]
     }] | each {|x| 
       let src = [$config_path] | append $x.src | path join
       let dest = [$nu.home-path] | append $x.dest | path join
