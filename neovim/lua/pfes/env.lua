@@ -7,9 +7,35 @@ env.islinux = vim.fn.expand("$USERPROFILE") == "$USERPROFILE"
 
 env.binDir = env.home .. (env.islinux and "/.local/bin" or "/AppData/Local")
 
-env.monorepo = false
+---@param ... string
+---@return string
+function env.pathjoin(...)
+  local sep = nil
+
+  if env.islinux then
+    sep = "/"
+  else
+    sep = "\\"
+  end
+
+  local result = ""
+  for _, value in ipairs({ ... }) do
+    if result == "" then
+      result = result .. value
+    else
+      result = result .. sep .. value
+    end
+  end
+
+  return result
+end
+
+env.workdir = env.pathjoin(env.home, "Cabo", "sfmono")
+env.monorepo = true
 env.c_sharp = false
 env.sql = false
 env.rust = true
+
+
 
 return env

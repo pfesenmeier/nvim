@@ -60,7 +60,6 @@ if vim.g.neovide then
   vim.keymap.set('v', '<C-v>', '"+P')         -- Paste visual mode
   vim.keymap.set('c', '<C-v>', '<C-R>+')      -- Paste command mode
 
-  local workdir = path.pathjoin(env.home, "Code", "StewLang")
-  vim.cmd("cd " .. workdir)
+  vim.cmd("cd " .. env.workdir)
   vim.cmd("e .")
 end
