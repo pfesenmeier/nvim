@@ -9,7 +9,7 @@ alt + shift + o         : komorebic reload-configuration
 # The apps will be focused if open, or launched if not open
 # alt + shift + return    : if ($wshell.AppActivate('Firefox') -eq $False) { start firefox }
 alt + shift + return    : if ($wshell.AppActivate('Edge') -eq $False) { start msedge }
-alt + return            : start wt
+alt + return            : start neovide
 # alt + b               : if ($wshell.AppActivate('Chrome') -eq $False) { start chrome }
 
 alt + q                 : komorebic close
