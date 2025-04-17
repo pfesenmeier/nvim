@@ -83,6 +83,7 @@ return {
           "lua",
           "glimmer",
           "rust",
+          "diff",
           "python",
           -- "c",
           -- "jq",
