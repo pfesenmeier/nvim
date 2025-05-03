@@ -51,7 +51,7 @@ return {
         -- "html",
         -- "cssls",
         "jsonls",
-        -- "eslint",
+        "eslint",
 
         "prismals",
         -- "yamlls",
