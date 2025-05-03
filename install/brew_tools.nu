@@ -5,6 +5,7 @@ let tools = [
   fzf
   fd
   carapace
+  deno
   ripgrep
   difftastic
   fnm # used by homebrew script
@@ -12,8 +13,10 @@ let tools = [
   lua
   gh
   luarocks
+  marksman
   neovim
   nushell # not nu!
+  starship
 ]
 
 brew install ...$tools

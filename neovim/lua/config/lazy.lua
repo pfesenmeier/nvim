@@ -20,7 +20,8 @@ vim.opt.rtp:prepend(lazypath)
 -- Make sure to setup `mapleader` and `maplocalleader` before
 -- loading lazy.nvim so that mappings are correct.
 -- This is also a good place to setup other settings (vim.opt)
-if env.islinux then
+
+if env.islinux and not env.is_wsl_linux then
   vim.g.mapleader = vim.api.nvim_replace_termcodes('<BS>', false, false, true)
 else
   vim.g.mapleader = " "

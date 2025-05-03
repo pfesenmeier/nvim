@@ -34,7 +34,11 @@ end
 local function findTypescript(nodeVersion)
   -- too slow
   -- local output = vim.fn.system{ 'npm', 'list', '--global', '--depth', '0', '--parseable', 'typescript' }
-  return env.home .. "/scoop/persist/nvm/nodejs/" .. nodeVersion .. "/node_modules/typescript/lib"
+  if env.islinux then
+    return env.home .. "/.local/share/fnm/node-versions/" .. nodeVersion .. "/installation/lib/node_modules/typescript/lib"
+  else 
+    return env.home .. "/scoop/persist/nvm/nodejs/" .. nodeVersion .. "/node_modules/typescript/lib"
+  end
 end
 
 vue.addToLspConfig = function(opts, capabilities, on_attach)
@@ -47,7 +51,7 @@ vue.addToLspConfig = function(opts, capabilities, on_attach)
             hybridMode = false,
           },
           typescript = {
-            tsdk = findTypescript('v22.14.0')
+            tsdk = findTypescript('v22.15.0')
           },
         }
 

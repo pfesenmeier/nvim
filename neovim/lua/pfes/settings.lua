@@ -6,6 +6,23 @@ vim.g.netrw_banner = 0
 -- set windows clipboard
 vim.opt.clipboard = "unnamedplus"
 
+if env.is_wsl_linux then
+  vim.cmd([[
+    let g:clipboard = {
+      \   'name': 'WslClipboard',
+      \   'copy': {
+      \      '+': '/mnt/c/Windows/System32/clip.exe',
+      \      '*': '/mnt/c/Windows/System32/clip.exe',
+      \    },
+      \   'paste': {
+      \      '+': '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoLogo -NoProfile -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+      \      '*': '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoLogo -NoProfile -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+      \   },
+      \   'cache_enabled': 0,
+      \ }
+  ]])
+end
+
 -- set shell to nushell
 -- https://github.com/neovim/neovim/issues/19648#issuecomment-1212295560
 vim.opt.shell = "nu"
@@ -23,7 +40,7 @@ vim.opt.shiftwidth = 2  -- indents are 4 widths long
 vim.opt.softtabstop = 2 -- colunmn??
 vim.opt.scrolloff = 999 -- keep cursor in middle of screen
 vim.opt.expandtab = true
-vim.opt.shellslash = false
+-- vim.opt.shellslash = false
 
 -- default highlight group for nvim-dap is a bright blue
 vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F36' })

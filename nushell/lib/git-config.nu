@@ -8,6 +8,9 @@ git config --global push.autoSetupRemote true
 # git config --global commit.gpgsign true
 # git config --global gpg.program gpg
 
+# remember - set gpg key in .gitconfig
+# git config --global user.signingkey <keyid>
+
 git config --global alias.chcekout checkout
 git config --global alias.checkoud checkout
 git config --global alias.comit commit

@@ -4,6 +4,7 @@ env.home = vim.fn.expand("$HOME") or vim.fn.expand("$USERPROFILE")
 
 -- if fails to expand, it's linux
 env.islinux = vim.fn.expand("$USERPROFILE") == "$USERPROFILE"
+env.is_wsl_linux = env.islinux and vim.fn.expand("$WSL_DISTRO_NAME") ~= "$WSL_DISTRO_NAME"
 
 env.binDir = env.home .. (env.islinux and "/.local/bin" or "/AppData/Local")
 
@@ -34,7 +35,7 @@ env.workdir = env.pathjoin(env.home, "Cabo", "sfmono")
 env.monorepo = true
 env.c_sharp = false
 env.sql = false
-env.rust = true
+env.rust = false
 
 
 
