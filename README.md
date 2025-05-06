@@ -1,6 +1,9 @@
 # personal dev config
 
 ### big wins
+- telescope: all buffers except terminal buffers
+- telescope: only terminal buffers
+- remove nushell highlight script, not needed?
 - sort buffers alphabetically?
 - import via autocomplete selection
 - stop adding newlines to end of files
@@ -59,6 +62,8 @@ https://open-vsx.org/extension/josefpihrt-vscode/roslynator
 
 
 ## done
+- go to next / last edit
+- wsl_windows, wsl_linux environments
 - enhance terminal to all nushell terminal by default (fix PATH / Path problem)
 - install netcoredbg (cross platform)
 - put all c# stuff into one file

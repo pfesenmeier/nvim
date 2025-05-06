@@ -172,6 +172,10 @@ end
 vim.keymap.set("n", "<leader>t", show_next_term, opts)
 vim.keymap.set("n", "<leader>T", function() show_next_term({ prev = true }) end, opts)
 
+vim.keymap.set({ "n", "v" }, "gn", function()
+  require('gitsigns').next_hunk()
+end, opts)
+
 -- functions eagerly load module. see :help vim.keymap.set()
 -- :h telescope.defaults
 
