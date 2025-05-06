@@ -1,12 +1,12 @@
 git config --global core.editor "nvim"
 git config --global user.name "Paul Fesenmeier"
 # git config --global user.email pbfesenmeier@sep.com
-git config --global user.email pfesenmeier@gmail.com
+git config --global user.email pbfesenmeier@sep.com
 git config --global diff.external difft
 git config --global push.autoSetupRemote true
 
-# git config --global commit.gpgsign true
-# git config --global gpg.program gpg
+git config --global commit.gpgsign true
+git config --global gpg.program gpg
 
 # remember - set gpg key in .gitconfig
 # git config --global user.signingkey <keyid>
