@@ -22,6 +22,8 @@ alt + m                 : komorebic minimize
 # alt + l                 : komorebic focus right
 alt + p                 : komorebic cycle-focus previous # oem_4 is [
 alt + n                 : komorebic cycle-focus next # oem_6 is ]
+alt + u                 : komorebic cycle-move previous
+alt + d                 : komorebic cycle-move next
 
 # Move windows
 alt + shift + h         : komorebic move left
