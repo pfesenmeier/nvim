@@ -1,6 +1,7 @@
 # personal dev config
 
 ### big wins
+- windows_wsl setup (need for komorebi)
 - telescope: all buffers except terminal buffers
 - telescope: only terminal buffers
 - remove nushell highlight script, not needed?

@@ -15,15 +15,14 @@ alt + return            : start terminal
 alt + q                 : komorebic close
 alt + m                 : komorebic minimize
 
-# Focus windows - using for neovim atm
 alt + h                 : komorebic focus left
 alt + j                 : komorebic focus down
 alt + k                 : komorebic focus up
 alt + l                 : komorebic focus right
 alt + p                 : komorebic cycle-focus previous # oem_4 is [
 alt + n                 : komorebic cycle-focus next # oem_6 is ]
-alt + u                 : komorebic cycle-move previous
-alt + d                 : komorebic cycle-move next
+alt + shift + p         : komorebic cycle-move previous
+alt + shift + n         : komorebic cycle-move next
 
 # Move windows
 alt + shift + h         : komorebic move left
