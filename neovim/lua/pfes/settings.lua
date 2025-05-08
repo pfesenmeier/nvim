@@ -40,7 +40,9 @@ vim.opt.shiftwidth = 2  -- indents are 4 widths long
 vim.opt.softtabstop = 2 -- colunmn??
 vim.opt.scrolloff = 999 -- keep cursor in middle of screen
 vim.opt.expandtab = true
--- vim.opt.shellslash = false
+if env.iswindows then
+  vim.opt.shellslash = false
+end
 
 -- default highlight group for nvim-dap is a bright blue
 vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F36' })

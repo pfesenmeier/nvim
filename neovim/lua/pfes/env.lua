@@ -5,6 +5,7 @@ env.home = vim.fn.expand("$HOME") or vim.fn.expand("$USERPROFILE")
 -- if fails to expand, it's linux
 env.islinux = vim.fn.expand("$USERPROFILE") == "$USERPROFILE"
 env.is_wsl_linux = env.islinux and vim.fn.expand("$WSL_DISTRO_NAME") ~= "$WSL_DISTRO_NAME"
+env.iswindows = not env.islinux
 
 env.binDir = env.home .. (env.islinux and "/.local/bin" or "/AppData/Local")
 
