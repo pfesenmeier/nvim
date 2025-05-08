@@ -15,10 +15,12 @@ alt + return            : start terminal
 alt + q                 : komorebic close
 alt + m                 : komorebic minimize
 
-alt + h                 : komorebic focus left
-alt + j                 : komorebic focus down
-alt + k                 : komorebic focus up
-alt + l                 : komorebic focus right
+# used by neovim quickfix
+# alt + h                 : komorebic focus left
+# alt + l                 : komorebic focus right
+
+# alt + j                 : komorebic focus down
+# alt + k                 : komorebic focus up
 alt + p                 : komorebic cycle-focus previous # oem_4 is [
 alt + n                 : komorebic cycle-focus next # oem_6 is ]
 alt + shift + p         : komorebic cycle-move previous
