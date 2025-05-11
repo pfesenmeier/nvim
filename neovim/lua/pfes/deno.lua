@@ -1,4 +1,5 @@
 local env = require("pfes.env")
+local stew = require("pfes.stew")
 
 local deno = {}
 
@@ -39,6 +40,21 @@ deno.addToDap = function(dap)
                 "--inspect-wait",
                 "--allow-all"
             },
+            program = "${file}",
+            cwd = "${workspaceFolder}",
+            attachSimplePort = 9229,
+        },
+        {
+            type = 'pwa-node',
+            request = 'launch',
+            name = "Stew Run",
+            runtimeExecutable = "deno",
+            runtimeArgs = {
+                "run",
+                "--inspect-wait",
+                "--allow-all"
+            },
+            args = stew.select_recipe,
             program = "${file}",
             cwd = "${workspaceFolder}",
             attachSimplePort = 9229,

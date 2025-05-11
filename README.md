@@ -21,7 +21,6 @@
 - add "let $FZF_DEFAULT_COMMAND = 'rg --files --hidden'"
 - add nvim-gui niceities
     - enhance terminal to all nushell terminal by default (fix PATH / Path problem)
-
 - project-level errors
     - dotnet build output
     - shortcut for vim.diagnostic.setqflist({ severity = ERROR }) (project-level errors)
@@ -39,11 +38,6 @@
 - <C-o>, <c-w>, <c-h> in insert mode
 - =, S for indent
 what is vim wiki
-
-## Ra Steps
-- run setup.nu to symlink config, env, lib
-- add 'lib' dir to NU_LIB_DIRS in env.nu
-- add 'source ra.nu' etc.. to bottom of config.nu
 
 ## Adding rosylnator
 https://github.com/OmniSharp/omnisharp-vim/issues/451#issuecomment-473727111

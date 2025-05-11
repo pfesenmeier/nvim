@@ -16,7 +16,7 @@ vim.keymap.set("n", "<leader>k",
   function() return require('telescope.builtin').live_grep({ path_display = { "truncate" } }) end, opts)
 vim.keymap.set("n", "<leader>K",
   function() return require('telescope.builtin').live_grep({ cwd = env.home, path_display = { "truncate" } }) end, opts)
-vim.keymap.set("n", "<leader>x", ":bd!<cr>", { noremap = true })
+vim.keymap.set("n", "<leader>x", ":x<cr>", { noremap = true })
 
 map("n", "<leader>u", ":G pull<CR>", { noremap = true })
 map("n", "<leader>p", ":G push<CR>", { noremap = true })
