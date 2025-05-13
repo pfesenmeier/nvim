@@ -1,7 +1,12 @@
 # personal dev config
 
 ### big wins
+- close quickfix
+- repeat <leader>gn go to next edit.
+- go previous edit
+- make go faster?
 - windows_wsl setup (need for komorebi)
+- soft link downloads, documents, desktop to wsl
 - telescope: all buffers except terminal buffers
 - telescope: only terminal buffers
 - remove nushell highlight script, not needed?
