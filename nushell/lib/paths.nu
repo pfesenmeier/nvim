@@ -6,6 +6,7 @@ let local_tools_path = if $nu.os-info.family == 'windows' {
 
 let local_tools = [
     [artempyanykh marksman],
+    [microsoft vscode-js-debug js-debug src]
     [] # linux places executables in .local/bin
 ] | each {|tool| $local_tools_path | append $tool | path join }
   | filter {|| $in | path exists } 
