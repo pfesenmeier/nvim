@@ -1,15 +1,17 @@
 {
-  "$schema": "https://raw.githubusercontent.com/LGUG2Z/komorebi/v0.1.36/schema.json",
+  "$schema": "https://raw.githubusercontent.com/LGUG2Z/komorebi/v0.1.37/schema.json",
   "app_specific_configuration_path": "$Env:USERPROFILE/applications.json",
   "default_container_padding": 1,
   "default_workspace_padding": 1,
   "stackbar": {
     "label": "Title",
     "mode": "OnStack",
+    "height": 25,
     "tabs": {
       "font_size": 20,
-      "font_family": "JetBrains Mono"
+      "font_family": "0xProto Nerd Font Mono"
     }
+
   },
   "bar_configurations": [
     "$Env:USERPROFILE/nvim/komorebi.bar.json"
