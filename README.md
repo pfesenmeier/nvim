@@ -1,6 +1,20 @@
 # personal dev config
 
+
+### install script
+ps1
+bash?
+
+### komorebi
+default app layout?
+bubble tilebar?
+gruvbox colors
+square corners
+borders false?
+background img
+
 ### big wins
+- search fatigue
 - close quickfix
 - repeat <leader>gn go to next edit.
 - go previous edit
