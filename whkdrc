@@ -8,8 +8,9 @@ alt + shift + o         : komorebic reload-configuration
 # App shortcuts - these require shell to be pwsh / powershell
 # The apps will be focused if open, or launched if not open
 # alt + shift + return    : if ($wshell.AppActivate('Firefox') -eq $False) { start firefox }
-alt + shift + return    : if ($wshell.AppActivate('Edge') -eq $False) { start msedge }
-alt + return            : start terminal
+# alt + shift + return    : if ($wshell.AppActivate('Edge') -eq $False) { start msedge }
+alt + shift + return    : start msedge
+alt + return            : start wt
 # alt + b               : if ($wshell.AppActivate('Chrome') -eq $False) { start chrome }
 
 alt + q                 : komorebic close

@@ -3,5 +3,6 @@
     "default_workspace_padding": 1,
     "stackbar": {
         "label": "Title"
-    }
+    },
+    "app_specific_configuration_path": "$Env:USERPROFILE/applications.json"
 }
