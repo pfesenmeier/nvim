@@ -64,6 +64,26 @@ def main [] {
       idempotent_symlink $src $dest
     }
 
+    if (which komorebic | is-not-empty) {
+       komorebic fetch-app-specific-configuration
+    } else {
+      print "Komorebi is not installed, skipping fetch-app-specific-configuration"
+    }
+   
+    [
+        [nushell lib task_automation local.nu]
+        [neovim lua pfes local.lua]
+    ] | each {|path| 
+      let path = [$config_path] | append $path | path join
+     
+      if not ($path | path exists) {
+        print $"creating ($path)"
+        mkdir $path
+      } else {
+        print $"($path) already exists"
+      }
+    }
+
     return
 }
 
