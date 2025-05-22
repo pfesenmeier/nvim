@@ -4,7 +4,6 @@ let tools = [
   gcc
   fzf
   fd
-  carapace
   deno
   ripgrep
   difftastic

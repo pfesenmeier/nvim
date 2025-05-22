@@ -70,7 +70,6 @@ def get_tools [] {
     fd
     eza
     gsudo
-    carapace-bin
     neovim
     gh
     fzf
