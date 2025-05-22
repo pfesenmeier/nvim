@@ -1,8 +1,49 @@
 {
-    "default_container_padding": 1,
-    "default_workspace_padding": 1,
-    "stackbar": {
-        "label": "Title"
-    },
-    "app_specific_configuration_path": "$Env:USERPROFILE/applications.json"
+  "$schema": "https://raw.githubusercontent.com/LGUG2Z/komorebi/v0.1.37/schema.json",
+  "app_specific_configuration_path": "$Env:USERPROFILE/applications.json",
+  "default_container_padding": 1,
+  "default_workspace_padding": 1,
+  "stackbar": {
+    "label": "Title",
+    "mode": "OnStack",
+    "height": 25,
+    "tabs": {
+      "font_size": 20,
+      "font_family": "0xProto Nerd Font Mono"
+    }
+
+  },
+  "bar_configurations": [
+    "$Env:USERPROFILE/nvim/komorebi.bar.json"
+  ],
+  "animation": {
+    "enabled": true,
+    "style": "EaseOutExpo",
+    "fps": 120
+  },
+  "window_hiding_behaviour": "Cloak",
+  "cross_monitor_move_behaviour": "Insert",
+  "border": true,
+  "border_width": 3,
+  "border_offset": 0,
+  "theme": {
+    "palette": "Base16",
+    "name": "GruvboxMaterialDarkHard",
+    "unfocused_border": "Base01",
+    "bar_accent": "Base0A"
+  },
+  "monitors": [
+    {
+      "workspaces": [
+        {
+          "name": "Dev",
+          "layout": "BSP"
+        },
+        {
+          "name": "Social",
+          "layout": "Grid"
+        }
+      ]
+    }
+  ]
 }
