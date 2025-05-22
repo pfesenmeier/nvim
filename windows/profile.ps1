@@ -6,7 +6,6 @@ Import-Module CompletionPredictor
 
 Remove-Alias rm
 Remove-Alias mv
-Set-Alias ls eza
 
 $PSReadlineOptions = @{
   BellStyle = "None"
@@ -68,7 +67,6 @@ function i {
 function s { git status }
 function a { git add $args }
 function c { git commit $args }
-function ll { eza -l }
 
 
 

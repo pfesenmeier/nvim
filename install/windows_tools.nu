@@ -68,7 +68,6 @@ def get_tools [] {
     # cmdline
     ripgrep
     fd
-    eza
     gsudo
     neovim
     gh
