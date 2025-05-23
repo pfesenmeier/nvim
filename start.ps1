@@ -14,7 +14,7 @@ if (Get-Command git -ErrorAction SilentlyContinue) {
 }
 
 if (Test-Path -Path (Join-Path ~ nvim) -PathType Container) {
-  Write-Host "config folder already exists"
+  Write-Host "~/nvim folder already exists"
 } else {
   git clone https://github.com/pfesenmeier/nvim
 }
