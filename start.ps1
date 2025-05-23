@@ -1,4 +1,4 @@
-# Invoke-RestMethod -Uri https://raw.githubusercontent.com/pfesenmeier/nvim/main/start.ps1
+# Invoke-RestMethod -Uri https://raw.githubusercontent.com/pfesenmeier/nvim/main/start.ps1 \ Invoke-Expression
 
 if (Get-Command scoop -ErrorAction SilentlyContinue) {
   Write-Host "scoop already installed."
