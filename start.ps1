@@ -9,7 +9,7 @@ if (Get-Command scoop -ErrorAction SilentlyContinue) {
 
 if (Get-Command git -ErrorAction SilentlyContinue) {
   Write-Host "git already installed."
-} {
+} else {
   scoop install git
 }
 
