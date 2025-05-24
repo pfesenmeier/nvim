@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# curl -s https://raw.githubusercontent.com/pfesenmeier/nvim/main/start.ps1 | bash
+# curl -s https://raw.githubusercontent.com/pfesenmeier/nvim/main/start.sh | bash
 
 # install brew if not installed - see docs
 # https://docs.brew.sh/Homebrew-on-Linux#install
