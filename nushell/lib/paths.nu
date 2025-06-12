@@ -9,7 +9,7 @@ let local_tools = [
     [microsoft vscode-js-debug js-debug src]
     [] # linux places executables in .local/bin
 ] | each {|tool| $local_tools_path | append $tool | path join }
-  | filter {|| $in | path exists } 
+  | where {|| $in | path exists } 
 
 if $nu.os-info.family == 'windows' {
   $env.Path = (
