@@ -14,6 +14,7 @@ borders false?
 background img
 
 ### big wins
+- get rid off nvm or fnm, but get fnm env stuff working
 - search fatigue
 - close quickfix
 - repeat <leader>gn go to next edit.
