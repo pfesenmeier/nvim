@@ -15,6 +15,7 @@ background img
 
 ### big wins
 - get rid off nvm or fnm, but get fnm env stuff working
+- "open test file" shortcut
 - search fatigue
 - close quickfix
 - repeat <leader>gn go to next edit.
