@@ -11,7 +11,6 @@
       "font_size": 20,
       "font_family": "0xProto Nerd Font Mono"
     }
-
   },
   "bar_configurations": [
     "$Env:USERPROFILE/nvim/komorebi.bar.json"
@@ -24,7 +23,7 @@
   "window_hiding_behaviour": "Cloak",
   "cross_monitor_move_behaviour": "Insert",
   "border": true,
-  "border_width": 3,
+  "border_width": 6,
   "border_offset": 0,
   "theme": {
     "palette": "Base16",

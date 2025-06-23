@@ -103,6 +103,7 @@ return {
           "gitignore",
           "gitattributes",
           "todotxt",
+          "tsx",
           "vim",
           "vimdoc",
           "vue",
