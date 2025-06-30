@@ -4,12 +4,89 @@ return {
   },
   {
     "CopilotC-Nvim/CopilotChat.nvim",
+    enabled = false,
     dependencies = {
-      { "github/copilot.vim" }, -- or zbirenbaum/copilot.lua
+      { "github/copilot.vim" },    -- or zbirenbaum/copilot.lua
       { "nvim-lua/plenary.nvim" }, -- for curl, log and async functions
     },
     opts = {
       allow_insecure = true, -- Allow insecure server connections
+    },
+  },
+  {
+    "olimorris/codecompanion.nvim",
+    init = function()
+      -- suggested
+      --
+      vim.keymap.set({ "n", "v" }, "<C-a>", "<cmd>CodeCompanionActions<cr>", { noremap = true, silent = true })
+      vim.keymap.set({ "n", "v" }, "<Leader>a", "<cmd>CodeCompanionChat Toggle<cr>",
+        { noremap = true, silent = true })
+      vim.keymap.set("v", "ga", "<cmd>CodeCompanionChat Add<cr>", { noremap = true, silent = true })
+
+      -- Expand 'cc' into 'CodeCompanion' in the command line
+      vim.cmd([[cab cc CodeCompanion]])
+    end,
+    opts = {
+      adapters = {
+        copilot = function()
+          return require('codecompanion.adapters').extend('copilot', {
+            -- =require('codecompanion.adapters.copilot.helpers').get_models()
+            -- gpt-4.1
+            -- claude-sonnet-4
+            schema = {
+              model = {
+                default = "claude-3.5-sonnet"
+              }
+            }
+          })
+        end
+      }
+      -- these are the default
+      -- strategies = {
+      --   chat = {
+      --     adapter = "copilot"
+      --   },
+      --   inline = {
+      --     adapter = "copilot"
+      --   },
+      --   cmd = {
+      --     adapter = "copilot"
+      --   }
+      -- }
+    },
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-treesitter/nvim-treesitter",
+      "MeanderingProgrammer/render-markdown.nvim",
+      "echasnovski/mini.nvim",
+      "HakonHarnes/img-clip.nvim",
+      -- "ravitemer/mcphub.nvim"
+    },
+  },
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    ft = { "markdown", "codecompanion" }
+  },
+  {
+    "echasnovski/mini.diff",
+    config = function()
+      local diff = require("mini.diff")
+      diff.setup({
+        -- Disabled by default
+        source = diff.gen_source.none(),
+      })
+    end,
+  },
+  {
+    "HakonHarnes/img-clip.nvim",
+    opts = {
+      filetypes = {
+        codecompanion = {
+          prompt_for_file_name = false,
+          template = "[Image]($FILE_PATH)",
+          use_absolute_path = true,
+        },
+      },
     },
   },
 }

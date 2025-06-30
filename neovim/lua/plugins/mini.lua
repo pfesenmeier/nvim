@@ -11,6 +11,13 @@ return {
       -- require 'mini.surround'.setup()
       require 'mini.files'.setup()
 
+      -- for codecompanion
+      local diff = require("mini.diff")
+      diff.setup({
+        -- Disabled by default
+        source = diff.gen_source.none(),
+      })
+
       vim.keymap.set('n', '<leader>m', function() require('mini.files').open() end, {})
     end
   },

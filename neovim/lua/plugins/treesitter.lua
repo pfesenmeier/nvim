@@ -91,6 +91,7 @@ return {
           "json",
           "hurl",
           "markdown",
+          "markdown_inline",
           "toml",
           "typescript",
           "terraform",

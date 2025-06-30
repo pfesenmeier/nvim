@@ -70,8 +70,6 @@ vim.keymap.set("n", "<leader>c", ":e %:h", { noremap = true })
 -- common command line motions
 map("n", "<leader>w", ":w<CR>", { noremap = true })
 -- toggle buffers
---
-vim.keymap.set("n", "<leader>a", "<c-^>", { noremap = true, nowait = true })
 
 -- idea is to have quick solution to paste same content multiple times
 -- will not have access to cut content...
