@@ -1,5 +1,22 @@
 # personal dev config
 
+### AI
+
+- https://github.com/banjo/contextfiles.nvim for importing copilot prompts / instruction files
+
+### VSCode Extextension
+- Github Pull Requests
+- Better Comments
+- Paste JSON as Code
+- Comment Tag Template
+- Biome
+- Css Peek
+- File Utils
+- Error Lens
+- Code Snap
+- Pretty TS Errors
+- Permute Lines
+- TODO Tree
 
 ### install script
 ps1
