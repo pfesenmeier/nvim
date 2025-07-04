@@ -1,7 +1,3 @@
-if $nu.os-info.family == 'windows' {
-  return
-}
-
 if (which fnm | is-not-empty) {
   use std "path add"
   fnm env --json | from json | load-env
