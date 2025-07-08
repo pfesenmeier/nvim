@@ -1,10 +1,10 @@
 local env = require "pfes.env"
 
 local islinux = env.islinux
-local csharp   = require "pfes.csharp"
-local deno     = require "pfes.deno"
-local vue      = require "pfes.vue"
-local lua_lang = require "pfes.lua-lang"
+local csharp   = require "pfes.lang.csharp"
+local deno     = require "pfes.lang.deno"
+local vue      = require "pfes.lang.vue"
+local lua_lang = require "pfes.lang.lua-lang"
 
 return {
     {

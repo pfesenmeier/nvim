@@ -1,5 +1,5 @@
-local env = require("pfes.env")
-local stew = require("pfes.stew")
+local env = require"pfes.env"
+local stew = require"pfes.lang.stew"
 
 local deno = {}
 
@@ -70,18 +70,17 @@ deno.addToDap = function(dap)
     end
 end
 
-deno.addToLspConfig = function(opts, capabilities, on_attach)
+deno.addToLspConfig = function()
     vim.g.markdown_fenced_languages = {
         "ts=typescript"
     }
 
     local util = require 'lspconfig.util'
-    opts.denols.setup {
+    vim.lsp.config("denols",{
         -- package.json for ts_ls
         root_dir = util.root_pattern('deno.json'),
-        capabilities = capabilities,
-        on_attach = on_attach
-    }
+    })
+    vim.lsp.enable("denols")
 end
 
 return deno

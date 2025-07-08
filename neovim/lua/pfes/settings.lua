@@ -1,5 +1,4 @@
 local env = require('pfes.env')
-local path= require('pfes.path')
 vim.g.netrw_browsex_viewer = "msedge.exe"
 vim.g.netrw_banner = 0
 

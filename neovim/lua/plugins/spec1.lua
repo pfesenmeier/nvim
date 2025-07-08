@@ -1,4 +1,4 @@
-local env = require('pfes.env')
+local env = require'pfes.env'
 local sql = env.sql
 local c_sharp = env.c_sharp
 

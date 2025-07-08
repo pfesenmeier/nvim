@@ -44,7 +44,7 @@ local function findVue(nodeVersion)
   end
 end
 
-vue.addToLspConfig = function(capabilities, on_attach)
+vue.addToLspConfig = function()
   local vue_language_server_path = findVue('v22.17.0')
   local vue_plugin = {
     name = '@vue/typescript-plugin',
@@ -53,8 +53,6 @@ vue.addToLspConfig = function(capabilities, on_attach)
     configNamespace = 'typescript',
   }
   local vtsls_config = {
-    capabilities = capabilities,
-    on_attach = on_attach,
     root_markers = { '.git' },
     settings = {
       vtsls = {
@@ -69,8 +67,6 @@ vue.addToLspConfig = function(capabilities, on_attach)
   }
 
   local vue_ls_config = {
-    capabilities = capabilities,
-    on_attach = on_attach,
     root_markers = { '.git' },
     on_init = function(client)
       client.handlers['tsserver/request'] = function(_, result, context)
