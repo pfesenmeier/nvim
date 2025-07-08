@@ -79,7 +79,7 @@ return {
       if env.c_sharp then
         csharp.addToLspConfig(opts, capabilities, on_attach)
       end
-      vue.addToLspConfig(opts, capabilities, on_attach)
+      vue.addToLspConfig(capabilities, on_attach)
       deno.addToLspConfig(opts, capabilities, on_attach)
       lua_lang.addToLspConfig(opts, capabilities, on_attach)
     end,

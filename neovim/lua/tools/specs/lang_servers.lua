@@ -13,6 +13,7 @@ local tools = {
   "typescript",
   "typescript-language-server",
   "@vue/language-server",
+  "@vtsls/language-server",
   "@prisma/language-server",
   "vscode-langservers-extracted",   -- css, eslint, html
   "@tailwindcss/language-server",
