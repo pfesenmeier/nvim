@@ -29,4 +29,6 @@ return {
   { name = "dbeaver",                    src = { winget = "dbeaver.dbeaver" } },
   { name = "gpg4win",                    src = { winget = "GnuPG.Gpg4win" } },
   { name = "devtoys",                    src = { winget = "DevToys-app.DevToys" } },
+  { name = "opencode",                   src = { "brew" } },
+  { name = "aider",                      src = { "brew" } }
 }

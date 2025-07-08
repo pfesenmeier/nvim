@@ -946,3 +946,4 @@ source booker/booker.nu
 source git-cmds.nu
 source task_automation/stew.nu
 source task_automation/local.nu
+source aider-env.nu

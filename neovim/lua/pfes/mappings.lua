@@ -64,7 +64,7 @@ local function go_up()
 end
 vim.keymap.set('n', '<leader>e', go_up, opts)
 
-vim.keymap.set("n", "<leader>c", ":e %:h", { noremap = true })
+-- vim.keymap.set("n", "<leader>c", ":e %:h", { noremap = true })
 
 
 -- common command line motions
