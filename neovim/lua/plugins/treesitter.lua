@@ -47,10 +47,10 @@ return {
       "nushell/tree-sitter-nu",
       "nvim-treesitter/nvim-treesitter-textobjects",
     },
-    version = false,     -- Lazy does this because does not work on Windows?,
+    version = false, -- Lazy does this because does not work on Windows?,
     build = ":TSUpdate",
     event = { "VeryLazy" },
-    lazy = vim.fn.argc(-1) == 0,     -- Lazy does this: load treesitter early when opening a file from the cmdline
+    lazy = vim.fn.argc(-1) == 0, -- Lazy does this: load treesitter early when opening a file from the cmdline
 
     init = function(plugin)
       require 'nvim-treesitter.install'.compilers = { "gcc", "zig" }
@@ -111,10 +111,10 @@ return {
           "nu"
         },
 
-        sync_install = true,                        -- install languages synchronously (only applied to `ensure_installed`)
-        ignore_install = { "gleam", "svelte" },     -- List of parsers to ignore installing
+        sync_install = true,                    -- install languages synchronously (only applied to `ensure_installed`)
+        ignore_install = { "gleam", "svelte" }, -- List of parsers to ignore installing
         highlight = {
-          enable = true,                            -- false will disable the whole extension
+          enable = true,                        -- false will disable the whole extension
           -- disable = { },  -- list of language that will be disabled
           -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
           -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
@@ -146,7 +146,7 @@ return {
           },
           move = {
             enable = true,
-            set_jumps = true,         -- whether to set jumps in the jumplist
+            set_jumps = true, -- whether to set jumps in the jumplist
             goto_next_start = {
               ["]m"] = "@function.outer",
               ["]]"] = { query = "@class.outer", desc = "Next class start" },
@@ -207,9 +207,9 @@ return {
             -- and should return the mode ('v', 'V', or '<c-v>') or a table
             -- mapping query_strings to modes.
             selection_modes = {
-              ['@parameter.outer'] = 'v',           -- charwise
-              ['@function.outer'] = 'V',            -- linewise
-              ['@class.outer'] = '<c-v>',           -- blockwise
+              ['@parameter.outer'] = 'v', -- charwise
+              ['@function.outer'] = 'V',  -- linewise
+              ['@class.outer'] = '<c-v>', -- blockwise
             },
             -- If you set this to `true` (default is `false`) then any textobject is
             -- extended to include preceding or succeeding whitespace. Succeeding
