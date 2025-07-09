@@ -15,6 +15,7 @@ local tools = {
   "@vue/language-server",
   "@vtsls/language-server",
   "@prisma/language-server",
+  "prettier", -- install globally
   "vscode-langservers-extracted",   -- css, eslint, html
   "@tailwindcss/language-server",
 }

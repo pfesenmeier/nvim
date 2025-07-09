@@ -2,6 +2,8 @@
 
 local opts = { noremap = true, silent = true }
 
+vim.keymap.set("n", "<leader>g", ":tab :G<CR>", { noremap = true, silent = true })
+
 -- leader maps below homerow on left hand for DVORAK
 vim.keymap.set("n", "<leader>x", ":x<cr>", { noremap = true })
 
