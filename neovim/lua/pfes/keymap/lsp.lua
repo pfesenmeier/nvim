@@ -2,10 +2,12 @@ local M = {}
 local opts = { noremap = true, silent = true }
 
 M.setup = function()
-  vim.keymap.set('n', 'gE', function() return vim.diagnostic.jump { count = -1, severity = "ERROR" } end, opts)
-  vim.keymap.set('n', 'ge', function() return vim.diagnostic.jump { count = 1, severity = "ERROR" } end, opts)
-  vim.keymap.set('n', 'gW', function() return vim.diagnostic.jump { count = -1 } end, opts)
-  vim.keymap.set('n', 'gw', function() return vim.diagnostic.jump { count = 1 } end, opts)
+  vim.keymap.set('n', 'gE', function() return vim.diagnostic.jump { count = -1, severity = "ERROR", float = true } end,
+    opts)
+  vim.keymap.set('n', 'ge', function() return vim.diagnostic.jump { count = 1, severity = "ERROR", float = true } end,
+    opts)
+  vim.keymap.set('n', 'gW', function() return vim.diagnostic.jump { count = -1, float = true } end, opts)
+  vim.keymap.set('n', 'gw', function() return vim.diagnostic.jump { count = 1, float = true } end, opts)
 end
 
 function M.set(bufnr)
