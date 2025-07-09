@@ -48,28 +48,6 @@ local packages = {
     ft = "cs"
   },
 
-  -- fuzzy search
-  {
-    "nvim-telescope/telescope.nvim",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-    },
-    opts = {
-      -- ongoing issue: https://github.com/nvim-telescope/telescope.nvim/issues/2712
-      defaults = {
-        path_display = { "truncate" },
-        borderchars = {
-          prompt = { "─", " ", " ", " ", "─", "─", " ", " " },
-          results = { " " },
-          preview = { " " },
-        },
-      }
-    },
-    init = function()
-        require"pfes.telescope".setup()
-    end
-
-  },
   -- git
   {
     "lewis6991/gitsigns.nvim",
@@ -143,11 +121,9 @@ local packages = {
       -- Enable telescope theme
       vim.g.gruvbox_baby_background_color = 'dark'
       vim.g.gruvbox_baby_transparent_mode = 1
-      vim.g.gruvbox_baby_telescope_theme = 1
       vim.cmd('colorscheme gruvbox-baby')
     end
-  },
-  { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
+  }
 }
 
 return packages

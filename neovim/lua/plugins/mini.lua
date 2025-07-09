@@ -10,6 +10,13 @@ return {
       }
       -- require 'mini.surround'.setup()
       require 'mini.files'.setup()
+      require 'mini.starter'.setup()
+      require 'mini.pick'.setup({
+        mappings = {
+          choose_marked = "<C-y>",
+        }
+      })
+      require 'mini.move'.setup()
 
       -- for codecompanion
       local diff = require("mini.diff")

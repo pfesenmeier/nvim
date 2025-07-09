@@ -3,4 +3,8 @@ local lang_servers = require('tools.specs.lang_servers')
 
 local all =  vim.list_extend(brew_tools, lang_servers)
 
+local M = {}
+
+
+
 return all
