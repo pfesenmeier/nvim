@@ -13,9 +13,6 @@ return {
   { name = "ripgrep",                    src = { "brew", "scoop" } },
   { name = "starship",                   src = { "brew", "scoop" } },
   { name = "vcredist2022",               src = { "scoop" } }, --needed for neovim
-  -- TODO update vue.lua to use fnm
-  { name = "nvm",                        src = { "scoop" } }, -- try use fnm
-  -- { name = "zig",                 src = { "scoop" }}, -- trying to use gcc for treesitter
   { name = "nerd-fonts/0xProto-NF-Mono", src = { "scoop" } },
   { name = "gsudo",                      src = { "scoop" } },
   { name = "make",                       src = { "scoop" } },
@@ -30,5 +27,7 @@ return {
   { name = "gpg4win",                    src = { winget = "GnuPG.Gpg4win" } },
   { name = "devtoys",                    src = { winget = "DevToys-app.DevToys" } },
   { name = "opencode",                   src = { brew = "sst/tap/opencode" } },
-  { name = "aider",                      src = { "brew" } }
+  -- { name = "aider",                      src = { "brew" } },
+  -- { name = "jj",                         src = { "brew" } },
+  -- { name = "lazygit",                    src = { "brew" } }
 }

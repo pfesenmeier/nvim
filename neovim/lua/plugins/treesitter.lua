@@ -35,7 +35,11 @@ return {
       local configs = require("nvim-treesitter.configs")
       configs.setup({
         modules = {},
-        auto_install = true,
+        auto_install = false,
+        highlight = {
+          enable = true,                         -- false will disable the whole extension
+          additional_vim_regex_highlighting = false, -- disable vim regex highlighting
+        },
         ensure_installed = {
           "c_sharp",
           "javascript",
