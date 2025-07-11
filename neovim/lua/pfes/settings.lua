@@ -5,6 +5,9 @@ vim.g.netrw_banner = 0
 -- set windows clipboard
 vim.opt.clipboard = "unnamedplus"
 
+vim.opt.splitright = true
+vim.opt.splitbelow = true
+
 if env.is_wsl_linux then
   vim.cmd([[
     let g:clipboard = {

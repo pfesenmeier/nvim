@@ -20,3 +20,6 @@ vim.keymap.set("n", "L", "$", opts)
 
 vim.keymap.set('n', '<A-l>', ':cnext<cr>')
 vim.keymap.set('n', '<A-h>', ':cprev<cr>')
+
+vim.cmd('hi MiniPickMatchCurrent guibg=#458588')
+vim.cmd('hi MiniPickMatchMarked guibg=#504945')

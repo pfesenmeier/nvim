@@ -12,10 +12,27 @@ return {
     opts = {
       allow_insecure = true, -- Allow insecure server connections
     },
+    init = function()
+      -- Suggested keymaps
+      vim.keymap.set("n", "<leader>cc", "<cmd>CopilotChat<cr>", { noremap = true, silent = true })
+      vim.keymap.set("n", "<leader>cC", "<cmd>CopilotChatToggle<cr>", { noremap = true, silent = true })
+      vim.keymap.set("n", "<leader>cA", "<cmd>CopilotChatAdd<cr>", { noremap = true, silent = true })
+      vim.keymap.set("n", "<leader>cR", "<cmd>CopilotChatRemove<cr>", { noremap = true, silent = true })
+
+      vim.ui.select = require('mini.pick').ui_select
+
+    end,
   },
   {
     "olimorris/codecompanion.nvim",
     opts = {
+      display = {
+        chat = {
+          window = {
+            position = 'left',
+          }
+        }
+      },
       adapters = {
         copilot = function()
           return require('codecompanion.adapters').extend('copilot', {
@@ -61,6 +78,7 @@ return {
 
       -- Expand 'cc' into 'CodeCompanion' in the command line
       vim.cmd([[cab cc CodeCompanion]])
+      vim.ui.select = require('mini.pick').ui_select
     end,
   },
   {
