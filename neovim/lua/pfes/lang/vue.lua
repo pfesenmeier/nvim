@@ -97,7 +97,9 @@ vue.addToLspConfig = function()
   -- nvim 0.11 or above
   vim.lsp.config('vtsls', vtsls_config)
   vim.lsp.config('vue_ls', vue_ls_config)
-  vim.lsp.enable({ 'vtsls', 'vue_ls' })
+  if env.node then
+    vim.lsp.enable({ 'vtsls', 'vue_ls' })
+  end
 end
 
 return vue

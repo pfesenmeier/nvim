@@ -75,10 +75,9 @@ deno.addToLspConfig = function()
         "ts=typescript"
     }
 
-    local util = require 'lspconfig.util'
     vim.lsp.config("denols",{
-        -- package.json for ts_ls
-        root_dir = util.root_pattern('deno.json'),
+      -- deno monorepos deno.json files in root and leaf directories
+      root_markers = { '.git' },
     })
     vim.lsp.enable("denols")
 end

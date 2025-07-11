@@ -1,15 +1,6 @@
 local M = {}
 local opts = { noremap = true, silent = true }
 
-M.setup = function()
-  vim.keymap.set('n', 'gE', function() return vim.diagnostic.jump { count = -1, severity = "ERROR", float = true } end,
-    opts)
-  vim.keymap.set('n', 'ge', function() return vim.diagnostic.jump { count = 1, severity = "ERROR", float = true } end,
-    opts)
-  vim.keymap.set('n', 'gW', function() return vim.diagnostic.jump { count = -1, float = true } end, opts)
-  vim.keymap.set('n', 'gw', function() return vim.diagnostic.jump { count = 1, float = true } end, opts)
-end
-
 function M.set(bufnr)
   local bufopts = { buffer = bufnr }
   vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
@@ -35,5 +26,22 @@ function M.set(bufnr)
     vim.lsp.buf.format { async = true }
   end, bufopts)
 end
+
+M.setup = function()
+  vim.keymap.set('n', 'gE', function() return vim.diagnostic.jump { count = -1, severity = "ERROR", float = true } end,
+    opts)
+  vim.keymap.set('n', 'ge', function() return vim.diagnostic.jump { count = 1, severity = "ERROR", float = true } end,
+    opts)
+  vim.keymap.set('n', 'gW', function() return vim.diagnostic.jump { count = -1, float = true } end, opts)
+  vim.keymap.set('n', 'gw', function() return vim.diagnostic.jump { count = 1, float = true } end, opts)
+end
+
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("lsp-attach-config", { clear = true }),
+  callback = function(args)
+    M.set(args.buf)
+  end
+})
+
 
 return M
