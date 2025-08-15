@@ -2,6 +2,7 @@
 
 ### AI
 
+- TODO tommcdo/vim-lion
 - https://github.com/banjo/contextfiles.nvim for importing copilot prompts / instruction files
 
 ### VSCode Extextension

@@ -934,6 +934,7 @@ alias a = git add
 alias c = git commit
 alias b = git branch
 alias l = git log --oneline
+alias z = zoxide
 
 source util.nu
 source install.nu
@@ -947,3 +948,4 @@ source git-cmds.nu
 source task_automation/stew.nu
 source task_automation/local.nu
 source aider-env.nu
+source ~/.zoxide.nu

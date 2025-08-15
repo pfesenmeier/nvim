@@ -1,6 +1,12 @@
 return {
   {
-    "github/copilot.vim"
+    "github/copilot.vim",
+    init = function()
+      vim.g.copilot_filetypes = {
+        md = false,
+        txt = false
+      }
+    end
   },
   {
     "CopilotC-Nvim/CopilotChat.nvim",

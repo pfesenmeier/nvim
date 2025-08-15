@@ -1,14 +1,21 @@
-local env = require'pfes.env'
+local env = require 'pfes.env'
 local sql = env.sql
 local c_sharp = env.c_sharp
 
 local packages = {
   -- prevent remote code execution
-  { "ciaranm/securemodelines",                  lazy = true,   event = "VeryLazy" },
+  { "ciaranm/securemodelines", lazy = true, event = "VeryLazy" },
   {
     "Pocco81/auto-save.nvim",
     lazy = true,
     event = "VeryLazy",
+    opts = {
+      condition = function(buf)
+        local name = vim.api.nvim_buf_get_name(buf)
+        return name:match('%.spec.cy.ts$') == nil
+      end
+    },
+
     init = function()
       vim.api.nvim_set_keymap("n", "<leader>n", ":ASToggle<CR>", {})
     end
@@ -28,7 +35,7 @@ local packages = {
         table.insert(patterns, "Cargo.toml")
       end
 
-      vim.g.rooter_patterns =  patterns
+      vim.g.rooter_patterns = patterns
     end
   },
   -- database

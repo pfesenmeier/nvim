@@ -27,6 +27,8 @@ return {
   { name = "gpg4win",                    src = { winget = "GnuPG.Gpg4win" } },
   { name = "devtoys",                    src = { winget = "DevToys-app.DevToys" } },
   { name = "opencode",                   src = { brew = "sst/tap/opencode" } },
+  { name = "neovim-remote",              src = { "brew" } },
+  { name = "zoxide",                     src = { "brew" } },
   -- { name = "aider",                      src = { "brew" } },
   -- { name = "jj",                         src = { "brew" } },
   -- { name = "lazygit",                    src = { "brew" } }
