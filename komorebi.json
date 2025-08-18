@@ -39,6 +39,10 @@
           "layout": "BSP"
         },
         {
+          "name": "Web",
+          "layout": "HorizontalStack"
+        },
+        {
           "name": "Social",
           "layout": "Grid"
         }
