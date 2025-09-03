@@ -29,7 +29,7 @@ return {
   { name = "opencode",                   src = { brew = "sst/tap/opencode" } },
   { name = "neovim-remote",              src = { "brew" } },
   { name = "zoxide",                     src = { "brew" } },
+  { name = "jj",                         src = { "brew" } },
   -- { name = "aider",                      src = { "brew" } },
-  -- { name = "jj",                         src = { "brew" } },
   -- { name = "lazygit",                    src = { "brew" } }
 }

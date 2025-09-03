@@ -29,6 +29,8 @@ return {
 
     end,
   },
+  -- TODO Anthropic provider
+  -- https://codecompanion.olimorris.dev/configuration/adapters.html
   {
     "olimorris/codecompanion.nvim",
     opts = {
@@ -47,7 +49,7 @@ return {
             -- claude-sonnet-4
             schema = {
               model = {
-                default = "claude-3.5-sonnet"
+                default = "claude-sonnet-4"
               }
             }
           })

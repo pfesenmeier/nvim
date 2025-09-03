@@ -1,3 +1,4 @@
+-- TODO move to brew_tools, rename to main or something
 local function npm_tool(exe)
   return {
     name = exe,
@@ -18,6 +19,7 @@ local tools = {
   "prettier", -- install globally
   "vscode-langservers-extracted",   -- css, eslint, html
   "@tailwindcss/language-server",
+  "@anthropic-ai/claude-code"
 }
 
 local specs = {}
