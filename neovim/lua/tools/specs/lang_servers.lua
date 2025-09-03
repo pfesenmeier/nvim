@@ -19,7 +19,8 @@ local tools = {
   "prettier", -- install globally
   "vscode-langservers-extracted",   -- css, eslint, html
   "@tailwindcss/language-server",
-  "@anthropic-ai/claude-code"
+  "@anthropic-ai/claude-code",
+  "@zed-industries/claude-code-acp"
 }
 
 local specs = {}
