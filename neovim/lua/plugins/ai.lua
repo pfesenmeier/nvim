@@ -26,7 +26,6 @@ return {
       vim.keymap.set("n", "<leader>cR", "<cmd>CopilotChatRemove<cr>", { noremap = true, silent = true })
 
       vim.ui.select = require('mini.pick').ui_select
-
     end,
   },
   -- TODO Anthropic provider
@@ -42,18 +41,20 @@ return {
         }
       },
       adapters = {
-        copilot = function()
-          return require('codecompanion.adapters').extend('copilot', {
-            -- =require('codecompanion.adapters.copilot.helpers').get_models()
-            -- gpt-4.1
-            -- claude-sonnet-4
-            schema = {
-              model = {
-                default = "claude-sonnet-4"
+        http = {
+          copilot = function()
+            return require('codecompanion.adapters').extend('copilot', {
+              -- =require('codecompanion.adapters.copilot.helpers').get_models()
+              -- gpt-4.1
+              -- claude-sonnet-4
+              schema = {
+                model = {
+                  default = "claude-sonnet-4"
+                }
               }
-            }
-          })
-        end
+            })
+          end
+        }
       }
       -- these are the default
       -- strategies = {
