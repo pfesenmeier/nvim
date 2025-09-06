@@ -21,12 +21,9 @@ vim.opt.rtp:prepend(lazypath)
 -- loading lazy.nvim so that mappings are correct.
 -- This is also a good place to setup other settings (vim.opt)
 
-if env.islinux and not env.is_wsl_linux then
-  vim.g.mapleader = vim.api.nvim_replace_termcodes('<BS>', false, false, true)
-else
-  vim.g.mapleader = " "
-end
-
+-- TODO why did need this in another linux setup?
+-- vim.g.mapleader = vim.api.nvim_replace_termcodes('<BS>', false, false, true)
+vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
 -- Setup lazy.nvim

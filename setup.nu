@@ -1,3 +1,5 @@
+# TODO dependent on brew, neovim, nushell...
+# neovim dependent on this running
 use std log
 
 let config_path = [$nu.home-path nvim] | path join
@@ -48,8 +50,10 @@ def main [] {
       print "Komorebi is not installed, skipping fetch-app-specific-configuration"
     }
 
-    print "installing zoxide nushell integration"
-    zoxide init nushell | save -f ~/.zoxide.nu
+    if (which zoxide | is-not-empty) {
+      print "installing zoxide nushell integration"
+      zoxide init nushell | save -f ~/.zoxide.nu
+    }
    
     [
         [nushell lib task_automation local.nu]
