@@ -31,6 +31,7 @@ else
     git clone https://github.com/pfesenmeier/nvim
 fi
 
+nu setup
 nvim +ToolsInstall
 
 

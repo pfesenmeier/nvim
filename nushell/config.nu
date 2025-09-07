@@ -942,9 +942,11 @@ source paths.nu
 source clean.nu
 source brew-env.nu
 source node-env.nu
-source secrets.nu
+# source secrets.nu
 source booker/booker.nu
 source git-cmds.nu
 source task_automation/stew.nu
 source task_automation/local.nu
-source ~/.zoxide.nu
+source setup.nu
+# TODO... loading of shell requires setup.nu to be run once.
+# source ~/.zoxide.nu
