@@ -16,8 +16,6 @@ require "pfes.rename"
 require "pfes.keymap".setup()
 require "tools".setup()
 
-local pfesLocal = require "pfes.local"
-if type(pfesLocal) == "table" and vim.tbl_get(pfesLocal, "setup") then
-  pfesLocal.setup()
-end
+-- require "pfes.local".setup()
+
 -- notes from https://github.com/jonhoo/configs/blob/master/editor/.config/nvim/init.vim

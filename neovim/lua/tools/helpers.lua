@@ -19,7 +19,7 @@ function M.available_packages()
       vim.print("Found" .. name)
       acc[name] = {}
     else
-      vim.print("Missing" .. name)
+      vim.print("Missing " .. name)
     end
 
     return acc
