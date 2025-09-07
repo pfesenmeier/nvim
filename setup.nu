@@ -82,6 +82,7 @@ export def setup [] {
       log info "Komorebi is not installed, skipping fetch-app-specific-configuration"
     }
 
+    # TODO ... why is this not running on first install
     if (which zoxide | is-not-empty) {
       if not ("~/.zoxide.nu" | path exists) {
         log info "installing zoxide nushell integration"
@@ -89,20 +90,6 @@ export def setup [] {
       } 
     }
    
-    [
-        [nushell lib task_automation local.nu]
-        [neovim lua pfes local.lua]
-    ] | each {|path| 
-      let path = [$config_path] | append $path | path join
-     
-      if not ($path | path exists) {
-        log info $"creating ($path)"
-        mkdir $path
-      } else {
-        log info $"($path) already exists"
-      }
-    }
-
     return
 }
 

@@ -942,9 +942,10 @@ source paths.nu
 source clean.nu
 source brew-env.nu
 source node-env.nu
-# source secrets.nu
 source booker/booker.nu
 source git-cmds.nu
 source task_automation/stew.nu
-source task_automation/local.nu
+# tood source if available??
+# source secrets.nu
+# source task_automation/local.nu
 source ~/.zoxide.nu
