@@ -16,7 +16,7 @@ end
 function M.available_packages()
   local result = vim.iter(M.package_managers):fold({}, function(acc, name)
     if M.is_available(name) then
-      vim.print("Found" .. name)
+      vim.print("Found " .. name)
       acc[name] = {}
     else
       vim.print("Missing " .. name)

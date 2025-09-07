@@ -2,7 +2,7 @@
 
 set -o errexit
 
-# installs brew, nushell, and neovim, and this repository
+# installs brew, nushell, node, and neovim, and this repository
 
 # curl -s https://raw.githubusercontent.com/pfesenmeier/nvim/main/start.sh | bash
 
@@ -22,7 +22,8 @@ else
   echo "eval \"\$($(brew --prefix)/bin/brew shellenv)\"" >> ~/.bashrc
 fi
 
-brew install neovim nushell
+brew install neovim nushell fnm
+fnm use lts-latest --log-level quiet
 
 if [ -d "$HOME/nvim" ]; then
     echo "~/nvim folder already exists"
