@@ -11,6 +11,7 @@ return {
   { name = "neovim",                            src = { "brew", "scoop" } },
   { name = "nushell",                           src = { "brew", scoop = "nu" } }, -- not nu!
   { name = "ripgrep",                           src = { "brew", "scoop" } },
+  { name = "bat",                               src = { "brew", "scoop" } },
   { name = "starship",                          src = { "brew", "scoop" } },
   { name = "vcredist2022",                      src = { "scoop" } }, --needed for neovim on Windows
   { name = "nerd-fonts/0xProto-NF-Mono",        src = { "scoop" } },
