@@ -1,22 +1,12 @@
-#!/usr/bin/env -S nvim -l
-
-local env = require "pfes.env"
-
 local package_managers = {
   npm = {
-    enabled = true,
     cmds = {
       install = { "install", "-g" }
     }
   },
-  brew = {
-    enabled = env.islinux,
-  },
-  scoop = {
-    enabled = env.iswindows,
-  },
+  brew = {},
+  scoop = {},
   winget = {
-    enabled = env.iswindows,
     cmds = {
       install = { "install", "--no-upgrade", "--accept-package-agreements" }
     }

@@ -1,6 +1,6 @@
 local M = {}
 
-local all_packages = require "tools.specs"
+local all_packages = require "tools.spec"
 
 function M.setup(package_managers)
   M.package_managers = package_managers or {}
@@ -9,10 +9,17 @@ function M.setup(package_managers)
   return M
 end
 
+function M.is_available(exe)
+  return vim.fn.executable(exe) == 1
+end
+
 function M.available_packages()
-  local result = vim.iter(M.package_managers):fold({}, function(acc, name, settings)
-    if settings.enabled then
+  local result = vim.iter(M.package_managers):fold({}, function(acc, name)
+    if M.is_available(name) then
+      vim.print("Found " .. name)
       acc[name] = {}
+    else
+      vim.print("Missing " .. name)
     end
 
     return acc
@@ -43,7 +50,7 @@ function M.format_install_cmd(manager, packages)
   vim.list_extend(cmd, install_cmd)
   vim.list_extend(cmd, packages)
 
-  return cmd
+  return table.concat(cmd, " ")
 end
 
 function M.install(f)
@@ -62,19 +69,13 @@ function M.install(f)
   end
 
   vim.print(string.format("Enabled package managers: %s", table.concat(vim.tbl_keys(to_install), ", ")))
+  local cmd = ""
   for manager, packages in pairs(to_install) do
-    local cmd = M.format_install_cmd(manager, packages)
-
-    vim.print("running command:")
-    vim.print(table.concat(cmd, " "))
-    local result = vim.system(cmd):wait()
-    if result.code ~= 0 then
-      vim.print("error")
-      vim.print(result.stderr)
-    else
-     vim.print("done.")
-    end
+    cmd = cmd .. M.format_install_cmd(manager, packages) .. ";"
   end
+
+  -- assume nushell
+  vim.cmd(":terminal " .. cmd)
 end
 
 return M

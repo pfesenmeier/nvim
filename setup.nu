@@ -1,80 +1,5 @@
 use std log
 
-let config_path = [$nu.home-path nvim] | path join
-
-let neovim_config_folder = (
-  (if $nu.os-info.family == 'windows' {  [AppData Local] } else { [.config] })
-  | append nvim
-)
-
-let nushell_config_folder = (
-  (if $nu.os-info.family == 'windows' {  [AppData Roaming] } else { [.config] })
-  | append nushell
-)
-
-def main [] {
-    # src: relative to ~/nvim (this repo)
-    # dest: relative to ~
-    [{
-      src: [nushell]
-      dest: $nushell_config_folder
-    } {
-      src:  [neovim]
-      dest: $neovim_config_folder
-    } {
-      src:  [omnisharp.json]
-      dest: [.omnisharp omnisharp.json]
-    } {
-      src: [whkdrc]
-      dest: [.config whkdrc]
-    } {
-      src: [komorebi.json]
-      dest: [komorebi.json]
-    } {
-      src: [starship.toml]
-      dest: [.config starship.toml]
-    }] | each {|x| 
-      let src = [$config_path] | append $x.src | path join
-      let dest = [$nu.home-path] | append $x.dest | path join
-    
-      print $"linking ($src) to ($dest)" 
-
-      idempotent_symlink $src $dest
-    }
-
-    if (which komorebic | is-not-empty) {
-       komorebic fetch-app-specific-configuration
-    } else {
-      print "Komorebi is not installed, skipping fetch-app-specific-configuration"
-    }
-
-    let zoxide_config = $nu.home-path | path join ".zoxide.nu" 
-
-    if (which zoxide | is-not-empty) {
-      print "initializing zoxide"
-      zoxide init nushell | save -f $zoxide_config
-    } else if not ($zoxide_config | path exists) {
-      print "saving dummy zoxide file"
-      touch $zoxide_config
-    }
-   
-    [
-        [nushell lib task_automation local.nu]
-        [neovim lua pfes local.lua]
-    ] | each {|path| 
-      let path = [$config_path] | append $path | path join
-     
-      if not ($path | path exists) {
-        print $"creating ($path)"
-        mkdir $path
-      } else {
-        print $"($path) already exists"
-      }
-    }
-
-    return
-}
-
 # https://www.nushell.sh/blog/2023-08-23-happy-birthday-nushell-4.html
 def symlink [
     existing: path   # The existing file
@@ -106,4 +31,70 @@ def idempotent_symlink [source: string, dest: string] {
   }
 
   symlink $source $dest
+}
+
+# symlinks configuration files into their expected locations
+export def setup [] {
+  let config_path = [$nu.home-path nvim] | path join
+
+  let neovim_config_folder = (
+    (if $nu.os-info.family == 'windows' {  [AppData Local] } else { [.config] })
+    | append nvim
+  )
+
+  let nushell_config_folder = (
+    (if $nu.os-info.family == 'windows' {  [AppData Roaming] } else { [.config] })
+    | append nushell
+  )
+
+    # src: relative to ~/nvim (this repo)
+    # dest: relative to ~
+    [{
+      src: [nushell]
+      dest: $nushell_config_folder
+    } {
+      src:  [neovim]
+      dest: $neovim_config_folder
+    } {
+      src:  [omnisharp.json]
+      dest: [.omnisharp omnisharp.json]
+    } {
+      src: [whkdrc]
+      dest: [.config whkdrc]
+    } {
+      src: [komorebi.json]
+      dest: [komorebi.json]
+    } {
+      src: [starship.toml]
+      dest: [.config starship.toml]
+    }] | each {|x| 
+      let src = [$config_path] | append $x.src | path join
+      let dest = [$nu.home-path] | append $x.dest | path join
+    
+      log info $"linking ($src) to ($dest)" 
+
+      idempotent_symlink $src $dest
+    }
+
+    if (which komorebic | is-not-empty) {
+       komorebic fetch-app-specific-configuration
+    } else {
+      log info "Komorebi is not installed, skipping fetch-app-specific-configuration"
+    }
+
+    let zoxide_config = $nu.home-path | path join ".zoxide.nu" 
+
+    if (which zoxide | is-not-empty) {
+      print "initializing zoxide"
+      zoxide init nushell | save -f $zoxide_config
+    } else if not ($zoxide_config | path exists) {
+      print "saving dummy zoxide file"
+      touch $zoxide_config
+    }
+   
+    return
+}
+
+def main [] {
+  setup
 }

@@ -1,6 +1,7 @@
 return {
   {
     "github/copilot.vim",
+    enabled = false,
     init = function()
       vim.g.copilot_filetypes = {
         md = false,
@@ -26,12 +27,23 @@ return {
       vim.keymap.set("n", "<leader>cR", "<cmd>CopilotChatRemove<cr>", { noremap = true, silent = true })
 
       vim.ui.select = require('mini.pick').ui_select
-
     end,
   },
+  -- https://github.com/zed-industries/claude-code-acp
   {
     "olimorris/codecompanion.nvim",
     opts = {
+      strategies = {
+        chat = {
+          adapter = "claude_code"
+        },
+        inline = {
+          adapter = "claude_code"
+        },
+        cmd = {
+          adapter = "claude_code"
+        }
+      },
       display = {
         chat = {
           window = {
@@ -40,31 +52,30 @@ return {
         }
       },
       adapters = {
-        copilot = function()
-          return require('codecompanion.adapters').extend('copilot', {
-            -- =require('codecompanion.adapters.copilot.helpers').get_models()
-            -- gpt-4.1
-            -- claude-sonnet-4
-            schema = {
-              model = {
-                default = "claude-3.5-sonnet"
+        acp = {
+          claude_code = function()
+            return require("codecompanion.adapters").extend("claude_code", {
+              env = {
+                CLAUDE_CODE_OAUTH_TOKEN = "CLAUDE_CODE_OAUTH_TOKEN"
               }
-            }
-          })
-        end
+            })
+          end,
+        },
+        -- http = {
+        --   copilot = function()
+        --     return require('codecompanion.adapters').extend('copilot', {
+        --       -- =require('codecompanion.adapters.copilot.helpers').get_models()
+        --       -- gpt-4.1
+        --       -- claude-sonnet-4
+        --       schema = {
+        --         model = {
+        --           default = "claude-sonnet-4"
+        --         }
+        --       }
+        --     })
+        --   end
+        -- }
       }
-      -- these are the default
-      -- strategies = {
-      --   chat = {
-      --     adapter = "copilot"
-      --   },
-      --   inline = {
-      --     adapter = "copilot"
-      --   },
-      --   cmd = {
-      --     adapter = "copilot"
-      --   }
-      -- }
     },
     dependencies = {
       "nvim-lua/plenary.nvim",
