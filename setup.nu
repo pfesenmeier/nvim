@@ -48,8 +48,15 @@ def main [] {
       print "Komorebi is not installed, skipping fetch-app-specific-configuration"
     }
 
-    print "installing zoxide nushell integration"
-    zoxide init nushell | save -f ~/.zoxide.nu
+    let zoxide_config = $nu.home-path | path join ".zoxide.nu" 
+
+    if (which zoxide | is-not-empty) {
+      print "initializing zoxide"
+      zoxide init nushell | save -f $zoxide_config
+    } else if not ($zoxide_config | path exists) {
+      print "saving dummy zoxide file"
+      touch $zoxide_config
+    }
    
     [
         [nushell lib task_automation local.nu]
