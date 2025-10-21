@@ -9,12 +9,12 @@ let lang = $stew | path join lang
 let cli = $stew | path join cli main.ts
 
 def 'test lang' [] {
-  run  (join $lang tests) 'deno test --watch *'
+  run  (join $lang tests) 'deno test'
 }
 
 
-def "stew" [] {
-  deno run --allow-read --allow-env $cli
+def "stew" [...args] {
+  deno run --allow-read --allow-env $cli ...$args
 
 }
 
