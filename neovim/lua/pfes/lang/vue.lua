@@ -45,7 +45,7 @@ local function findVue(nodeVersion)
 end
 
 vue.addToLspConfig = function()
-  local vue_language_server_path = findVue('v22.17.0')
+  local vue_language_server_path = findVue(env.node)
   local vue_plugin = {
     name = '@vue/typescript-plugin',
     location = vue_language_server_path,

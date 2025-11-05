@@ -10,7 +10,8 @@ env.binDir = env.home .. (env.islinux and "/.local/bin" or "/AppData/Local")
 env.workdir = vim.fs.joinpath(env.home, "Cabo", "sfmono")
 env.monorepo = false
 env.c_sharp = false
-env.node = true
+-- true false or node version
+env.node = "22.21.1"
 env.sql = false
 env.rust = false
 
