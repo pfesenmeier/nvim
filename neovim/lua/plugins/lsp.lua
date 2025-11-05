@@ -46,8 +46,12 @@ local function init()
   if env.c_sharp then
     csharp.addToLspConfig()
   end
-  vue.addToLspConfig()
-  deno.addToLspConfig()
+
+  if env.node then
+    vue.addToLspConfig()
+  else
+    deno.addToLspConfig()
+  end
 end
 
 return {

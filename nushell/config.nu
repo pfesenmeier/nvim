@@ -944,7 +944,7 @@ source brew-env.nu
 source node-env.nu
 source booker/booker.nu
 source git-cmds.nu
-source task_automation/stew.nu
+source stew.nu
 # tood source if available??
 # source secrets.nu
 # source task_automation/local.nu
