@@ -1,4 +1,18 @@
+# may run with -n to skip loading on first run
 use std log
+
+const self_path = path self
+
+def set_secrets_file [] {
+  let $env_file = $self_path | path dirname | path join nushell lib secrets.nu
+
+  if ($env_file | path exists) {
+    log info "env file already exists. skipping"
+
+  } else {
+    touch $env_file
+  }
+}
 
 # https://www.nushell.sh/blog/2023-08-23-happy-birthday-nushell-4.html
 def symlink [
@@ -85,14 +99,14 @@ export def setup [] {
     let zoxide_config = $nu.home-path | path join ".zoxide.nu" 
 
     if (which zoxide | is-not-empty) {
-      print "initializing zoxide"
+      log info "initializing zoxide"
       zoxide init nushell | save -f $zoxide_config
     } else if not ($zoxide_config | path exists) {
-      print "saving dummy zoxide file"
+      log info "saving dummy zoxide file"
       touch $zoxide_config
     }
-   
-    return
+
+    set_secrets_file
 }
 
 def main [] {

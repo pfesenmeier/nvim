@@ -1,6 +1,9 @@
 #! /usr/bin/env bash
 
 set -o errexit
+set -o xtrace
+set -o nounset
+set -o pipefail
 
 # installs brew, nushell, node, and neovim, and this repository
 
@@ -15,15 +18,11 @@ else
   sudo apt update && sudo apt install -y $packages
 
   echo "Running homebrew install script"
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-  test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
-  test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-  echo "eval \"\$($(brew --prefix)/bin/brew shellenv)\"" >> ~/.bashrc
+  curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
 fi
 
 brew install neovim nushell fnm
-fnm use lts-latest --log-level quiet
+fnm use lts-latest --log-level quiet --install-if-missing
 
 if [ -d "$HOME/nvim" ]; then
     echo "~/nvim folder already exists"
@@ -32,7 +31,7 @@ else
     git clone https://github.com/pfesenmeier/nvim
 fi
 
-nu ~/nvim/setup.nu
-nvim +ToolsInstall
-
-
+nu -n ~/nvim/setup.nu
+nu -c 'nvim --headless  "+Lazy! sync"  +qa'
+nu -c 'nvim --headless  +TSUpdateSync  +qa'
+nu -c "nvim --headless  +ToolsInstall! +qa"

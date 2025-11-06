@@ -39,6 +39,39 @@ def create_right_prompt [] {
     ([$last_exit_code, (char space), $time_segment] | str join)
 }
 
+def concat-paths [...path] {
+    let current = if ($in | is-not-empty) {
+      $in | split row (char esep)
+    } else {
+      []
+    }
+
+    (
+      $current  
+      | prepend $path
+      | uniq
+      | str join (char esep)
+    )
+}
+
+if ($nu.os-info.name == linux) {
+  $env.HOMEBREW_PREFIX = "/home/linuxbrew/.linuxbrew"
+  $env.HOMEBREW_CELLAR = "/home/linuxbrew/.linuxbrew/Cellar"
+  $env.HOMEBREW_REPOSITORY = "/home/linuxbrew/.linuxbrew/Homebrew"
+  let brew_paths = [
+      "/home/linuxbrew/.linuxbrew/bin"
+      "/home/linuxbrew/.linuxbrew/sbin"
+  ]
+  $env.PATH = (
+    $env.PATH 
+    | prepend $brew_paths
+    | uniq
+  )
+
+  $env.MANPATH = ($env.MANPATH? | concat-paths "/home/linuxbrew/.linuxbrew/share/man")
+  $env.INFOPATH = ($env.INFOPATH? | concat-paths  "/home/linuxbrew/.linuxbrew/share/info")
+}
+
 # Use nushell functions to define your right and left prompt
 $env.PROMPT_COMMAND = {|| create_left_prompt }
 # FIXME: This default is not implemented in rust code as of 2023-09-08.

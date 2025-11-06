@@ -50,12 +50,13 @@ function M.format_install_cmd(manager, packages)
   vim.list_extend(cmd, install_cmd)
   vim.list_extend(cmd, packages)
 
-  return table.concat(cmd, " ")
+  return cmd
 end
 
-function M.install(f)
-  local filters = f or {}
-  local manager_filter = filters.manager
+function M.install(opts)
+  opts = opts or {}
+  local manager_filter = opts.manager
+  local wait = opts.wait
 
   local to_install = M.available_packages()
   if manager_filter then
@@ -69,13 +70,36 @@ function M.install(f)
   end
 
   vim.print(string.format("Enabled package managers: %s", table.concat(vim.tbl_keys(to_install), ", ")))
-  local cmd = ""
   for manager, packages in pairs(to_install) do
-    cmd = cmd .. M.format_install_cmd(manager, packages) .. ";"
-  end
+    local cmd = M.format_install_cmd(manager, packages)
 
-  -- assume nushell
-  vim.cmd(":terminal " .. cmd)
+    local on_exit = function(obj)
+      if obj.code ~= 0 then
+        print('code:   ' .. obj.code)
+      end
+
+      if obj.signal ~= 0 then
+        print('signal: ' .. obj.signal)
+      end
+
+      if obj.signal ~= nil then
+        print('stdout: ' .. obj.stdout)
+      end
+
+      if obj.stderr ~= nil then
+        print('stderr: ' .. obj.stderr)
+      end
+    end
+
+    print("Installing packages with " .. manager .. "...")
+    if wait then
+      local obj = vim.system(cmd, { text = true }):wait()
+      print("Done")
+      on_exit(obj)
+    else
+      vim.system(cmd, { text = true }, on_exit)
+    end
+  end
 end
 
 return M

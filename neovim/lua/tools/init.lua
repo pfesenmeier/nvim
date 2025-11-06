@@ -4,7 +4,11 @@ local package_managers = {
       install = { "install", "-g" }
     }
   },
-  brew = {},
+  brew = {
+    cmds = {
+      install = { "install", "--quiet" }
+    }
+  },
   scoop = {},
   winget = {
     cmds = {
@@ -20,14 +24,15 @@ local M = {}
 function M.setup()
   vim.api.nvim_create_user_command("ToolsInstall", function(args)
     local manager = args.fargs[1] or nil
+    local wait = args.bang
 
     if manager then
-      helpers.install({ manager = manager })
+      helpers.install({ manager = manager, wait = wait })
       return
     end
 
-    helpers.install()
-  end, { nargs = "?" })
+    helpers.install({ wait = wait })
+  end, { nargs = "?", bang = true })
 end
 
 return M
