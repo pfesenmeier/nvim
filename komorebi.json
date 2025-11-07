@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/LGUG2Z/komorebi/v0.1.37/schema.json",
   "app_specific_configuration_path": "$Env:USERPROFILE/applications.json",
-  "default_container_padding": 10,
-  "default_workspace_padding": 10,
+  "default_container_padding": -1,
+  "default_workspace_padding": -1,
   "stackbar": {
     "label": "Title",
     "mode": "OnStack",
@@ -23,12 +23,13 @@
   "window_hiding_behaviour": "Cloak",
   "cross_monitor_move_behaviour": "Insert",
   "border": true,
-  "border_width": 6,
-  "border_offset": 0,
+  "border_width": 4,
+  "border_offset": -1,
+  "border_style": "Square",
   "theme": {
     "palette": "Base16",
     "name": "GruvboxMaterialDarkHard",
-    "unfocused_border": "Base01",
+    "unfocused_border": "Base02",
     "bar_accent": "Base0A"
   },
   "monitors": [
