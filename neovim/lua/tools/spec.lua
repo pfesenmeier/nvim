@@ -40,8 +40,8 @@ return {
   { name = "prettier",                          src = { "npm" } }, -- install globally
   { name = "vscode-langservers-extracted",      src = { "npm" } }, -- css, eslint, html
   { name = "@tailwindcss/language-server",      src = { "npm" } },
-  { name = "@anthropic-ai/claude-code",         src = { "npm" } },
-  { name = "@zed-industries/claude-code-acp",   src = { "npm" } },
+  -- { name = "@anthropic-ai/claude-code",         src = { "npm" } },
+  -- { name = "@zed-industries/claude-code-acp",   src = { "npm" } },
   { name = "lazygit",                           src = { "brew" } },
   { name = "lazyjj",                            src = { "brew" } },
 }
