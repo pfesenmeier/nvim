@@ -955,6 +955,6 @@ source booker/booker.nu
 source git-cmds.nu
 source stew.nu
 # tood source if available??
-# source secrets.nu
-# source task_automation/local.nu
+source secrets.nu
+source task_automation/local.nu
 source ~/.zoxide.nu

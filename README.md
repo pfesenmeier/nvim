@@ -6,6 +6,14 @@
 
 ## AI
 
+## Mac OS
+
+- remove any use of apt
+- simplify install scripts? just call homebrew script, download repository?
+
+### AI
+
+- TODO tommcdo/vim-lion
 - https://github.com/banjo/contextfiles.nvim for importing copilot prompts / instruction files
 
 ### VSCode Extextension

@@ -2,6 +2,11 @@ local env = require('pfes.env')
 vim.g.netrw_browsex_viewer = "msedge.exe"
 vim.g.netrw_banner = 0
 
+vim.g.copilot_filetypes = {
+  markdown = false,
+  txt = false
+}
+
 -- set windows clipboard
 vim.opt.clipboard = "unnamedplus"
 
