@@ -1,8 +1,11 @@
 # personal dev config
 
-### AI
+## TODO
 
-- TODO tommcdo/vim-lion
+- get working on a mac
+
+## AI
+
 - https://github.com/banjo/contextfiles.nvim for importing copilot prompts / instruction files
 
 ### VSCode Extextension
@@ -32,7 +35,6 @@ borders false?
 background img
 
 ### big wins
-- get rid off nvm or fnm, but get fnm env stuff working
 - "open test file" shortcut
 - search fatigue
 - close quickfix

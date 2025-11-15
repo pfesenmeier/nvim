@@ -1,0 +1,4 @@
+command = /home/linuxbrew/.linuxbrew/bin/nu
+
+keybind = super+ctrl+9=goto_split:previous
+keybind = super+ctrl+0=goto_split:next

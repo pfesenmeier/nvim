@@ -5,6 +5,7 @@ local c_sharp = env.c_sharp
 local packages = {
   -- prevent remote code execution
   { "ciaranm/securemodelines", lazy = true, event = "VeryLazy" },
+  { "tommcdo/vim-lion" },
   {
     "Pocco81/auto-save.nvim",
     lazy = true,

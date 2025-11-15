@@ -7,7 +7,10 @@ env.is_wsl_linux = env.islinux and vim.env.WSL_DISTRO_NAME ~= nil
 env.iswindows = string.match(sysname, "windows") ~= nil
 
 env.binDir = env.home .. (env.islinux and "/.local/bin" or "/AppData/Local")
-env.workdir = vim.fs.joinpath(env.home, "Cabo", "sfmono")
+
+-- used for neovide frontend
+-- vim.fs.joinpath(env.home, "Code")
+env.workdir = env.home
 env.monorepo = false
 env.c_sharp = false
 -- true false or node version

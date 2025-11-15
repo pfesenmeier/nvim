@@ -61,11 +61,22 @@ export def setup [] {
     | append nushell
   )
 
+  def ghostty_config_file [] {
+    if $nu.os-info.name == 'linux' {
+      'ghostty.linux'
+    } else if $nu.os-info.name == 'macos' {
+      'ghostty.mac'
+    }
+  }
+
     # src: relative to ~/nvim (this repo)
     # dest: relative to ~
     [{
       src: [nushell]
       dest: $nushell_config_folder
+    } { 
+      src:  [(ghostty_config_file)],
+      dest: [.config ghostty config]
     } {
       src:  [neovim]
       dest: $neovim_config_folder

@@ -458,6 +458,16 @@ $env.config = {
           }
         }
         {
+          name: job_unfreeze
+          modifier: control
+          keycode: char_f
+          mode: [vi_normal vi_insert]
+          event: {
+            send: executehostcommand,
+            cmd: "job unfreeze"
+          }
+        }
+        {
           name: open_neovim_with_fzf_from_home_dir
           modifier: control
           keycode: char_v

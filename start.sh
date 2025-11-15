@@ -22,7 +22,7 @@ else
 fi
 
 brew install neovim nushell fnm
-fnm use lts-latest --log-level quiet --install-if-missing
+fnm use --install-if-missing --log-level quiet lts-latest 
 
 if [ -d "$HOME/nvim" ]; then
     echo "~/nvim folder already exists"
