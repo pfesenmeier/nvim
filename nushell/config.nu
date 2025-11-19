@@ -460,7 +460,7 @@ $env.config = {
         {
           name: job_unfreeze
           modifier: control
-          keycode: char_f
+          keycode: char_u
           mode: [vi_normal vi_insert]
           event: {
             send: executehostcommand,

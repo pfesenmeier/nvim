@@ -23,3 +23,7 @@ export def clip [] {
         }
      }
 }
+
+export def prs [] {
+  gh pr list --author "@me" --json number,title,url,reviewDecision --template '{{range .}}{{printf "#%v" .number}} {{.title}}{{"\n"}}  URL: {{.url}}{{"\n"}}  Status: {{if .reviewDecision}}{{.reviewDecision}}{{else}}PENDING{{end}}{{"\n\n"}}{{end}}'
+}
