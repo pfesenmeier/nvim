@@ -956,3 +956,10 @@ source stew.nu
 # tood source if available??
 source secrets.nu
 source ~/.zoxide.nu
+
+# any source script can include an install subcommand
+export def install [] {}
+
+source roslyn_lsp.nu
+source netcoredbg.nu
+source roslynator.nu

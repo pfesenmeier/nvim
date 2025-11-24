@@ -10,9 +10,14 @@ env.binDir = env.home .. (env.islinux and "/.local/bin" or "/AppData/Local")
 -- used for neovide frontend
 env.workdir =  vim.fs.joinpath(env.home, "Code")
 env.monorepo = true
-env.c_sharp = false
+env.c_sharp = true
+-- see roslynator.nu
+env.roslynator_dir = vim.env.ROSLYNATOR_DIR
+-- see roslyn_lsp.nu
+env.roslyn_lsp = vim.env.ROSLYN_LSP
+
 -- false or node version e.g. 21.1.1 
-env.node = "22.21.1"
+env.node = false
 env.sql = false
 env.rust = false
 

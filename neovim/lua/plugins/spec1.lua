@@ -47,15 +47,6 @@ local packages = {
     enabled = sql,
     dependencies = { "kristijanhusak/vim-dadbod-completion" }
   },
-  -- workspace errors
-  -- inspect decompiled C#
-  {
-    "Hoffs/omnisharp-extended-lsp.nvim",
-    lazy = true,
-    enabled = c_sharp,
-    ft = "cs"
-  },
-
   -- git
   {
     "lewis6991/gitsigns.nvim",

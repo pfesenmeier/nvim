@@ -1,66 +1,38 @@
-local env             = require "pfes.env";
+local env                      = require "pfes.env";
 
-local csharp          = {}
+local csharp                   = {}
 
-csharp.addToLspConfig = function()
-  local omnisharp_dll
-
-  if env.islinux then
-    omnisharp_dll = env.home .. "/.local/bin/OmniSharp/omnisharp-roslyn/OmniSharp.dll"
-  else
-    omnisharp_dll = env.home .. "/AppData/Local/OmniSharp/omnisharp-roslyn/OmniSharp.dll"
-  end
-
-  vim.lsp.config("omnisharp", {
-
-    handlers = {
-      ["textDocument/definition"] = require('omnisharp_extended').handler,
-    },
-    cmd = { "dotnet", omnisharp_dll },
-
-    settings = {
-      FormattingOptions = {
-        -- Enables support for reading code style, naming convention and analyzer
-        -- settings from .editorconfig.
-        EnableEditorConfigSupport = true,
-        -- Specifies whether 'using' directives should be grouped and sorted during
-        -- document formatting.
-        OrganizeImports = true,
-      },
-      MsBuild = {
-        -- If true, MSBuild project system will only load projects for files that
-        -- were opened in the editor. This setting is useful for big C# codebases
-        -- and allows for faster initialization of code navigation features only
-        -- for projects that are relevant to code that is being edited. With this
-        -- setting enabled OmniSharp may load fewer projects and may thus display
-        -- incomplete reference lists for symbols.
-        LoadProjectsOnDemand = nil,
-      },
-      RoslynExtensionsOptions = {
-        -- Enables support for roslyn analyzers, code fixes and rulesets.
-        EnableAnalyzersSupport = true,
-        -- Enables support for showing unimported types and unimported extension
-        -- methods in completion lists. When committed, the appropriate using
-        -- directive will be added at the top of the current file. This option can
-        -- have a negative impact on initial completion responsiveness,
-        -- particularly for the first few completion sessions after opening a
-        -- solution.
-        EnableImportCompletion = true,
-        -- Only run analyzers against open files when 'enableRoslynAnalyzers' is
-        -- true
-        AnalyzeOpenDocumentsOnly = nil,
-      },
-      Sdk = {
-        -- Specifies whether to include preview versions of the .NET SDK when
-        -- determining which version to use for project loading.
-        IncludePrereleases = true,
-      },
-    },
+csharp.addToLspConfig          = function()
+  vim.lsp.config("roslyn_ls", {
+    cmd = csharp.getStartupCommand()
   })
-  vim.lsp.enable("omnisharp")
+  vim.lsp.enable('roslyn_ls')
 end
 
-csharp.addToDap       = function(dap, vim)
+csharp.getStartupCommand       = function()
+  local default = {
+    env.roslyn_lsp,
+    '--logLevel',              -- this property is required by the server
+    'Information',
+    '--extensionLogDirectory', -- this property is required by the server
+    vim.fs.joinpath(vim.uv.os_tmpdir(), 'roslyn_ls/logs'),
+    '--stdio',
+  }
+
+
+  if (env.roslynator_dir) then
+    for name, _ in vim.fs.dir(env.roslynator_dir) do
+      local path = vim.fs.joinpath(env.roslynator_dir, name)
+
+      table.insert(default, "--extension")
+      table.insert(default, path)
+    end
+  end
+
+  return default
+end
+
+csharp.addToDap                = function(dap, vim)
   vim.g.dotnet_build_project = function()
     local default_path = vim.fn.getcwd() .. '/'
     if vim.g['dotnet_last_proj_path'] ~= nil then
