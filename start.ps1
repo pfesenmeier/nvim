@@ -7,14 +7,15 @@ if (Get-Command scoop -ErrorAction SilentlyContinue) {
   Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
 }
 
-if (Get-Command git -ErrorAction SilentlyContinue) {
-  Write-Host "git already installed."
-} else {
-  scoop install git
-}
+scoop install git neovim nu fnm gsudo
 
 if (Test-Path -Path (Join-Path ~ nvim) -PathType Container) {
   Write-Host "~/nvim folder already exists"
 } else {
   git clone https://github.com/pfesenmeier/nvim
 }
+
+gsudo nu -n ~/nvim/setup.nu
+nu -c 'nvim --headless  "+Lazy! sync"  +qa'
+nu -c 'nvim --headless  +TSUpdateSync  +qa'
+nu -c "nvim --headless  +ToolsInstall! +qa"

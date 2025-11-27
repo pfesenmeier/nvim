@@ -31,7 +31,7 @@ else
     git clone https://github.com/pfesenmeier/nvim
 fi
 
-nu -n ~/nvim/setup.nu
+gsudo nu -n ~/nvim/setup.nu
 nu -c 'nvim --headless  "+Lazy! sync"  +qa'
 nu -c 'nvim --headless  +TSUpdateSync  +qa'
 nu -c "nvim --headless  +ToolsInstall! +qa"
