@@ -24,8 +24,10 @@ const exe_dir = $lsp_dir | path join content LanguageServer $rid
 
 $env.PATH = $env.PATH | prepend $exe_dir
 
-# TODO what to do on mac...
-$env.DOTNET_ROOT = "/home/linuxbrew/.linuxbrew/opt/dotnet/libexec"
+
+if $nu.os-info.family != "windows" and ($env.HOMEBREW_PREFIX? | is-not-empty) {
+  $env.DOTNET_ROOT = $env.HOMEBREW_PREFIX | path join opt dotnet libexec
+}
 
 const exe_name = if $nu.os-info.family == "windows" {
   "Microsoft.CodeAnalysis.LanguageServer.exe"

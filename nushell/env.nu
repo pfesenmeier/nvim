@@ -54,22 +54,34 @@ def concat-paths [...path] {
     )
 }
 
-if ($nu.os-info.name == linux) {
-  $env.HOMEBREW_PREFIX = "/home/linuxbrew/.linuxbrew"
-  $env.HOMEBREW_CELLAR = "/home/linuxbrew/.linuxbrew/Cellar"
-  $env.HOMEBREW_REPOSITORY = "/home/linuxbrew/.linuxbrew/Homebrew"
+if ($nu.os-info.family != windows) {
+  let prefix = if $nu.os-info.family == "macos" {
+      "/opt/homebrew"
+  } else {
+      "/home/linuxbrew/.linuxbrew"
+  }
+
+  $env.HOMEBREW_PREFIX = $prefix
+  $env.HOMEBREW_CELLAR = $prefix | path join Cellar
+  $env.HOMEBREW_REPOSITORY = $prefix | path join Homebrew
   let brew_paths = [
-      "/home/linuxbrew/.linuxbrew/bin"
-      "/home/linuxbrew/.linuxbrew/sbin"
-  ]
+      bin
+      sbin
+  ] | each { |dir| $prefix | path join $dir }
   $env.PATH = (
     $env.PATH 
     | prepend $brew_paths
     | uniq
   )
 
-  $env.MANPATH = ($env.MANPATH? | concat-paths "/home/linuxbrew/.linuxbrew/share/man")
-  $env.INFOPATH = ($env.INFOPATH? | concat-paths  "/home/linuxbrew/.linuxbrew/share/info")
+  $env.MANPATH = (
+    $env.MANPATH? 
+    | concat-paths ($prefix | path join share man)
+  )
+  $env.INFOPATH = (
+    $env.INFOPATH?
+    | concat-paths  ($prefix | path join share info)
+  )
 }
 
 # Use nushell functions to define your right and left prompt
