@@ -1,22 +1,4 @@
-local package_managers = {
-  npm = {
-    cmds = {
-      install = { "install", "-g" }
-    }
-  },
-  brew = {
-    cmds = {
-      install = { "install", "--quiet" }
-    }
-  },
-  scoop = {},
-  winget = {
-    cmds = {
-      install = { "install", "--no-upgrade", "--accept-package-agreements" }
-    }
-  },
-}
-
+local package_managers = require("tools.package_managers").package_managers
 local helpers = require "tools.helpers".setup(package_managers)
 
 local M = {}

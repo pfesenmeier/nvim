@@ -963,3 +963,5 @@ export def install [] {}
 source roslyn_lsp.nu
 source netcoredbg.nu
 source roslynator.nu
+use lua-run.nu
+use install-tools.nu
