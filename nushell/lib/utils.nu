@@ -3,9 +3,9 @@ use std log;
 export def settings [] {}
 export def 'settings app_dir' [] {
     if $nu.os-info.family == 'windows' {
-      [$nu.home-path AppData Local] | path join
+      [$nu.home-dir AppData Local] | path join
     } else {
-      [$nu.home-path .local bin] | path join
+      [$nu.home-dir .local bin] | path join
     }
 }
 

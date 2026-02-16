@@ -1,7 +1,7 @@
 let local_tools_path = if $nu.os-info.family == 'windows' {
-  [$nu.home-path AppData Local] | path join
+  [$nu.home-dir AppData Local] | path join
 } else {
-  [$nu.home-path .local bin] | path join
+  [$nu.home-dir .local bin] | path join
 }
 
 let local_tools = [

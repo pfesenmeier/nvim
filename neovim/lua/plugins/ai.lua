@@ -1,7 +1,7 @@
 return {
   {
     "github/copilot.vim",
-    enabled = true,
+    enabled = false,
   },
   {
     "CopilotC-Nvim/CopilotChat.nvim",
@@ -27,17 +27,17 @@ return {
   {
     "olimorris/codecompanion.nvim",
     opts = {
-      -- strategies = {
-      --   chat = {
-      --     adapter = "claude_code"
-      --   },
-      --   inline = {
-      --     adapter = "claude_code"
-      --   },
-      --   cmd = {
-      --     adapter = "claude_code"
-      --   }
-      -- },
+      strategies = {
+        chat = {
+          adapter = "claude_code"
+        },
+        inline = {
+          adapter = "claude_code"
+        },
+        cmd = {
+          adapter = "claude_code"
+        }
+      },
       display = {
         chat = {
           window = {
@@ -46,29 +46,29 @@ return {
         }
       },
       adapters = {
-        -- acp = {
-        --   claude_code = function()
-        --     return require("codecompanion.adapters").extend("claude_code", {
-        --       env = {
-        --         CLAUDE_CODE_OAUTH_TOKEN = "CLAUDE_CODE_OAUTH_TOKEN"
-        --       }
-        --     })
-        --   end,
-        -- },
-        http = {
-          copilot = function()
-            return require('codecompanion.adapters').extend('copilot', {
-              -- =require('codecompanion.adapters.copilot.helpers').get_models()
-              -- gpt-4.1
-              -- claude-sonnet-4
-              schema = {
-                model = {
-                  default = "claude-sonnet-4.5"
-                }
+        acp = {
+          claude_code = function()
+            return require("codecompanion.adapters").extend("claude_code", {
+              env = {
+                CLAUDE_CODE_OAUTH_TOKEN = "CLAUDE_CODE_OAUTH_TOKEN"
               }
             })
-          end
-        }
+          end,
+        },
+        -- http = {
+        --   copilot = function()
+        --     return require('codecompanion.adapters').extend('copilot', {
+        --       -- =require('codecompanion.adapters.copilot.helpers').get_models()
+        --       -- gpt-4.1
+        --       -- claude-sonnet-4
+        --       schema = {
+        --         model = {
+        --           default = "claude-sonnet-4.5"
+        --         }
+        --       }
+        --     })
+        --   end
+        -- }
       }
     },
     dependencies = {

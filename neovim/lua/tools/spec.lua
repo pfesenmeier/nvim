@@ -1,3 +1,5 @@
+-- TODO tags
+-- TODO nuon
 return {
   { name = "deno",                              src = { "brew", "scoop" } },
   { name = "difftastic",                        src = { "brew", "scoop" } },
@@ -41,8 +43,11 @@ return {
   { name = "prettier",                          src = { "npm" } }, -- install globally
   { name = "vscode-langservers-extracted",      src = { "npm" } }, -- css, eslint, html
   { name = "@tailwindcss/language-server",      src = { "npm" } },
-  -- { name = "@anthropic-ai/claude-code",         src = { "npm" } },
-  -- { name = "@zed-industries/claude-code-acp",   src = { "npm" } },
+  { name = "claude-code",                       src = { "brew", winget = "Anthropic.ClaudeCode" } },
+  { name = "@zed-industries/claude-code-acp",   src = { "npm" } },
   { name = "lazygit",                           src = { "brew" } },
-  { name = "lazyjj",                            src = { "brew" } },
+  -- { name = "lazyjj",                            src = { "brew" } },
+  -- TODO tags
+  { name = "git-credential-manager",            src = { "dotnet" } },
+  { name = "dotnet-ef",                         src = { "dotnet" } },
 }

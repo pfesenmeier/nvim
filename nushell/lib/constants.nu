@@ -1,9 +1,9 @@
-export const config_dir = $nu.home-path | path join nvim
+export const config_dir = $nu.home-dir | path join nvim
 
 export const app_dir = if $nu.os-info.family == 'windows' {
-  [$nu.home-path AppData Local] | path join
+  [$nu.home-dir AppData Local] | path join
 } else {
-  [$nu.home-path .local bin] | path join
+  [$nu.home-dir .local bin] | path join
 }
 
 export const lua_script_dir = $config_dir | path join neovim lua tools scripts

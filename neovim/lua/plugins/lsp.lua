@@ -15,7 +15,8 @@ local lsps   = {
   "tailwindcss",
   "nushell",
   "lua_ls",
-  "marksman"
+  "marksman",
+  "terraform-ls"
 }
 
 if env.rust then

@@ -49,7 +49,7 @@ def idempotent_symlink [source: string, dest: string] {
 
 # symlinks configuration files into their expected locations
 export def setup [] {
-  let config_path = [$nu.home-path nvim] | path join
+  let config_path = [$nu.home-dir nvim] | path join
 
   let neovim_config_folder = (
     (if $nu.os-info.family == 'windows' {  [AppData Local] } else { [.config] })
@@ -93,7 +93,7 @@ export def setup [] {
       dest: [.config starship.toml]
     }] | each {|x| 
       let src = [$config_path] | append $x.src | path join
-      let dest = [$nu.home-path] | append $x.dest | path join
+      let dest = [$nu.home-dir] | append $x.dest | path join
     
       log info $"linking ($src) to ($dest)" 
 
@@ -106,7 +106,7 @@ export def setup [] {
       log info "Komorebi is not installed, skipping fetch-app-specific-configuration"
     }
 
-    let zoxide_config = $nu.home-path | path join ".zoxide.nu" 
+    let zoxide_config = $nu.home-dir | path join ".zoxide.nu" 
 
     if (which zoxide | is-not-empty) {
       log info "initializing zoxide"

@@ -16,7 +16,7 @@ const rid = if $nu.os-info.name == "windows" {
 }
 
 const package_name = "Microsoft.CodeAnalysis.LanguageServer." + $rid
-const downloads_folder = $nu.home-path | path join Downloads
+const downloads_folder = $nu.home-dir | path join Downloads
 
 const download_url = "https://dev.azure.com/azure-public/vside/_artifacts/feed/vs-impl/NuGet/" + $package_name
 

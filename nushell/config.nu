@@ -460,7 +460,7 @@ $env.config = {
         {
           name: job_unfreeze
           modifier: control
-          keycode: char_u
+          keycode: char_f
           mode: [vi_normal vi_insert]
           event: {
             send: executehostcommand,
@@ -951,6 +951,7 @@ source install.nu
 source paths.nu
 source clean.nu
 source node-env.nu
+source dotnet-env.nu
 source git-cmds.nu
 source stew.nu
 # tood source if available??

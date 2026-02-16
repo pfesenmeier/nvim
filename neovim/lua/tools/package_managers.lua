@@ -12,6 +12,11 @@ M.package_managers = {
     }
   },
   scoop = {},
+  dotnet = {
+    cmds = {
+      install = { "tool", "install", "--global" }
+    }
+  },
   winget = {
     cmds = {
       install = { "install", "--no-upgrade", "--accept-package-agreements" }

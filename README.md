@@ -2,6 +2,9 @@
 
 ## TODO
 
+- gpg instructions for linux
+- setting ttl on gpg password
+
 - get working on a mac
 
 ## AI

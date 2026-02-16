@@ -5,7 +5,7 @@ const roslynator_dir = $app_dir | path join dotnet roslynator
 export def "install roslynator" [] {
    let zip = 'roslynator.zip'    
    let exdir = 'roslynator'
-   const home = $nu.home-path
+   const home = $nu.home-dir
 
    # when worked with omnisharp
    # let dest = $home | path join '.omnisharp' roslynator
