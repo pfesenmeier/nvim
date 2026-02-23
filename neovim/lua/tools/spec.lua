@@ -41,6 +41,7 @@ return {
   { name = "@vtsls/language-server",            src = { "npm" } },
   { name = "@prisma/language-server",           src = { "npm" } },
   { name = "prettier",                          src = { "npm" } }, -- install globally
+  { name = "tree-sitter-cli",                          src = { "npm" } }, -- install globally
   { name = "vscode-langservers-extracted",      src = { "npm" } }, -- css, eslint, html
   { name = "@tailwindcss/language-server",      src = { "npm" } },
   { name = "claude-code",                       src = { "brew", winget = "Anthropic.ClaudeCode" } },
