@@ -1,11 +1,24 @@
 # personal dev config
 
+## Types of Tools
+
+- [ ] scripts
+- [ ] cli tools
+- [ ] custom commands nushell,neovim
+
+e.g.,
+
+wrapper around fzf to select package.json scripts in Code directory?
+
 ## TODO
 
 - gpg instructions for linux
 - setting ttl on gpg password
 
-- get working on a mac
+- [x] get working on a mac (remove linuxbrew refs)
+- [x] create scripts folder
+- [x] nushell helpers for calling lua scripts
+- [ ] move tools to a plugin... install with lazy
 
 ## AI
 

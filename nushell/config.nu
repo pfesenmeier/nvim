@@ -945,6 +945,7 @@ alias c = git commit
 alias b = git branch
 alias l = git log --oneline
 alias z = zoxide
+alias helf = help
 
 source util.nu
 source install.nu
