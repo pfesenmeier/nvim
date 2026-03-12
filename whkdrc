@@ -15,6 +15,7 @@ alt + return            : start wt
 
 alt + q                 : komorebic close
 alt + m                 : komorebic minimize
+alt + shift + m         : $s = komorebic.exe state | ConvertFrom-Json; $ws = $s.monitors.elements[$s.monitors.focused].workspaces; $c = $ws.elements[$ws.focused].containers; if ($c.elements.Count -gt 1) { 1..($c.elements.Count - 1) | ForEach-Object { komorebic.exe cycle-focus next; komorebic.exe minimize } }
 
 # used by neovim quickfix
 # alt + h                 : komorebic focus left

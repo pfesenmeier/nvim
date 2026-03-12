@@ -2,8 +2,66 @@
 #
 # version = "0.85.0"
 
+def jj-prompt-info [] {
+    let result = try {
+        jj log --no-pager --ignore-working-copy -r "@ | @-" -T 'change_id.shortest() ++ "\t" ++ description.first_line() ++ "\t" ++ bookmarks.join(",") ++ "\n"' --no-graph e> /dev/null
+    } catch {
+        return null
+    }
+
+    let lines = $result | str trim | split row "\n" | where { |l| $l | is-not-empty }
+    if ($lines | is-empty) { return null }
+
+    $lines | each { |line|
+        let parts = $line | split row "\t"
+        {
+            change_id: ($parts | get 0)
+            description: ($parts | get -o 1 | default "")
+            bookmarks: ($parts | get -o 2 | default "")
+        }
+    }
+}
+
 def create_left_prompt [] {
-    starship prompt --cmd-duration $env.CMD_DURATION_MS $'--status=($env.LAST_EXIT_CODE)'
+    let dir = $env.PWD | str replace $nu.home-dir "~" | path split | last 3 | path join
+    let reset = ansi reset
+    let dir_color = ansi -e { fg: "#d79921" }
+    let at_color = ansi -e { fg: "#689d6a" }
+    let par_color = ansi -e { fg: "#458588" }
+    let dim = ansi -e { fg: "#928374" }
+
+    let dir_segment = $"($dir_color) \u{f07c} ($dir)($reset)"
+
+    let revs = jj-prompt-info
+    if ($revs == null) {
+        return $"($dir_segment)\n"
+    }
+
+    let at_rev = $revs | get 0
+    let at_desc = if ($at_rev.description | is-empty) { "(no description)" } else {
+        $at_rev.description | str substring 0..40
+    }
+    let at_bookmarks = if ($at_rev.bookmarks | is-empty) { "" } else {
+        $" ($dim)[($at_rev.bookmarks)]"
+    }
+    let at_id = $at_rev.change_id | fill -a left -w 3 -c ' '
+    let at_line = $"($at_color) \u{e728} ($at_id) ($dim)\"($at_desc)\"($at_bookmarks)($reset)"
+
+    let par_line = if ($revs | length) >= 2 {
+        let par_rev = $revs | get 1
+        let par_desc = if ($par_rev.description | is-empty) { "(no description)" } else {
+            $par_rev.description | str substring 0..40
+        }
+        let par_bookmarks = if ($par_rev.bookmarks | is-empty) { "" } else {
+            $" ($dim)[($par_rev.bookmarks)]"
+        }
+        let par_id = $par_rev.change_id | fill -a left -w 3 -c ' '
+        $"\n($par_color) \u{e727} ($par_id) ($dim)\"($par_desc)\"($par_bookmarks)($reset)"
+    } else {
+        ""
+    }
+
+    $"($dir_segment)\n($at_line)($par_line)\n"
 }
 
 # def create_left_prompt [] {
@@ -127,7 +185,6 @@ $env.NU_PLUGIN_DIRS = [
 # To add entries to PATH (on Windows you might use Path), you can use the following pattern:
 # $env.PATH = ($env.PATH | split row (char esep) | prepend '/some/path')
 
-$env.STARSHIP_SHELL = "nushell"
 $env.lib-path = ($nu.config-path | path dirname | path join 'lib')
 
 # pnpm

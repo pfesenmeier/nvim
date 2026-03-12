@@ -37,9 +37,7 @@ if env.islinux then
 else
   vim.opt.shell = "nu"
 end
-local config = '--config ' .. env.home .. '/nvim/nushell/config.nu'
-local envconfig = '--env-config ' .. env.home .. '/nvim/nushell/env.nu'
-vim.opt.shellcmdflag = config .. " " .. envconfig .. " " .. "--commands"
+vim.opt.shellcmdflag = "--no-config-file --commands"
 vim.opt.shellquote = ""
 vim.opt.shellxquote = ""
 -- ":r !ls | to text" or ":r !ls | get name"
