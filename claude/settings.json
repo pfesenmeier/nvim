@@ -1,0 +1,56 @@
+{
+  "env": {
+    "EDITOR": "nvim"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(fd:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(xargs:*)",
+      "Bash(cat:*)",
+      "Bash(jj diff:*)",
+      "Bash(jj show:*)",
+      "Bash(jj log:*)",
+      "Bash(jj help:*)",
+      "Bash(git status:*)",
+      "Bash(ls:*)",
+      "Bash(stat:*)",
+      "Bash(mkdir:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "Bash(curl -s -X POST http://localhost:5049/graphql:*)"
+    ]
+  },
+  "model": "opus",
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nu --stdin ~/.claude/hooks/bell-on-input-needed.nu",
+            "timeout": 1
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nu --stdin ~/.claude/hooks/bell-on-input-needed.nu",
+            "timeout": 1
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "lua-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true
+  }
+}

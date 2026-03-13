@@ -1,5 +1,5 @@
 local csharp = require "pfes.lang.csharp"
-local vue    = require "pfes.lang.vue"
+local node   = require "pfes.lang.node"
 local deno   = require "pfes.lang.deno"
 local env    = require "pfes.env"
 local keymap = require "pfes.keymap.lsp"
@@ -16,7 +16,7 @@ local lsps   = {
   "nushell",
   "lua_ls",
   "marksman",
-  "terraform-ls"
+  "terraformls"
 }
 
 if env.rust then
@@ -49,7 +49,7 @@ local function init()
   end
 
   if env.node then
-    vue.addToLspConfig()
+    node.addToLspConfig()
   else
     deno.addToLspConfig()
   end

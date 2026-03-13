@@ -43,8 +43,12 @@ return {
     },
     init = function()
       require 'nvim-treesitter'.install(treesitter_languages)
+      local ft_patterns = vim.list_extend(
+        vim.deepcopy(treesitter_languages),
+        { "javascriptreact", "typescriptreact" }
+      )
       vim.api.nvim_create_autocmd('FileType', {
-        pattern = treesitter_languages,
+        pattern = ft_patterns,
         callback = function() vim.treesitter.start() end,
       })
     end

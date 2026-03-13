@@ -31,3 +31,9 @@ vim.api.nvim_create_autocmd({ 'BufEnter', 'WinEnter', 'DirChanged' }, {
 })
 -- for debugging
 -- vim.opt.cmdheight = 0
+vim.api.nvim_create_autocmd("FocusGained", {
+  pattern = "term://*",
+  callback = function()
+    vim.cmd("startinsert")
+  end,
+})

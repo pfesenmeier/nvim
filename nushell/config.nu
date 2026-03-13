@@ -474,7 +474,7 @@ $env.config = {
           mode: [vi_normal vi_insert]
           event: {
             send: executehostcommand,
-            cmd: "fd -t f . ($env.HOME? | default $env.USERPROFILE?) | fzf | decode utf-8 | str trim | if ($in != '') { nvim $in }"
+            cmd: "fd -t f | fzf | decode utf-8 | str trim | if ($in != '') { nvim $in }"
           }
         }
         {
@@ -968,3 +968,4 @@ source roslynator.nu
 use lua-run.nu
 use install-tools.nu
 use jj.nu *
+use jj-completions.nu *

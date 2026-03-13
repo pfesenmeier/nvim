@@ -4,7 +4,7 @@
 
 def jj-prompt-info [] {
     let result = try {
-        jj log --no-pager --ignore-working-copy -r "@ | @-" -T 'change_id.shortest() ++ "\t" ++ description.first_line() ++ "\t" ++ bookmarks.join(",") ++ "\n"' --no-graph e> /dev/null
+        jj log --no-pager -r "@ | @-" -T 'change_id.shortest() ++ "\t" ++ description.first_line() ++ "\t" ++ bookmarks.join(",") ++ "\t" ++ if(empty, "true", "false") ++ "\t" ++ working_copies ++ "\n"' --no-graph e> /dev/null
     } catch {
         return null
     }
@@ -18,6 +18,8 @@ def jj-prompt-info [] {
             change_id: ($parts | get 0)
             description: ($parts | get -o 1 | default "")
             bookmarks: ($parts | get -o 2 | default "")
+            empty: (($parts | get -o 3 | default "false") == "true")
+            working_copies: ($parts | get -o 4 | default "")
         }
     }
 }
@@ -38,6 +40,13 @@ def create_left_prompt [] {
     }
 
     let at_rev = $revs | get 0
+    let workspace = $at_rev.working_copies | str replace -r '@$' '' | str trim
+    let workspace_segment = if ($workspace | is-empty) or $workspace == "default" {
+        ""
+    } else {
+        let ws_color = ansi -e { fg: "#d3869b" }
+        $"($ws_color) \u{f0b1} ($workspace)($reset)"
+    }
     let at_desc = if ($at_rev.description | is-empty) { "(no description)" } else {
         $at_rev.description | str substring 0..40
     }
@@ -45,7 +54,8 @@ def create_left_prompt [] {
         $" ($dim)[($at_rev.bookmarks)]"
     }
     let at_id = $at_rev.change_id | fill -a left -w 3 -c ' '
-    let at_line = $"($at_color) \u{e728} ($at_id) ($dim)\"($at_desc)\"($at_bookmarks)($reset)"
+    let empty_indicator = if $at_rev.empty { $" ($dim)\(empty\)" } else { "" }
+    let at_line = $"($at_color) \u{e728} ($at_id) ($dim)\"($at_desc)\"($at_bookmarks)($empty_indicator)($reset)"
 
     let par_line = if ($revs | length) >= 2 {
         let par_rev = $revs | get 1
@@ -61,7 +71,7 @@ def create_left_prompt [] {
         ""
     }
 
-    $"($dir_segment)\n($at_line)($par_line)\n"
+    $"($dir_segment)($workspace_segment)\n($at_line)($par_line)\n"
 }
 
 # def create_left_prompt [] {

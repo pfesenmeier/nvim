@@ -27,7 +27,7 @@ return {
   {
     "olimorris/codecompanion.nvim",
     opts = {
-      strategies = {
+      interactions = {
         chat = {
           adapter = "claude_code"
         },

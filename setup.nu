@@ -91,7 +91,19 @@ export def setup [] {
     } {
       src: [starship.toml]
       dest: [.config starship.toml]
-    }] | each {|x| 
+    } {
+      src: [claude settings.json]
+      dest: [.claude settings.json]
+    } {
+      src: [claude CLAUDE.md]
+      dest: [.claude CLAUDE.md]
+    } {
+      src: [claude hooks]
+      dest: [.claude hooks]
+    } {
+      src: [claude skills]
+      dest: [.claude skills]
+    }] | each {|x|
       let src = [$config_path] | append $x.src | path join
       let dest = [$nu.home-dir] | append $x.dest | path join
     

@@ -10,8 +10,12 @@ export def azurite-tmp [] {
   job spawn { azurite --inMemoryPersistence } -t azurite
 }
 
-# TODO helper to either start a process or resume previous process
-# how to handle two? alwoys resume last?
+export def zoxide-init-jj-workspace [
+  workspace: string # path to workspace
+] {
+  # move all queries from <workspace> to <other-workspace>
+  
+}
 
 export def jobs [] {
   let jobs = job list | sort-by id --reverse
@@ -47,27 +51,32 @@ export def jc [] {
 # jj workspace - away z [] {}
 # jj workspace root
 # zoxide query ---base-dir <path>
-export def zw [word: string] {
-  try {
-    let root = jj workspace root
-    let dir = zoxide query --base-dir $root $word
-    z $dir
-    pwd
-  } catch {
-    z $word
+export def --env zw [word: string] {
+  let root = jj workspace root
+  let result = zoxide query --base-dir $root $word | complete
+  let dir = if $result.exit_code == 0 {
+    $result.stdout | str trim
+  } else {
+    if not ($word | path exists) {
+      error make { msg: $"not found: ($word)" }
+    }
+    $word
   }
+  zoxide add $dir
+  cd $dir
 }
 
 # "z change" -> switches to other if two, or asks for input
-export def zc [word: string] {
+export def --env zc [word: string] {
   try {
     let root = jj workspace root
     let dir = zoxide query --base-dir $root $word
-    z $dir
-  } catch {
-    z $word
+    zoxide add $dir
+    cd $dir
+  } catch {|err|
+    print $err.msg
+    cd $word
   }
-  
 }
 
 # TODO use /mnt/c/Windows/System32/clip.exe

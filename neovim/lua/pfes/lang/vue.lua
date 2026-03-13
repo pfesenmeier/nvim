@@ -53,42 +53,24 @@ vue.addToLspConfig = function()
     languages = { 'vue' },
     configNamespace = 'typescript',
   }
-  local vtsls_config = {
-    -- root_markers = { '.git' },
+
+  vim.lsp.config('vtsls', {
     settings = {
       vtsls = {
         tsserver = {
-          -- globalPlugins = {
-          --   vue_plugin,
-          -- },
+          globalPlugins = {
+            vue_plugin,
+          },
         },
       },
     },
     filetypes = filetypes,
-  }
-
-  local vue_ls_config = {
+  })
+  vim.lsp.config('vue_ls', {
     root_markers = { '.git' },
-  }
+  })
 
-  local ts_ls_config = {
-    init_options = {
-      plugins = {
-        vue_plugin,
-      },
-    },
-    filetypes = filetypes,
-    root_markers = { '.git' },
-  }
-
-  -- nvim 0.11 or above
-  vim.lsp.config('vtsls', vtsls_config)
-  -- vim.lsp.config('vue_ls', vue_ls_config)
-  vim.lsp.config('ts_ls', ts_ls_config)
-
-  -- vim.lsp.enable({ 'ts_ls', 'vue_ls' })
-  -- vim.lsp.enable({ 'vtsls', 'vue_ls' })
-  vim.lsp.enable({ 'vtsls' })
+  vim.lsp.enable({ 'vtsls', 'vue_ls' })
 end
 
 return vue

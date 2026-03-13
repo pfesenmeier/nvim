@@ -4,6 +4,7 @@ jj config set --user user.email "pfesenmeier@gmail.com"
 jj config set --user ui.diff-editor :builtin
 jj config set --user ui.diff-formatter '["difft", "--color=always", "$left", "$right"]'
 jj config set --user ui.default-command log
+jj config set --user revsets.bookmark-advance-to @-
 
 if $nu.os-info.name == "windows" {
   jj config set --user git.fetch '["origin", "wsl"]'
