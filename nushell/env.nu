@@ -129,3 +129,8 @@ $env.NU_PLUGIN_DIRS = [
 
 $env.STARSHIP_SHELL = "nushell"
 $env.lib-path = ($nu.config-path | path dirname | path join 'lib')
+
+# pnpm
+$env.PNPM_HOME = "/home/pfes/.local/share/pnpm"
+$env.PATH = ($env.PATH | split row (char esep) | prepend $env.PNPM_HOME )
+# pnpm end

@@ -32,10 +32,14 @@ end
 
 -- set shell to nushell
 -- https://github.com/neovim/neovim/issues/19648#issuecomment-1212295560
-vim.opt.shell = "nu"
+if env.islinux then
+  vim.opt.shell = "/home/linuxbrew/.linuxbrew/bin/nu"
+else
+  vim.opt.shell = "nu"
+end
 local config = '--config ' .. env.home .. '/nvim/nushell/config.nu'
 local envconfig = '--env-config ' .. env.home .. '/nvim/nushell/env.nu'
-vim.opt.shellcmdflag = config .. " " .. envconfig .. " " .. "-c"
+vim.opt.shellcmdflag = config .. " " .. envconfig .. " " .. "--commands"
 vim.opt.shellquote = ""
 vim.opt.shellxquote = ""
 -- ":r !ls | to text" or ":r !ls | get name"

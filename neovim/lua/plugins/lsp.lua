@@ -9,7 +9,7 @@ local lsps   = {
   -- "html",
   -- "cssls",
   "jsonls",
-  "eslint",
+  -- "eslint",
 
   "prismals",
   "tailwindcss",

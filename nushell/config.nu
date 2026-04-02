@@ -464,7 +464,7 @@ $env.config = {
           mode: [vi_normal vi_insert]
           event: {
             send: executehostcommand,
-            cmd: "job unfreeze"
+            cmd: "jobs"
           }
         }
         {
@@ -938,7 +938,7 @@ $env.config = {
 
 
 alias e = nvim
-alias ec = nvim --clean
+alias nv = nvim --clean -l
 alias s = git status
 alias a = git add
 alias c = git commit
@@ -967,3 +967,4 @@ source netcoredbg.nu
 source roslynator.nu
 use lua-run.nu
 use install-tools.nu
+use jj.nu *

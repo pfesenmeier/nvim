@@ -8,7 +8,7 @@
     "palette": "Base16",
     "accent": "Base0A"
   },
-  "height": 30,
+  "height": 50,
   "left_widgets": [
     {
       "Komorebi": {
@@ -50,8 +50,8 @@
     {
       "Network": {
         "enable": true,
-        "show_total_data_transmitted": true,
-        "show_network_activity": true
+        "show_total_activity": true,
+        "show_activity": true
       }
     },
     {

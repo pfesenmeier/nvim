@@ -3,8 +3,18 @@ local env                      = require "pfes.env";
 local csharp                   = {}
 
 csharp.addToLspConfig          = function()
+  -- Suppress benign Roslyn "does not contain the specified document" errors
+  -- that occur with temporary canonical/misc files.
+  local orig_notify = vim.notify
+  vim.notify = function(msg, ...)
+    if type(msg) == "string" and msg:find("does not contain the specified document") then
+      return
+    end
+    return orig_notify(msg, ...)
+  end
+
   vim.lsp.config("roslyn_ls", {
-    cmd = csharp.getStartupCommand()
+    cmd = csharp.getStartupCommand(),
   })
   vim.lsp.enable('roslyn_ls')
 end
