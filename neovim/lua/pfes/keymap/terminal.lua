@@ -59,6 +59,7 @@ M.setup = function()
   vim.keymap.set("n", "<leader>t", show_next_term, opts)
   vim.keymap.set("n", "<leader>T", function() show_next_term({ prev = true }) end, opts)
   vim.keymap.set('t', '<Esc><Esc>', [[<c-\><C-N>]])
+  vim.keymap.set('t', '<PageUp>', [[<c-\><C-N>]])
 end
 
 return M

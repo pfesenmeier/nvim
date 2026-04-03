@@ -2,6 +2,7 @@
   "env": {
     "EDITOR": "nvim"
   },
+  "autoUpdatesChannel": "stable",
   "permissions": {
     "allow": [
       "Bash(fd:*)",
