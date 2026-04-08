@@ -3,7 +3,7 @@
 ## Problem
 
 At different times, I have long-running jobs I want to run and re-run.
-`dotnet test`, `claude -p "/pr-review` , `dotnet build`, `claude plans`, etc..
+`dotnet test`, `claude -p "/pr-review` , `dotnet build`, etc..
 These are dependent on the working directory and the workspace.
 These are invoked within a shell tab, a neovim session, etc..
 

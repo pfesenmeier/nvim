@@ -64,22 +64,12 @@ alt + s                 : komorebic toggle-pause
 alt + x                 : komorebic flip-layout horizontal
 alt + y                 : komorebic flip-layout vertical
 
-# Workspaces
-alt + 1                 : komorebic focus-workspace 0
-alt + 2                 : komorebic focus-workspace 1
-alt + 3                 : komorebic focus-workspace 2
-alt + 4                 : komorebic focus-workspace 3
-alt + 5                 : komorebic focus-workspace 4
-alt + 6                 : komorebic focus-workspace 5
-alt + 7                 : komorebic focus-workspace 6
-alt + 8                 : komorebic focus-workspace 7
-
-# Move windows across workspaces
-alt + shift + 1         : komorebic move-to-workspace 0
-alt + shift + 2         : komorebic move-to-workspace 1
-alt + shift + 3         : komorebic move-to-workspace 2
-alt + shift + 4         : komorebic move-to-workspace 3
-alt + shift + 5         : komorebic move-to-workspace 4
-alt + shift + 6         : komorebic move-to-workspace 5
-alt + shift + 7         : komorebic move-to-workspace 6
-alt + shift + 8         : komorebic move-to-workspace 7
+# Focus container by index on current workspace
+alt + 1                 : $s = komorebic.exe state | ConvertFrom-Json; $m = $s.monitors.elements[$s.monitors.focused]; $w = $m.workspaces.elements[$m.workspaces.focused]; $target = 0; $current = $w.containers.focused; $count = $w.containers.elements.Count; if ($target -lt $count -and $target -ne $current) { $diff = (($target - $current + $count) % $count); 1..$diff | ForEach-Object { komorebic.exe cycle-focus next } }
+alt + 2                 : $s = komorebic.exe state | ConvertFrom-Json; $m = $s.monitors.elements[$s.monitors.focused]; $w = $m.workspaces.elements[$m.workspaces.focused]; $target = 1; $current = $w.containers.focused; $count = $w.containers.elements.Count; if ($target -lt $count -and $target -ne $current) { $diff = (($target - $current + $count) % $count); 1..$diff | ForEach-Object { komorebic.exe cycle-focus next } }
+alt + 3                 : $s = komorebic.exe state | ConvertFrom-Json; $m = $s.monitors.elements[$s.monitors.focused]; $w = $m.workspaces.elements[$m.workspaces.focused]; $target = 2; $current = $w.containers.focused; $count = $w.containers.elements.Count; if ($target -lt $count -and $target -ne $current) { $diff = (($target - $current + $count) % $count); 1..$diff | ForEach-Object { komorebic.exe cycle-focus next } }
+alt + 4                 : $s = komorebic.exe state | ConvertFrom-Json; $m = $s.monitors.elements[$s.monitors.focused]; $w = $m.workspaces.elements[$m.workspaces.focused]; $target = 3; $current = $w.containers.focused; $count = $w.containers.elements.Count; if ($target -lt $count -and $target -ne $current) { $diff = (($target - $current + $count) % $count); 1..$diff | ForEach-Object { komorebic.exe cycle-focus next } }
+alt + 5                 : $s = komorebic.exe state | ConvertFrom-Json; $m = $s.monitors.elements[$s.monitors.focused]; $w = $m.workspaces.elements[$m.workspaces.focused]; $target = 4; $current = $w.containers.focused; $count = $w.containers.elements.Count; if ($target -lt $count -and $target -ne $current) { $diff = (($target - $current + $count) % $count); 1..$diff | ForEach-Object { komorebic.exe cycle-focus next } }
+alt + 6                 : $s = komorebic.exe state | ConvertFrom-Json; $m = $s.monitors.elements[$s.monitors.focused]; $w = $m.workspaces.elements[$m.workspaces.focused]; $target = 5; $current = $w.containers.focused; $count = $w.containers.elements.Count; if ($target -lt $count -and $target -ne $current) { $diff = (($target - $current + $count) % $count); 1..$diff | ForEach-Object { komorebic.exe cycle-focus next } }
+alt + 7                 : $s = komorebic.exe state | ConvertFrom-Json; $m = $s.monitors.elements[$s.monitors.focused]; $w = $m.workspaces.elements[$m.workspaces.focused]; $target = 6; $current = $w.containers.focused; $count = $w.containers.elements.Count; if ($target -lt $count -and $target -ne $current) { $diff = (($target - $current + $count) % $count); 1..$diff | ForEach-Object { komorebic.exe cycle-focus next } }
+alt + 8                 : $s = komorebic.exe state | ConvertFrom-Json; $m = $s.monitors.elements[$s.monitors.focused]; $w = $m.workspaces.elements[$m.workspaces.focused]; $target = 7; $current = $w.containers.focused; $count = $w.containers.elements.Count; if ($target -lt $count -and $target -ne $current) { $diff = (($target - $current + $count) % $count); 1..$diff | ForEach-Object { komorebic.exe cycle-focus next } }

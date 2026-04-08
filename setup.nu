@@ -103,6 +103,9 @@ export def setup [] {
     } {
       src: [claude skills]
       dest: [.claude skills]
+    } {
+      src: [tmux.conf]
+      dest: [.tmux.conf]
     }] | each {|x|
       let src = [$config_path] | append $x.src | path join
       let dest = [$nu.home-dir] | append $x.dest | path join

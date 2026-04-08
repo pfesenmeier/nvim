@@ -8,9 +8,9 @@ end
 
 function M.setup()
   vim.keymap.set("n", "<leader>j",
-    function() return pick().builtin.files() end, opts)
+    function() return pick().builtin.files({ tool = 'fd' }) end, opts)
   vim.keymap.set("n", "<leader>J",
-    function() return pick().builtin.files(nil, { source = { cwd = env.home } }) end, opts)
+    function() return pick().builtin.files({ tool = 'fd' }, { source = { cwd = env.home } }) end, opts)
   vim.keymap.set("n", "<leader>k",
     function() return pick().builtin.grep_live() end, opts)
   vim.keymap.set("n", "<leader>K",

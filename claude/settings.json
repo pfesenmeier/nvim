@@ -2,7 +2,6 @@
   "env": {
     "EDITOR": "nvim"
   },
-  "autoUpdatesChannel": "stable",
   "permissions": {
     "allow": [
       "Bash(fd:*)",
@@ -53,5 +52,7 @@
   "enabledPlugins": {
     "lua-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true
-  }
+  },
+  "autoUpdatesChannel": "stable",
+  "effortLevel": "high"
 }

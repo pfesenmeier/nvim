@@ -18,6 +18,7 @@ return {
       require 'mini.statusline'.setup {
         use_icons = true
       }
+      vim.api.nvim_set_hl(0, 'MiniStatuslineFilename', { fg = '#bdae93' })
 
       vim.api.nvim_create_user_command("Bd", function()
         require('mini.bufremove').delete()
