@@ -32,6 +32,13 @@
     "unfocused_border": "Base02",
     "bar_accent": "Base0A"
   },
+  "manage_rules": [
+    {
+      "kind": "Title",
+      "id": "Claude",
+      "matching_strategy": "Equals"
+    }
+  ],
   "monitors": [
     {
       "workspaces": [

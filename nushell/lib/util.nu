@@ -17,7 +17,7 @@ export def zoxide-init-jj-workspace [
   
 }
 
-export def jobs [] {
+export def job-select [] {
   let jobs = job list | sort-by id --reverse
 
   # TODO pattern matching

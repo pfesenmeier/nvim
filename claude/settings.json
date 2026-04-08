@@ -53,6 +53,6 @@
     "lua-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true
   },
-  "autoUpdatesChannel": "stable",
-  "effortLevel": "high"
+  "effortLevel": "medium",
+  "autoUpdatesChannel": "stable"
 }

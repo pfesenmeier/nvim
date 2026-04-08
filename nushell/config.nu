@@ -438,6 +438,16 @@ $env.config = {
             }
         }
         {
+            name: claude
+            modifier: control
+            keycode: char_9
+            mode: [vi_normal vi_insert]
+            event: {
+              send: executehostcommand,
+              cmd: "jj log"
+            }
+        }
+        {
           name: yank_last_command
           modifier: control
           keycode: char_y
@@ -484,7 +494,7 @@ $env.config = {
           mode: [vi_normal vi_insert]
           event: {
             send: executehostcommand,
-            cmd: "jobs"
+            cmd: "job-select"
           }
         }
         {
@@ -966,6 +976,7 @@ alias b = git branch
 alias l = git log --oneline
 alias z = zoxide
 alias helf = help
+alias jobs = job list
 
 source util.nu
 source install.nu

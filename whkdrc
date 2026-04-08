@@ -56,6 +56,7 @@ alt + f                 : komorebic toggle-monocle
 alt + shift + f         : komorebic toggle-maximize
 
 # Window manager options
+alt + u                 : komorebic cycle-focus next; komorebic unmanage; komorebic retile
 alt + shift + t         : komorebic retile
 alt + shift + r         : komorebic stop --whkd --bar; komorebic start --whkd --bar
 alt + s                 : komorebic toggle-pause
