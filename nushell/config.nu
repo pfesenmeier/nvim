@@ -418,6 +418,26 @@ $env.config = {
 
     keybindings: [
         {
+            name: neovim
+            modifier: control
+            keycode: char_6
+            mode: [vi_normal vi_insert]
+            event: {
+              send: executehostcommand,
+              cmd: "jn"
+            }
+        }
+        {
+            name: claude
+            modifier: control
+            keycode: char_7
+            mode: [vi_normal vi_insert]
+            event: {
+              send: executehostcommand,
+              cmd: "jc"
+            }
+        }
+        {
           name: yank_last_command
           modifier: control
           keycode: char_y
