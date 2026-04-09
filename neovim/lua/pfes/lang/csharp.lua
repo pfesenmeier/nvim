@@ -17,6 +17,19 @@ csharp.addToLspConfig          = function()
     cmd = csharp.getStartupCommand(),
   })
   vim.lsp.enable('roslyn_ls')
+
+  vim.api.nvim_create_autocmd("VimEnter", {
+    once = true,
+    callback = function()
+      local root = vim.fs.root(0, { '.sln', '.csproj' })
+      if not root then return end
+      vim.lsp.start({
+        name = 'roslyn_ls',
+        cmd = csharp.getStartupCommand(),
+        root_dir = root,
+      })
+    end,
+  })
 end
 
 csharp.getStartupCommand       = function()
