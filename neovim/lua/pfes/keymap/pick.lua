@@ -21,7 +21,7 @@ function M.setup()
 
   vim.keymap.set("n", "<leader>rr", function() return pick().builtin.resume() end, opts)
 
-  vim.keymap.set("n", "<leader>e", function()
+  vim.keymap.set("n", "<leader>o", function()
     local items = vim.fn.systemlist("fd --type f --changed-within 2weeks --exec-batch ls -t")
     pick().start({ source = { items = items, name = "Recent files" } })
   end, opts)

@@ -46,7 +46,8 @@ return {
   { name = "@tailwindcss/language-server",      src = { "npm" } },
   { name = "claude-code",                       src = { "brew", winget = "Anthropic.ClaudeCode" } },
   { name = "@zed-industries/claude-code-acp",   src = { "npm" } },
-  { name = "lazygit",                           src = { "brew" } },
+  -- { name = "lazygit",                           src = { "brew" } },
+  { name = "pandoc",                           src = { "brew" } },
   { name = "git-credential-manager",            src = { "dotnet" } },
   { name = "dotnet-ef",                         src = { "dotnet" } },
   { name = "copilot",                           src = { npm = "@github/copilot" } }
