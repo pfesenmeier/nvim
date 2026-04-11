@@ -201,3 +201,10 @@ $env.lib-path = ($nu.config-path | path dirname | path join 'lib')
 $env.PNPM_HOME = "/home/pfes/.local/share/pnpm"
 $env.PATH = ($env.PATH | split row (char esep) | prepend $env.PNPM_HOME )
 # pnpm end
+
+# for linux credential manager
+# OR git config --global credential.credentialStore gpg
+# https://github.com/git-ecosystem/git-credential-manager/blob/main/docs/credstores.md#gpgpass-compatible-files
+$env.GCM_CREDENTIAL_STORE = "gpg"
+let tty = tty
+$env.GPG_TTY = $tty
