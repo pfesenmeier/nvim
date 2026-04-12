@@ -1,6 +1,9 @@
 # personal dev config
 
-TODO
+## MINI MAX
+
+- [ ] download, boot up
+- [ ] convert lua table to nushell
 
 - [ ] add jj info to statusbar
 - [ ] make neovim homescreen more useful
