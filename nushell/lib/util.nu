@@ -7,7 +7,7 @@ export def dump [] {
 }
 
 export def azurite-tmp [] {
-  job spawn { azurite --inMemoryPersistence } -t azurite
+  job spawn { azurite --inMemoryPersistence } -d azurite
 }
 
 export def zoxide-init-jj-workspace [

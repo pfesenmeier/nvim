@@ -25,6 +25,7 @@ local packages = {
   -- trying to use tcd (tab), lcd (window), cd
   {
     "airblade/vim-rooter",
+    enabled = false,
     lazy = false,
     event = "UIEnter",
     init = function()

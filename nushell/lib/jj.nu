@@ -19,3 +19,16 @@ use constants.nu wsl_distro_home
 #     jj bookmark set $branch
 #     jj bookmark track $branch
 # }
+
+# format all C# files changed since trunk
+export def fmt-changed [] {
+    let files = (jj diff --summary --from "trunk()"
+        | lines
+        | parse "{status} {file}"
+        | where file ends-with ".cs"
+        | get file)
+
+    if ($files | is-not-empty) {
+      csharpier format ...$files
+    }
+}
