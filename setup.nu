@@ -2,6 +2,7 @@
 use std log
 
 const self_path = path self
+const mini_max = true
 
 def set_secrets_file [] {
   let $env_file = $self_path | path dirname | path join nushell lib secrets.nu
@@ -61,6 +62,13 @@ export def setup [] {
     | append nushell
   )
 
+  let neovim_source_folder = if $mini_max {
+    log debug "using minimax configuration"
+    [MiniMax configs nvim-0.12]
+  } else {
+    [neovim]
+  }
+
   let ghostty_config_file = (
     if $nu.os-info.name == 'macos' {
       'ghostty.mac'
@@ -77,7 +85,7 @@ export def setup [] {
       src:  [$ghostty_config_file]
       dest: [.config ghostty config]
     } {
-      src:  [neovim]
+      src:  $neovim_source_folder
       dest: $neovim_config_folder
     } {
       src:  [omnisharp.json]
