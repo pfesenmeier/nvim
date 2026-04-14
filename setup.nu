@@ -64,7 +64,7 @@ export def setup [] {
 
   let neovim_source_folder = if $mini_max {
     log debug "using minimax configuration"
-    [MiniMax configs nvim-0.12]
+    [nvim-minimax]
   } else {
     [neovim]
   }
