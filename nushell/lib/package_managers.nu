@@ -1,10 +1,10 @@
 export def main [] {
   [
-    [name   install_cmd                                       ];
-    [npm    "install --global"                                      ]
-    [dotnet "tool    install      --global"                   ]
-    [scoop  install                                           ]
-    [brew   install                                           ]
-    [winget "install --no-upgrade --accept-package-agreements"]
+    [name   install_cmd                                        add_container_cmd       ];
+    [npm    "install --global"                                 null                    ]
+    [dotnet "tool install --global"                            null                    ]
+    [scoop  install                                            "bucket add"            ]
+    [brew   "install --quiet"                                            "tap add"               ]
+    [winget "install --no-upgrade --accept-package-agreements" null                    ]
   ]
 }

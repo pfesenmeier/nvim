@@ -35,6 +35,10 @@ local now, now_if_args, later = Config.now, Config.now_if_args, Config.later
 -- - 'plugin/40_plugins.lua' honorable mentions - other good color schemes
 now(function() vim.cmd('colorscheme miniwinter') end)
 
+-- Transparent background: let the terminal's background show through
+vim.api.nvim_set_hl(0, 'Normal', { bg = 'NONE' })
+vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'NONE' })
+
 -- You can try these other 'mini.hues'-based color schemes (uncomment with `gcc`):
 -- now(function() vim.cmd('colorscheme minispring') end)
 -- now(function() vim.cmd('colorscheme minisummer') end)
@@ -256,8 +260,9 @@ now_if_args(function()
   MiniMisc.setup_restore_cursor()
 
   -- Synchronize terminal emulator background with Neovim's background to remove
-  -- possibly different color padding around Neovim instance
-  MiniMisc.setup_termbg_sync()
+  -- possibly different color padding around Neovim instance.
+  -- Disabled: overrides Ghostty's background-opacity with a solid color.
+  -- MiniMisc.setup_termbg_sync()
 end)
 
 -- Step two ===================================================================

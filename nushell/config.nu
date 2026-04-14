@@ -980,6 +980,7 @@ alias jobs = job list
 
 source util.nu
 source install.nu
+source install-packages.nu
 source paths.nu
 source clean.nu
 source node-env.nu
