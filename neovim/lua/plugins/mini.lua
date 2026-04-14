@@ -32,6 +32,7 @@ return {
         }
       })
       require 'mini.move'.setup()
+      require 'mini.extra'.setup()
 
       -- for codecompanion
       local diff = require("mini.diff")
