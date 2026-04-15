@@ -6,6 +6,39 @@ export def dump [] {
   $result
 }
 
+def --env cd-sibling [previous?: bool = false] {
+  let current = pwd | path parse | get stem
+
+  let options = (
+    ls .. -s 
+    | where type == dir 
+    | get name 
+    | enumerate 
+    | rename index name
+  )
+
+  let current = $options | where name == $current | first
+
+  let new = if $previous {
+    $current.index - 1
+  } else {
+    $current.index + 1
+  }
+
+  let new = $options | where index == $new | first
+  let new = pwd | path dirname | path join $new.name
+
+  cd $new
+}
+
+export def --env cdp [] {
+  cd-sibling
+}
+
+export def --env cdn [] {
+  cd-sibling true
+}
+
 export def azurite-tmp [] {
   job spawn { azurite --inMemoryPersistence } -d azurite
 }

@@ -29,6 +29,18 @@ vim.api.nvim_create_autocmd({ 'BufEnter', 'WinEnter', 'DirChanged' }, {
     end
   end
 })
+vim.api.nvim_create_autocmd("BufEnter", {
+  callback = function(ev)
+    local bufnr = ev.buf
+    for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+      if client:supports_method("textDocument/diagnostic") then
+        client:request("textDocument/diagnostic", {
+          textDocument = { uri = vim.uri_from_bufnr(bufnr) },
+        }, nil, bufnr)
+      end
+    end
+  end,
+})
 -- for debugging
 -- vim.opt.cmdheight = 0
 vim.api.nvim_create_autocmd("FocusGained", {

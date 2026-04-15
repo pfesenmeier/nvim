@@ -7,14 +7,3 @@ export const app_dir = if $nu.os-info.family == 'windows' {
 }
 
 export const lua_script_dir = $config_dir | path join neovim lua tools scripts
-
-const wsl_distro = {
-  name: Ubuntu-24.04
-  user: pfes
-}
-
-export const wsl_distro_home = (
-  '\\wsl.localhost' 
-  | path join $wsl_distro.name home $wsl_distro.user
-)
-

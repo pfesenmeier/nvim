@@ -6,8 +6,3 @@ jj config set --user ui.diff-formatter '["difft", "--color=always", "$left", "$r
 jj config set --user ui.default-command log
 jj config set --user revsets.bookmark-advance-to @-
 jj config set --user aliases.nt '["new", "trunk()"]'
-
-if $nu.os-info.name == "windows" {
-  jj config set --user git.fetch '["origin", "wsl"]'
-  jj config set --user git.push wsl
-}
