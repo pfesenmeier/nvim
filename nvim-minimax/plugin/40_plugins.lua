@@ -217,3 +217,43 @@ later(function() add({ 'https://github.com/rafamadriz/friendly-snippets' }) end)
 --   -- Enable only one
 --   vim.cmd('color everforest')
 -- end)
+
+later(function()
+  add({
+      "nvim-lua/plenary.nvim",
+      "olimorris/codecompanion.nvim",
+  })
+  require("codecompanion").setup(
+{
+      interactions = {
+        chat = {
+          adapter = "claude_code"
+        },
+        inline = {
+          adapter = "claude_code"
+        },
+        cmd = {
+          adapter = "claude_code"
+        }
+      },
+      display = {
+        chat = {
+          window = {
+            position = 'left',
+          }
+        }
+      },
+      adapters = {
+        acp = {
+          claude_code = function()
+            return require("codecompanion.adapters").extend("claude_code", {
+              env = {
+                CLAUDE_CODE_OAUTH_TOKEN = "CLAUDE_CODE_OAUTH_TOKEN"
+              }
+            })
+          end,
+        },
+      }
+    })
+
+  end)
