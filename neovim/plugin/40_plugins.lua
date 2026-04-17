@@ -217,11 +217,17 @@ later(function() add({ 'https://github.com/rafamadriz/friendly-snippets' }) end)
 --   -- Enable only one
 --   vim.cmd('color everforest')
 -- end)
+Config.now(function()
+  -- default highlight group for nvim-dap is a bright blue
+  vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F36' })
+end)
+
+-- AI
 
 later(function()
   add({
-      "nvim-lua/plenary.nvim",
-      "olimorris/codecompanion.nvim",
+      "https://github.com/nvim-lua/plenary.nvim",
+      "https://github.com/olimorris/codecompanion.nvim",
   })
   require("codecompanion").setup(
 {
@@ -257,3 +263,15 @@ later(function()
     })
 
   end)
+
+-- Dap
+later(function ()
+  add({
+          'https://codeberg.org/mfussenegger/nvim-dap',
+        'https://github.com/theHamsta/nvim-dap-virtual-text',
+        'https://github.com/rcarriga/nvim-dap-ui',
+        'https://github.com/nvim-neotest/nvim-nio',
+        'https://github.com/jbyuki/one-small-step-for-vimkind', -- lua debugger
+  })
+
+end)

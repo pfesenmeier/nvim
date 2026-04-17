@@ -1,5 +1,9 @@
 # personal dev config
 
+## Execute buffer command
+
+- read comment on top ()
+
 ## MINI MAX
 
 - [ ] download, boot up

@@ -51,6 +51,7 @@ nmap(']p', '<Cmd>exe "iput "  . v:register<CR>', 'Paste Below')
 -- Add an entry if you create a new group.
 Config.leader_group_clues = {
   { mode = 'n', keys = '<Leader>b', desc = '+Buffer' },
+  { mode = 'n', keys = '<Leader>d', desc = '+Dap' },
   { mode = 'n', keys = '<Leader>e', desc = '+Explore/Edit' },
   { mode = 'n', keys = '<Leader>f', desc = '+Find' },
   { mode = 'n', keys = '<Leader>g', desc = '+Git' },
@@ -260,3 +261,27 @@ end
 nvmap_leader("aa", "<cmd>CodeCompanionActions<cr>", "CC Actions")
 nvmap_leader("at", "<cmd>CodeCompanionChat Toggle<cr>", "CC Toggle")
 vmap_leader("aA", "<cmd>CodeCompanionChat Add<cr>", "CC Add")
+
+-- command line motions from :h cmdline.txt
+vim.keymap.set('c', '<C-A>', '<Home>')
+vim.keymap.set('c', '<C-F>', '<Right>')
+vim.keymap.set('c', '<C-B>', '<Left>')
+
+-- <S-Right> ... the name for word motion
+vim.keymap.set('c', '<Esc>b', '<S-Left>')
+vim.keymap.set('c', '<Esc>f', '<S-Right>')
+
+-- dap
+nmap_leader('dc', "<Cmd>DapContinue<CR>", "Continue")
+nmap_leader('do', "<Cmd>DapStepOver<CR>", "Step Over")
+nmap_leader('di', "<Cmd>DapStepInto<CR>", "Step Into")
+nmap_leader('dO', "<Cmd>DapStepOut<CR>", "Step Out")
+nmap_leader('db', "<Cmd>DapToggleBreakpoint<CR>", "Toggle Breakpoint")
+nmap_leader('dB', "<Cmd>DapClearBreakpoints<CR>", "Clear Breakpoints")
+nmap_leader('dl', "<Cmd>lua require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>", "Set Log Point")
+nmap_leader('dL', "<Cmd>lua require('dap').run_last()<CR>", "Run Last")
+nmap_leader('dr', "<Cmd>DapToggleRepl<CR>", "Toggle Repl")
+nmap_leader('dh', "<Cmd>lua require('dap.ui.widgets').hover()<CR>", "Hover")
+nmap_leader('dp', "<Cmd>lua require('dap.ui.widgets').preview()<CR>", "Preview")
+nmap_leader('df', "<Cmd>lua require('dap.ui.widgets').centered_float(require('dap.ui.widgets').frames)<CR>", "Frames")
+nmap_leader('ds', "<Cmd>lua require('dap.ui.widgets').centered_float(require('dap.ui.widgets').scopes)<CR>", "Scopes")
