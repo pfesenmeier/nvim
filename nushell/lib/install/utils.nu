@@ -1,7 +1,6 @@
 use std log;
 
-export def settings [] {}
-export def 'settings app_dir' [] {
+def 'settings app_dir' [] {
     if $nu.os-info.family == 'windows' {
       [$nu.home-dir AppData Local] | path join
     } else {

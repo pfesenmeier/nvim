@@ -1,5 +1,5 @@
-use package_managers.nu 
-use packages.nu 
+use packages/package_managers.nu 
+use packages/packages.nu 
 
 let managers = package_managers 
 

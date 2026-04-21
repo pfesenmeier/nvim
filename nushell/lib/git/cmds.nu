@@ -4,7 +4,7 @@
      | str replace "* " "  " 
      | lines 
      | str trim 
-     | where {|branch| $branch != develop and $branch != main } 
+     | where {|branch| $branch != develop and $branch != main and $branch != master } 
      | each {|branch| git branch -D $branch}   
    )
  }

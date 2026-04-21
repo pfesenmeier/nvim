@@ -1,7 +1,5 @@
 # scripts to install stuff
 
-use util.nu
-
 let app_dir = if $nu.os-info.family == 'windows' {
   [$nu.home-dir AppData Local] | path join
 } else {

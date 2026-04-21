@@ -2,7 +2,7 @@
 # https://github.com/NuGet/Home/issues/12513
 # Microsoft.CodeAnalysis.LanguageServer.linux-x64
 
-use constants.nu app_dir
+use ../../constants.nu app_dir
 
 const lsp_dir = $app_dir | path join "microsoft" "roslyn-lsp"
 

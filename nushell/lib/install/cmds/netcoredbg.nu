@@ -1,4 +1,4 @@
-use utils.nu
+use ../utils.nu
 use constants.nu app_dir
 
 export def "install netcoredbg" [] {
