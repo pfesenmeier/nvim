@@ -15,7 +15,6 @@ export def main [] {
     [nushell                           scoop=nu                          brew]
     [ripgrep                           scoop                             brew]
     [bat                               scoop                             brew]
-    [starship                          scoop                             brew]
     [vcredist2022                      scoop                             null]
     ['nerd-fonts/0xProto-NF-Mono'      scoop                             null]
     [gsudo                             scoop                             null]
@@ -49,5 +48,6 @@ export def main [] {
     [git-credential-manager            null                              dotnet]
     [dotnet-ef                         null                              dotnet]
     [@github/copilot                   null                              null]
+    [func                              winget=Microsoft.Azure.FunctionsCoreTools 'brew=azure/functions;azure-functions-core-tools@4']
   ]
 }

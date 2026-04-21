@@ -18,10 +18,21 @@ def split-whitespace []: [string -> list<string>, nothing -> list<string>] {
   $input | str trim | split row --regex '\s+'
 }
 
-def install-packages [manager: string, containers: list<string>, packages: list<string>] {
+def parse-install-cmd [cmd: string, packages: list<string>]: nothing -> list<string> {
+  if ($cmd | str contains "{}") {
+      let packages = $packages | str join " "
+      $cmd | str replace "{}" $packages | split-whitespace 
+  } else {
+     let $cmd = $cmd | split-whitespace
+     [...$cmd, ...$packages]
+  } 
+}
+
+def install-packages [manager: any, containers: list<string>, packages: list<string>] {
   let manager = get-manager $manager
   let add_container_args = $manager.add_container_cmd | split-whitespace 
-  let install_args = $manager.install_cmd | split-whitespace
+  let install_multiple = $manager.install_multiple
+  let install_cmd = $manager.install_cmd
   let manager = $manager.name
 
   for container in $containers {
@@ -29,7 +40,15 @@ def install-packages [manager: string, containers: list<string>, packages: list<
   }
 
   if ($packages | is-not-empty) {
-    ^$manager ...$install_args ...$packages
+    if $install_multiple {
+      let install_cmd = parse-install-cmd $install_cmd $packages
+      ^$manager ...$install_cmd
+    } else {
+      for package in $packages {
+        let install_cmd = parse-install-cmd $install_cmd [$package]
+        ^$manager ...$install_cmd
+      }
+    }
   }
 }
 
