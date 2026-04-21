@@ -1,4 +1,3 @@
-use secrets.nu
 use tmux-start.nu script_path
 
 export def "wt layout" [] {

@@ -978,6 +978,7 @@ alias z = zoxide
 alias helf = help
 alias jobs = job list
 
+source secrets.nu
 source misc/util.nu
 source install/install.nu
 source install/install-packages.nu
