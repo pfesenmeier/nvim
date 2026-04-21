@@ -49,7 +49,7 @@ def idempotent_symlink [source: string, dest: string] {
 
 # symlinks configuration files into their expected locations
 export def setup [] {
-  let config_path = [$nu.home-dir nvim] | path join
+  let config_path = $nu.home-dir | path join nvim
 
   let neovim_config_folder = (
     (if $nu.os-info.family == 'windows' {  [AppData Local] } else { [.config] })
@@ -72,12 +72,14 @@ export def setup [] {
     # dest: relative to ~
     [{
       src: [nushell]
+      root: true
       dest: $nushell_config_folder
     } { 
       src:  [$ghostty_config_file]
       dest: [.config ghostty config]
     } {
       src:  [neovim]
+      root: true
       dest: $neovim_config_folder
     } {
       src:  [omnisharp.json]
@@ -107,8 +109,14 @@ export def setup [] {
       src: [tmux.conf]
       dest: [.tmux.conf]
     }] | each {|x|
-      let src = [$config_path] | append $x.src | path join
-      let dest = [$nu.home-dir] | append $x.dest | path join
+      let root = $x | get -o root | default false
+
+      let src = if $root {
+        $config_path | path join ...$x.src
+      } else {
+        $config_path | path join config ...$x.src
+      }
+      let dest = $nu.home-dir | path join ...$x.dest
     
       log info $"linking ($src) to ($dest)" 
 

@@ -978,27 +978,23 @@ alias z = zoxide
 alias helf = help
 alias jobs = job list
 
-source util.nu
-source install.nu
+source misc/util.nu
+source install/install.nu
+source install/install-packages.nu
 source paths.nu
-source clean.nu
+source dotnet/jb-clean.nu
 source node-env.nu
-source dotnet-env.nu
-source git-cmds.nu
-source stew.nu
-# tood source if available??
-source secrets.nu
+source dotnet/env.nu
+source git/cmds.nu
 source ~/.zoxide.nu
 
 # any source script can include an install subcommand
 export def install [] {}
 
-source roslyn_lsp.nu
-source netcoredbg.nu
-source roslynator.nu
-use lua-run.nu
-use install-tools.nu
-use jj.nu *
-use jj-completions.nu *
-use wt-layout.nu *
-use tmux-start.nu
+source install/cmds/roslyn_lsp.nu
+source install/cmds/netcoredbg.nu
+source install/cmds/roslynator.nu
+use jj/cmds.nu *
+use jj/completions.nu *
+use misc/wt-layout.nu *
+use misc/tmux-start.nu
