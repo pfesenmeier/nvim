@@ -219,7 +219,7 @@ later(function() add({ 'https://github.com/rafamadriz/friendly-snippets' }) end)
 -- end)
 Config.now(function()
   -- default highlight group for nvim-dap is a bright blue
-  vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F36' })
+  vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F99' })
 end)
 
 -- AI

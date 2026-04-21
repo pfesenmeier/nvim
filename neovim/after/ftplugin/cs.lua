@@ -1,5 +1,5 @@
 -- dap configuration
-vim.b.dotnet_build_project = function()
+local dotnet_build_project = function()
   local default_path = vim.fn.getcwd() .. '/'
   if vim.g['dotnet_last_proj_path'] ~= nil then
     default_path = vim.g['dotnet_last_proj_path']
@@ -17,7 +17,7 @@ vim.b.dotnet_build_project = function()
   end
 end
 
-vim.b.dotnet_get_dll_path = function()
+local dotnet_get_dll_path = function()
   local request = function()
     return vim.fn.input('Path to dll', vim.fn.getcwd(), 'file')
   end
@@ -33,6 +33,18 @@ vim.b.dotnet_get_dll_path = function()
   return vim.g['dotnet_last_dll_path']
 end
 
+local get_latest_dotnet = function()
+  local pid_cmd = "ps | where name == dotnet | last | get -o pid"
+
+  local shell = require('util.shell').shell
+
+  local pid = shell(pid_cmd)
+
+  vim.notify("pid: " .. pid)
+
+  return tonumber(pid)
+end
+
 local dap_config = {
   {
     type = "netcoredbg",
@@ -40,16 +52,16 @@ local dap_config = {
     request = "launch",
     program = function()
       if vim.fn.confirm('Should I recompile first?', '&yes\n&no', 2) == 1 then
-        vim.g.dotnet_build_project()
+        dotnet_build_project()
       end
-      return vim.g.dotnet_get_dll_path()
+        dotnet_get_dll_path()
     end,
   },
   {
     type = "netcoredbg",
     request = "attach",
     name = "attach - netcoredbg",
-    processId = require('dap.utils').pick_process,
+    processId = get_latest_dotnet,
     args = {},
   },
 }

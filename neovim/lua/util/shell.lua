@@ -1,12 +1,12 @@
 --- allow using shell features, e.g. pipes
 --- @param cmd string e.g. "ls | to json"
---- @param fmt? 'json' | 'table'
---- @param shell? boolean
---- @return table
-local function shell(cmd, fmt, shell)
+--- @param fmt? 'json' | 'table' | 'str'
+--- @param use_shell? boolean
+--- @return table | string
+local function shell(cmd, fmt, use_shell)
   local opts = {}
-  opts.fmt = fmt or 'other'
-  opts.shell = shell or true
+  opts.fmt = fmt or 'string'
+  opts.shell = use_shell or true
   local shell_cmd = {}
 
   if opts.shell then
@@ -20,7 +20,8 @@ local function shell(cmd, fmt, shell)
   local outcome = vim.system(shell_cmd):wait()
 
   if outcome.code ~= 0 then
-    print('err')
+    vim.notify('shell err')
+    vim.notify(outcome.stderr)
     return {}
   end
 
@@ -35,10 +36,10 @@ local function shell(cmd, fmt, shell)
   end
 
   if fmt == 'table' then
-    return vim.split(outcome.stdout, '\n')
+    return vim.split(data, '\n')
   end
 
-  return {}
+  return data
 end
 
 return {
