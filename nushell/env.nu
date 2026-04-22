@@ -2,6 +2,9 @@
 #
 # version = "0.85.0"
 
+# Disable XON/XOFF flow control so Ctrl+S reaches applications (e.g. Neovim)
+stty -ixon
+
 def jj-prompt-info [] {
     let result = try {
         jj log --no-pager -r "@ | @-" -T 'change_id.shortest() ++ "\t" ++ description.first_line() ++ "\t" ++ bookmarks.join(",") ++ "\t" ++ if(empty, "true", "false") ++ "\t" ++ working_copies ++ "\n"' --no-graph e> /dev/null

@@ -4,7 +4,7 @@ export def main [] {
     [deno                              scoop                             brew]
     [deno                              scoop                             brew]
     [difftastic                        scoop                             brew]
-    [fd                                scoop                             brew] 
+    [fd                                scoop                             brew]
     [fnm                               scoop                             brew]
     [fzf                               scoop                             brew]
     [gcc                               scoop                             brew]
@@ -49,5 +49,7 @@ export def main [] {
     [dotnet-ef                         null                              dotnet]
     [@github/copilot                   null                              null]
     [func                              winget=Microsoft.Azure.FunctionsCoreTools 'brew=azure/functions;azure-functions-core-tools@4']
+    [linqpad                           winget=LINQPad.LINQPad.9          null]
+    [azure-storage-explorer            winget=Microsoft.Azure.StorageExplorer null]
   ]
 }

@@ -1,6 +1,6 @@
 export def jjbst- [branch: string] {
     jj bookmark set $branch -r @-
-    jj bookmark track $branch -r @-
+    jj bookmark track $branch
 }
 
  # format all C# files changed since trunk

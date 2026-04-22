@@ -7,7 +7,7 @@
  }
  
 def --env cd-sibling [previous?: bool = false] {
-  let current = pwd | path parse | get stem
+  let current = pwd | path basename
 
   let options = (
     ls .. -s 
