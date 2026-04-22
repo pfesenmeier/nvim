@@ -91,9 +91,6 @@ export def setup [] {
       src: [komorebi.json]
       dest: [komorebi.json]
     } {
-      src: [starship.toml]
-      dest: [.config starship.toml]
-    } {
       src: [claude settings.json]
       dest: [.claude settings.json]
     } {

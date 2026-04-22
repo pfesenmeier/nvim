@@ -27,10 +27,10 @@ def jj-prompt-info [] {
 def create_left_prompt [] {
     let dir = $env.PWD | str replace $nu.home-dir "~" | path split | last 3 | path join
     let reset = ansi reset
-    let dir_color = ansi -e { fg: "#d79921" }
-    let at_color = ansi -e { fg: "#689d6a" }
-    let par_color = ansi -e { fg: "#458588" }
-    let dim = ansi -e { fg: "#928374" }
+    let dir_color = ansi -e { fg: "#DBBC7F" }
+    let at_color = ansi -e { fg: "#83C092" }
+    let par_color = ansi -e { fg: "#7FBBB3" }
+    let dim = ansi -e { fg: "#859289" }
 
     let dir_segment = $"($dir_color) \u{f07c} ($dir)($reset)"
 
@@ -44,7 +44,7 @@ def create_left_prompt [] {
     let workspace_segment = if ($workspace | is-empty) or $workspace == "default" {
         ""
     } else {
-        let ws_color = ansi -e { fg: "#d3869b" }
+        let ws_color = ansi -e { fg: "#D699B6" }
         $"($ws_color) \u{f0b1} ($workspace)($reset)"
     }
     let at_desc = if ($at_rev.description | is-empty) { "(no description)" } else {

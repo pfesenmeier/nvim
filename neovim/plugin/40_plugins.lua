@@ -208,14 +208,14 @@ later(function() add({ 'https://github.com/rafamadriz/friendly-snippets' }) end)
 -- enabled in 'plugin/30_mini.lua' or other suggested 'mini.hues' based ones.
 -- Config.now(function()
 --  -- Install only those that you need
---  add({
---    'https://github.com/sainnhe/everforest',
+  add({
+    'https://github.com/sainnhe/everforest',
 --    'https://github.com/Shatur/neovim-ayu',
---    'https://github.com/ellisonleao/gruvbox.nvim',
---  })
---
---   -- Enable only one
---   vim.cmd('color everforest')
+--  'https://github.com/ellisonleao/gruvbox.nvim',
+  })
+  vim.o.termguicolors = true
+  vim.g.everforest_background = 'hard'
+  vim.cmd('color everforest')
 -- end)
 Config.now(function()
   -- default highlight group for nvim-dap is a bright blue
@@ -267,7 +267,7 @@ later(function()
 -- Dap
 later(function ()
   add({
-          'https://codeberg.org/mfussenegger/nvim-dap',
+        'https://codeberg.org/mfussenegger/nvim-dap',
         'https://github.com/theHamsta/nvim-dap-virtual-text',
         'https://github.com/rcarriga/nvim-dap-ui',
         'https://github.com/nvim-neotest/nvim-nio',
