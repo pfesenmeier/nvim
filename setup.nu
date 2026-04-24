@@ -14,6 +14,34 @@ def set_secrets_file [] {
   }
 }
 
+# determines if inside wsl
+def is_wsl []: nothing -> bool {
+  $env.WSL_DISTRO_NAME? | is-not-empty
+}
+
+# finds my microsoft home account
+# returns empty string if not found
+def find_ms_home []: nothing -> string {
+  let known_home_dirs = [
+    pfes
+    pbfesenmeier
+    pfesenmeier
+  ]
+
+  let home_dir_parent = '/mnt/c/Users/'
+
+  for dir in $known_home_dirs {
+    let path = $home_dir_parent | path join $dir
+    let exists = $path | path exists
+
+    if $exists {
+      return $path
+    }
+  }
+
+  return ""
+}
+
 # https://www.nushell.sh/blog/2023-08-23-happy-birthday-nushell-4.html
 def symlink [
     existing: path   # The existing file
@@ -68,6 +96,15 @@ export def setup [] {
       'ghostty.linux'
     }
   )
+
+  let is_wsl = is_wsl
+  let ms_home = find_ms_home
+
+  log info $"is wsl: ($is_wsl)"
+  if $is_wsl {
+    log info $"ms home ($ms_home)"
+  }
+
     # src: relative to ~/nvim (this repo)
     # dest: relative to ~
     [{
@@ -114,19 +151,27 @@ export def setup [] {
         $config_path | path join config ...$x.src
       }
       let dest = $nu.home-dir | path join ...$x.dest
-    
-      log info $"linking ($src) to ($dest)" 
+
+      log info $"linking ($src) to ($dest)"
 
       idempotent_symlink $src $dest
+
+      if $is_wsl {
+        let dest = $ms_home | path join ...$x.dest
+
+        log info $"linking ($src) to ($dest)"
+
+        idempotent_symlink $src $dest
+      }
     }
 
-    if (which komorebic | is-not-empty) {
-       komorebic fetch-app-specific-configuration
+    if (which komorebic.exe | is-not-empty) {
+       komorebic.exe fetch-app-specific-configuration
     } else {
       log info "Komorebi is not installed, skipping fetch-app-specific-configuration"
     }
 
-    let zoxide_config = $nu.home-dir | path join ".zoxide.nu" 
+    let zoxide_config = $nu.home-dir | path join ".zoxide.nu"
 
     if (which zoxide | is-not-empty) {
       log info "initializing zoxide"
@@ -135,6 +180,8 @@ export def setup [] {
       log info "saving dummy zoxide file"
       touch $zoxide_config
     }
+
+    # TODO (?) - does setup zoxide for windows
 
     set_secrets_file
 }

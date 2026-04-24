@@ -119,7 +119,7 @@ if Config.env.iswindows then
   vim.opt.clipboard = "unnamedplus"
 end
 if Config.env.is_wsl_linux then
-  vim.g.netrw_browsex_viewer = "msedge.exe"
+  vim.g.netrw_browsex_viewer = '"/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"'
   vim.g.copilot_filetypes = {
     markdown = false,
     txt = false
