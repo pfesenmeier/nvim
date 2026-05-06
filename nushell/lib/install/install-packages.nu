@@ -24,7 +24,7 @@ def split-whitespace []: [string -> list<string>, nothing -> list<string>] {
 def parse-install-cmd [cmd: string, packages: list<string>]: nothing -> list<string> {
   if ($cmd | str contains "{}") {
       let packages = $packages | str join " "
-      $cmd | str replace "{}" $packages | split-whitespace 
+      $cmd | str replace "{}" $packages | split-whitespace
   } else {
      let $cmd = $cmd | split-whitespace
      [...$cmd, ...$packages]
@@ -47,6 +47,8 @@ def install-packages [manager: any, containers: list<string>, packages: list<str
   }
 
   if ($packages | is-not-empty) {
+    print $"installing from ($manager)"
+    print $"packages ($packages | str join ' ')"
     if $install_multiple {
       let install_cmd = parse-install-cmd $install_cmd $packages
       ^$manager ...$install_cmd
@@ -56,6 +58,8 @@ def install-packages [manager: any, containers: list<string>, packages: list<str
         ^$manager ...$install_cmd
       }
     }
+  } else {
+    print $"no packages found for ($manager)"
   }
 }
 
@@ -93,27 +97,6 @@ def parse-pkg-row [package: string, input?: string] {
   create-pkg-row $manager $altname $container
 }
 
-def available-managers []: nothing -> bool {
-  $managers | where {|manager|
-    let name = $manager.name
-
-    which $name | is-not-empty
-  }
-}
-
-# filters for windows managers responsible for creating a minimal windows setup
-def available-windows-managers []: nothing -> bool {
-  $managers | where {|manager|
-    let exe = $manager.windows_exe
-
-    if ($exe | is-empty) {
-      return false
-    }
-
-    which $exe | is-not-empty
-  }
-}
-
 def get-package-column [] {
   let isLinux = $nu.os-info.name == 'linux'
 
@@ -146,32 +129,18 @@ def install_grouped_packages [$grouped_packages: any, use_windows_exe: bool = fa
 }
 
 # all packages managers default to upgrading now
+# TODO: except SCOOP
+# TODO: remove scoop?
 export def "install packages" [] {
-  # TODO never used
-  let available_managers = available-managers
   let src_col = get-package-column
-
   let grouped_packages = group_packages $src_col
 
   install_grouped_packages $grouped_packages
 
   if (is_wsl) {
     print ("installing wsl")
-    let ms_home = find_ms_home
-    # TODO never used
-    let available_managers = available-windows-managers
-
     let grouped_packages = group_packages srcWindows
-
     install_grouped_packages $grouped_packages true
-
-    for group in $grouped_packages {
-      let manager = $group.manager
-      let containers = $group.items | get container | where $it != null | uniq
-      let packages = $group.items | get package | uniq
-
-      install-packages $manager $containers $packages true
-    }
   }
 }
 

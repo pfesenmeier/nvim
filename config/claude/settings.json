@@ -23,7 +23,7 @@
       "Bash(curl -s -X POST http://localhost:5049/graphql:*)"
     ]
   },
-  "model": "opus[1m]",
+  "model": "sonnet",
   "hooks": {
     "Notification": [
       {
@@ -53,6 +53,7 @@
     "lua-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true
   },
-  "effortLevel": "high",
-  "autoUpdatesChannel": "stable"
+  "effortLevel": "xhigh",
+  "autoUpdatesChannel": "stable",
+  "skipAutoPermissionPrompt": true
 }
