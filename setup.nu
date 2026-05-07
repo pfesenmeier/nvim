@@ -1,5 +1,6 @@
 # may run with -n to skip loading on first run
 use std log
+use nushell/lib/misc/wsl.nu [is_wsl find_ms_home]
 
 const self_path = path self
 
@@ -14,33 +15,6 @@ def set_secrets_file [] {
   }
 }
 
-# determines if inside wsl
-def is_wsl []: nothing -> bool {
-  $env.WSL_DISTRO_NAME? | is-not-empty
-}
-
-# finds my microsoft home account
-# returns empty string if not found
-def find_ms_home []: nothing -> string {
-  let known_home_dirs = [
-    pfes
-    pbfesenmeier
-    pfesenmeier
-  ]
-
-  let home_dir_parent = '/mnt/c/Users/'
-
-  for dir in $known_home_dirs {
-    let path = $home_dir_parent | path join $dir
-    let exists = $path | path exists
-
-    if $exists {
-      return $path
-    }
-  }
-
-  return ""
-}
 
 # https://www.nushell.sh/blog/2023-08-23-happy-birthday-nushell-4.html
 def symlink [
@@ -73,6 +47,59 @@ def idempotent_symlink [source: string, dest: string] {
   }
 
   symlink $source $dest
+}
+
+def copy_wt_settings [ms_home: string, config_path: string] {
+  if ($ms_home | is-empty) { return }
+
+  let wt_dir = ls ($ms_home | path join "AppData/Local/Packages")
+    | where name =~ 'Microsoft\.WindowsTerminal_'
+    | where name !~ 'Preview'
+    | get name
+    | get 0?
+
+  if ($wt_dir == null) { return }
+
+  let src = $config_path | path join "config/windowsTerminalSettings.json"
+  let dest = $wt_dir | path join "LocalState/settings.json"
+
+  log info $"copying ($src) to ($dest)"
+  cp --force $src $dest
+}
+
+# Builds a single elevated PowerShell call for all Windows symlinks so sudo prompts once.
+# Requires Windows sudo enabled (Settings → System → For developers → Enable sudo).
+def batch_windows_symlinks []: list<record<source: string, dest: string>> -> nothing {
+  let pairs = $in
+  if ($pairs | is-empty) { return }
+
+  # wslpath -w fails on non-existent /mnt paths; convert those manually
+  let to_win = {|p|
+    if ($p | str starts-with '/mnt/') {
+      $p | str replace --regex '^/mnt/([a-zA-Z])' '${1}:' | str replace --all '/' '\\'
+    } else {
+      wslpath -w $p
+    }
+  }
+
+  let win_pairs = $pairs | each {|pair| {
+    source: $pair.source
+    dest: $pair.dest
+    win_source: (do $to_win $pair.source)
+    win_dest: (do $to_win $pair.dest)
+  }}
+
+  for p in $win_pairs {
+    log info $"linking ($p.source) to ($p.dest)"
+    mkdir ($p.dest | path dirname)
+    if ($p.dest | path exists) { rm --recursive --force $p.dest }
+  }
+
+  let ps_commands = $win_pairs
+    | each {|p| $"New-Item -ItemType SymbolicLink -Path '($p.win_dest)' -Target '($p.win_source)'"}
+    | str join "; "
+
+  sudo.exe powershell.exe -NoProfile -Command $ps_commands
 }
 
 # symlinks configuration files into their expected locations
@@ -153,17 +180,15 @@ export def setup [] {
       let dest = $nu.home-dir | path join ...$x.dest
 
       log info $"linking ($src) to ($dest)"
-
       idempotent_symlink $src $dest
 
-      if $is_wsl {
-        let dest = $ms_home | path join ...$x.dest
-
-        log info $"linking ($src) to ($dest)"
-
-        idempotent_symlink $src $dest
+      if $is_wsl and ($ms_home | is-not-empty) {
+        let win_dest = $ms_home | path join ...$x.dest
+        { source: $src, dest: $win_dest }
       }
-    }
+    } | compact | batch_windows_symlinks
+
+  if $is_wsl { copy_wt_settings $ms_home $config_path }
 
     if (which komorebic.exe | is-not-empty) {
        komorebic.exe fetch-app-specific-configuration

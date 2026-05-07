@@ -1,0 +1,1 @@
+/home/pfes/nvim/config/claude/CLAUDE.md

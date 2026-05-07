@@ -128,9 +128,6 @@ def install_grouped_packages [$grouped_packages: any, use_windows_exe: bool = fa
   }
 }
 
-# all packages managers default to upgrading now
-# TODO: except SCOOP
-# TODO: remove scoop?
 export def "install packages" [] {
   let src_col = get-package-column
   let grouped_packages = group_packages $src_col
@@ -143,4 +140,34 @@ export def "install packages" [] {
     install_grouped_packages $grouped_packages true
   }
 }
+
+def upgrade-all [manager: any, bin = "name"] {
+  let bin = $manager | get $bin
+  let cmd = $manager.upgrade_all_cmd | split-whitespace
+
+  if (which $bin | is-not-empty) {
+    print $"upgrading packages from ($bin)"
+
+    ^$bin ...$cmd
+  }
+}
+
+# TODO handle npm / npm.exe, dotnet / dotnet.exe
+export def "install upgrades" [] {
+  if ($nu.os-info.name == 'linux') {
+    print "upgrading system packges. need sudo priveledges"
+    sudo apt update; sudo apt upgrade -y
+  }
+
+  for manager in $managers {
+    upgrade-all $manager
+  }
+
+  if (is_wsl) {
+    for manager in $managers {
+      upgrade-all $manager "windows_exe"
+    }
+  }
+}
+
 

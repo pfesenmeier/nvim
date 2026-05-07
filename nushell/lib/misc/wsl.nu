@@ -8,9 +8,8 @@ export def is_wsl []: nothing -> bool {
 # returns empty string if not found
 export def find_ms_home []: nothing -> string {
   let known_home_dirs = [
-    pfes
+    pfese
     pbfesenmeier
-    pfesenmeier
   ]
 
   let home_dir_parent = '/mnt/c/Users/'
