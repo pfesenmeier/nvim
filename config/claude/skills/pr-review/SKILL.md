@@ -2,11 +2,13 @@
 name: pr-review
 description: Full code review of current branch changes (correctness, security, tests, architecture)
 disable-model-invocation: true
-allowed-tools: Bash, Read, Grep, Glob
+allowed-tools: Bash, Read, Write, Grep, Glob
 argument-hint: "[focus-area]"
 ---
 
 Perform a thorough code review of the current branch's changes. Follow these phases in order.
+
+The final review must be saved to `~/Documents/pr-reviews/` as a markdown file, in addition to being printed to the terminal. Create the directory with `mkdir -p ~/Documents/pr-reviews` if it does not already exist. Name the file `<YYYY-MM-DD>-<branch-or-change-id>.md` (use the current change's bookmark/branch name when available; fall back to the jj change ID). The last line of terminal output must be the absolute path to the saved file.
 
 ## Phase 1 — Gather context
 
@@ -43,7 +45,7 @@ If `$ARGUMENTS` is provided, weight that area more heavily in your analysis but 
 
 ## Phase 4 — Output format
 
-Produce a structured markdown review:
+Produce a structured markdown review. Print the full review to the terminal and also write the same content to `~/Documents/pr-reviews/<YYYY-MM-DD>-<branch-or-change-id>.md` (creating the directory if needed). After the review, the final line of terminal output must be the absolute path to that file (e.g. `/home/<user>/Documents/pr-reviews/2026-05-26-my-branch.md`) with no other text on that line.
 
 ---
 

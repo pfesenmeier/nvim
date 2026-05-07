@@ -18,10 +18,9 @@ export def jjbst- [branch: string] {
    )
 
    let slns = (
-     [**/*.sln **/*.slnx]
-     | each { |pat| try { ls $pat | get name } catch { [] } }
+     ["**/*.sln", "**/*.slnx"]
+     | each { |pat| try { glob $pat } catch { [] } }
      | flatten
-     | each { |s| $"($root)/($s)" }
    )
 
    $files
