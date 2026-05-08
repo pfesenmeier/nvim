@@ -76,7 +76,7 @@ def batch_windows_symlinks []: list<record<source: string, dest: string>> -> not
   # wslpath -w fails on non-existent /mnt paths; convert those manually
   let to_win = {|p|
     if ($p | str starts-with '/mnt/') {
-      $p | str replace --regex '^/mnt/([a-zA-Z])' '${1}:' | str replace --all '/' '\\'
+      $p | str replace --regex '^/mnt/([a-zA-Z])' '${1}:' | str replace --all '/' '\'
     } else {
       wslpath -w $p
     }
@@ -91,15 +91,20 @@ def batch_windows_symlinks []: list<record<source: string, dest: string>> -> not
 
   for p in $win_pairs {
     log info $"linking ($p.source) to ($p.dest)"
-    mkdir ($p.dest | path dirname)
-    if ($p.dest | path exists) { rm --recursive --force $p.dest }
   }
 
+  let log_file = 'C:\Users\Public\symlink_setup_log.txt'
+
   let ps_commands = $win_pairs
-    | each {|p| $"New-Item -ItemType SymbolicLink -Path '($p.win_dest)' -Target '($p.win_source)'"}
+    | each {|p| $"Remove-Item -Recurse -Force -ErrorAction SilentlyContinue '($p.win_dest)'; New-Item -ItemType SymbolicLink -Path '($p.win_dest)' -Target '($p.win_source)'"}
     | str join "; "
 
-  sudo.exe powershell.exe -NoProfile -Command $ps_commands
+  let ps_wrapped = $"Start-Transcript -Path '($log_file)' -Force; try { ($ps_commands) } catch { Write-Error $_.Exception.Message }; Stop-Transcript"
+
+  sudo.exe powershell.exe -NoProfile -Command $ps_wrapped
+
+  let log_wsl = wslpath -u $log_file
+  if ($log_wsl | path exists) { open $log_wsl | print }
 }
 
 # symlinks configuration files into their expected locations
@@ -188,7 +193,9 @@ export def setup [] {
       }
     } | compact | batch_windows_symlinks
 
-  if $is_wsl { copy_wt_settings $ms_home $config_path }
+    # BUG settings is not portable (distribution guids)
+    # TODO merge json documents 
+    # if $is_wsl { copy_wt_settings $ms_home $config_path }
 
     if (which komorebic.exe | is-not-empty) {
        komorebic.exe fetch-app-specific-configuration
