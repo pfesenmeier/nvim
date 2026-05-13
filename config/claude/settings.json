@@ -23,7 +23,7 @@
       "Bash(curl -s -X POST http://localhost:5049/graphql:*)"
     ]
   },
-  "model": "sonnet",
+  "model": "opus",
   "hooks": {
     "Notification": [
       {

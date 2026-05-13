@@ -26,7 +26,7 @@ alt + shift + m         : $s = komorebic.exe state | ConvertFrom-Json; $ws = $s.
 alt + p                 : komorebic cycle-focus previous # oem_4 is [
 alt + n                 : komorebic cycle-focus next # oem_6 is ]
 # try to remove next empty space
-alt + shift + n         : komorebic cycle-focus next; komorebic unmanage; komorebic retile
+alt + shift + n         : komorebic cycle-focus next; komorebic unmanage; komorebic retile; komorebic cycle-focus previous
 alt + shift + p         : komorebic cycle-move previous
 alt + shift + n         : komorebic cycle-move next
 

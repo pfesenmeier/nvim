@@ -30,6 +30,7 @@
     "palette": "Base16",
     "name": "EverforestDarkHard",
     "unfocused_border": "Base02",
+    "monocle_border": "Base09",
     "bar_accent": "Base0A"
   },
   "layout_defaults": {
