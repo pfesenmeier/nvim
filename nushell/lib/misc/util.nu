@@ -43,11 +43,76 @@ export def --env cdn [] {
    job spawn { azurite --inMemoryPersistence } -d azurite
  }
  
+ # Copy zoxide entries from one jj workspace to every sibling jj workspace.
+ # Paths are rewritten (source prefix -> sibling prefix); scores are preserved.
+ # Re-running accumulates scores (`zoxide import --merge`).
  export def zoxide-init-jj-workspace [
-   workspace: string # path to workspace
+   source?: string # source workspace path; defaults to current `jj workspace root`
  ] {
-   # move all queries from <workspace> to <other-workspace>
-   
+   let source = if ($source | is-empty) {
+     jj workspace root | str trim
+   } else {
+     $source | path expand
+   }
+
+   if not ($source | path exists) {
+     error make { msg: $"source workspace does not exist: ($source)" }
+   }
+
+   let parent = $source | path dirname
+   let self_name = $source | path basename
+
+   let siblings = (
+     ls $parent
+     | where type == dir
+     | where ($it.name | path basename) != $self_name
+     | where (($it.name | path join '.jj') | path exists)
+     | get name
+   )
+
+   if ($siblings | is-empty) {
+     print "no sibling jj workspaces found"
+     return
+   }
+
+   let raw = (zoxide query -l -s --base-dir $source | complete)
+   if $raw.exit_code != 0 {
+     error make { msg: $"zoxide query failed: ($raw.stderr)" }
+   }
+
+   let entries = (
+     $raw.stdout
+     | lines
+     | parse --regex '^\s*(?<score>\S+)\s+(?<path>.+)$'
+   )
+
+   if ($entries | is-empty) {
+     print $"no zoxide entries under ($source)"
+     return
+   }
+
+   let now = (date now | format date '%s')
+   let src_len = ($source | str length)
+
+   for sibling in $siblings {
+     let lines = (
+       $entries
+       | each {|e|
+           let rel = ($e.path | str substring $src_len..)
+           $"($sibling)($rel)|($e.score)|($now)"
+         }
+       | str join "\n"
+     )
+     let tmp = (mktemp)
+     $lines | save -f $tmp
+     let r = (zoxide import --merge --from z $tmp | complete)
+     rm -f $tmp
+     if $r.exit_code != 0 {
+       print $"seed failed for ($sibling): ($r.stderr)"
+     } else {
+       print $"seeded ($entries | length) entries -> ($sibling)"
+     }
+   }
  }
  
  export def job-select [] {
