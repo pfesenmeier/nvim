@@ -7,17 +7,20 @@ def main [] {
 
     let should_ring = match $event {
         "Notification" => true,
-        "Stop" => {
-            $input
-            | get -o last_assistant_message
-            | default ""
-            | str trim
-            | str ends-with "?"
-        },
+        "Stop" => true,
         _ => false,
     }
 
     if $should_ring {
-        (char bel) | save --raw --force /dev/tty
+        # The hook subprocess may be detached from /dev/tty (macOS spawns it
+        # in a new session). When running under tmux, $TMUX_PANE is still
+        # inherited — resolve it to the pane's PTY path and write BEL there
+        # so tmux registers the bell event (shows `(!)` in the status line).
+        let tty = if "TMUX_PANE" in $env {
+            ^tmux display-message -p -t $env.TMUX_PANE "#{pane_tty}" | str trim
+        } else {
+            "/dev/tty"
+        }
+        (char bel) | save --raw --force $tty
     }
 }
