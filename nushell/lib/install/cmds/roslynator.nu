@@ -1,9 +1,9 @@
-use constants.nu app_dir
+use ../../constants.nu app_dir
 
 const roslynator_dir = $app_dir | path join dotnet roslynator
 
 export def "install roslynator" [] {
-   let zip = 'roslynator.zip'    
+   let zip = 'roslynator.zip'
    let exdir = 'roslynator'
    const home = $nu.home-dir
 

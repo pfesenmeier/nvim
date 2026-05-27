@@ -1,12 +1,5 @@
 use std log;
-
-def 'settings app_dir' [] {
-    if $nu.os-info.family == 'windows' {
-      [$nu.home-dir AppData Local] | path join
-    } else {
-      [$nu.home-dir .local bin] | path join
-    }
-}
+use ../constants.nu app_dir
 
 export def 'github install' [
   repo: string
@@ -15,7 +8,6 @@ export def 'github install' [
   tag?: string
 ] {
 
-   let app_dir = settings app_dir
    let install_dir = ([$app_dir $repo] | path join)
 
    if ($install_dir | path exists) {
@@ -23,7 +15,7 @@ export def 'github install' [
    }
 
    (
-     github download 
+     github download
      $repo
      $asset
      $install_dir
@@ -92,7 +84,7 @@ def 'extract' [
   let ext = $zip_path | path parse | get extension;
 
   if $ext == 'zip' {
-    run-external unzip $zip_path "-d" $dir 
+    run-external unzip $zip_path "-d" $dir
   } else if ($zip_path | str ends-with 'tar.gz') {
     run-external tar "-xzf" $zip_path "-C" $dir
   } else {
