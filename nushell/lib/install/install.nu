@@ -21,15 +21,6 @@ def download [
    env path try add $install_dir $executable
 }
 
-# available in winget, but need 3.7.0 to avoid bug on windows
-def 'download lua-language-server' [] {
-  if $nu.os-info.family == 'windows' {
-    scoop install lua-language-server
-  } else {
-    brew install lua-language-server
-  }
-}
-
 def 'download netcoredbg' [] {
   if $nu.os-info.family == 'windows' {
     (

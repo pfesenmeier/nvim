@@ -123,6 +123,7 @@ end
 local sysname = vim.uv.os_uname().sysname:lower()
 Config.env = {
   islinux = string.match(sysname, "linux") ~= nil,
+  ismacos = string.match(sysname, "darwin") ~= nil,
   is_wsl_linux = vim.env.WSL_DISTRO_NAME ~= nil,
   iswindows = string.match(sysname, "windows") ~= nil,
   -- see roslynator.nu

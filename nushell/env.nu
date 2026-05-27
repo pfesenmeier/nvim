@@ -126,7 +126,7 @@ def concat-paths [...path] {
 }
 
 if ($nu.os-info.family != windows) {
-  let prefix = if $nu.os-info.family == "macos" {
+  let prefix = if $nu.os-info.name == "macos" {
       "/opt/homebrew"
   } else {
       "/home/linuxbrew/.linuxbrew"

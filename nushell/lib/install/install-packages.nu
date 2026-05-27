@@ -98,9 +98,9 @@ def parse-pkg-row [package: string, input?: string] {
 }
 
 def get-package-column [] {
-  let isLinux = $nu.os-info.name == 'linux'
+  # TODO separate mac and linux
+  let isLinux = $nu.os-info.family == 'unix'
 
-  # TODO mac
   if $isLinux {
     "srcUnix"
   } else {

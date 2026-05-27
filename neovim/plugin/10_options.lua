@@ -102,10 +102,10 @@ vim.o.completetimeout = 100                             -- Limit sources delay
 --   vim.opt.shellslash = false
 -- end
 -- https://github.com/neovim/neovim/issues/19648#issuecomment-1212295560
-if Config.env.islinux then
-  vim.opt.shell = "/home/linuxbrew/.linuxbrew/bin/nu"
-else
+if Config.env.iswindows then
   vim.opt.shell = "nu"
+else
+  vim.opt.shell = vim.fs.joinpath(vim.env.HOMEBREW_PREFIX, "bin/nu")
 end
 vim.opt.shellcmdflag = "--no-config-file --commands"
 vim.opt.shellquote = ""

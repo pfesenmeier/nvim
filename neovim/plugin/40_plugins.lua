@@ -143,7 +143,6 @@ now_if_args(function()
 
     -- "prismals",
     -- "tailwindcss",
-    "nushell",
     "lua_ls",
     "marksman",
     "terraformls",

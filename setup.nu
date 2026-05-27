@@ -117,7 +117,14 @@ export def setup [] {
   )
 
   let nushell_config_folder = (
-    (if $nu.os-info.family == 'windows' {  [AppData Roaming] } else { [.config] })
+    (if $nu.os-info.family == 'windows' {
+        [AppData Roaming]
+     } else if $nu.os-info.name == 'macos' {
+        [Library 'Application Support']
+      } else {
+       [.config]
+     }
+    )
     | append nushell
   )
 
