@@ -1,0 +1,22 @@
+# Sesh: smart tmux session manager.
+# Docs: https://github.com/joshmedeski/sesh
+
+# When sesh creates a new session, it runs this command inside that session's
+# first window. We delegate to tmux-start.nu --populate, which renames the
+# window to "neovim" + starts nvim, then adds the jj (jjui) and claude windows
+# and selects jj as the default.
+[default_session]
+startup_command = "nu /Users/pfes/nvim/nushell/lib/misc/tmux-start.nu --populate"
+
+# Source priority (first match wins for autocomplete + picker grouping):
+# 1. tmux running sessions  → attach instead of recreate
+# 2. zoxide directories     → primary directory store, already jj-workspace-aware
+# 3. last_session           → quick toggle to most-recent session
+[[sources]]
+type = "tmux"
+
+[[sources]]
+type = "zoxide"
+
+[[sources]]
+type = "last_session"

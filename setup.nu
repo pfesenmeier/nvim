@@ -181,6 +181,9 @@ export def setup [] {
     } {
       src: [tmux.conf]
       dest: [.tmux.conf]
+    } {
+      src: [sesh.toml]
+      dest: [.config sesh sesh.toml]
     }] | each {|x|
       let root = $x | get -o root | default false
 

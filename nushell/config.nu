@@ -853,7 +853,6 @@ alias jobs = job list
 
 source secrets.nu
 source misc/util.nu
-source install/install.nu
 source install/install-packages.nu
 source paths.nu
 source dotnet/jb-clean.nu

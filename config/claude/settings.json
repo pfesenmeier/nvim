@@ -23,6 +23,7 @@
       "Bash(curl -s -X POST http://localhost:5049/graphql:*)"
     ]
   },
+  "model": "opus",
   "hooks": {
     "Notification": [
       {
