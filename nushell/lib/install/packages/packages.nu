@@ -14,6 +14,7 @@ export def main [] {
     [neovim                            scoop                             brew]
     [nushell                           scoop=nu                          brew]
     [ripgrep                           scoop                             brew]
+    [television                        winget=alexpasmantier.television  brew]
     [bat                               scoop                             brew]
     [sesh                              null                              brew]
     [vcredist2022                      scoop                             null]

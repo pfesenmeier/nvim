@@ -6,10 +6,11 @@
   "stackbar": {
     "label": "Title",
     "mode": "OnStack",
-    "height": 25,
+    "height": 32,
     "tabs": {
-      "font_size": 20,
-      "font_family": "0xProto Nerd Font Mono"
+      "font_size": 28,
+      "font_family": "0xProto Nerd Font Mono",
+      "width": 280
     }
   },
   "bar_configurations": [
