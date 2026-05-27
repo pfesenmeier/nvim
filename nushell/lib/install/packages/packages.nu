@@ -31,6 +31,7 @@ export def main [] {
     [devtoys                           winget=DevToys-app.DevToys        null]
     [zoxide                            scoop                             brew]
     [jj                                scoop                             brew]
+    [jjui                              null                              brew]
     [dockerfile-language-server-nodejs null                              npm]
     [graphql-language-service-cli      null                              npm]
     [typescript                        npm                               npm]
