@@ -27,25 +27,11 @@
   "hooks": {
     "Notification": [
       {
-        "matcher": "permission_prompt",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "nu --stdin ~/.claude/hooks/bell-on-input-needed.nu",
-            "timeout": 1
-          }
-        ]
+        "matcher": "permission_prompt"
       }
     ],
     "Stop": [
       {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "nu --stdin ~/.claude/hooks/bell-on-input-needed.nu",
-            "timeout": 1
-          }
-        ]
       }
     ]
   },
@@ -56,6 +42,5 @@
   "effortLevel": "xhigh",
   "autoUpdatesChannel": "stable",
   "theme": "auto",
-  "editorMode": "vim",
   "skipAutoPermissionPrompt": true
 }

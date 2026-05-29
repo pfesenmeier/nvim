@@ -1,7 +1,8 @@
 #! /home/linuxbrew/.linuxbrew/bin/nu
 
 def bin [name: string] {
-  ($env.HOMEBREW_PREFIX? | default "/home/linuxbrew/.linuxbrew") | path join bin $name
+  let prefix = $env.HOMEBREW_PREFIX? | default /home/linuxbrew/.linuxbrew/
+  $prefix | path join bin $name
 }
 
 def tab_config [] {
