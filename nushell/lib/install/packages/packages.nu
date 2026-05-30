@@ -15,7 +15,6 @@ export def main [] {
     [nushell                           scoop=nu                          brew]
     [ripgrep                           scoop                             brew]
     [bat                               scoop                             brew]
-    [sesh                              null                              brew]
     [vcredist2022                      scoop                             null]
     ['nerd-fonts/0xProto-NF-Mono'      scoop                             null]
     [gsudo                             scoop                             null]

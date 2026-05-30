@@ -56,6 +56,5 @@
   "effortLevel": "xhigh",
   "autoUpdatesChannel": "stable",
   "theme": "auto",
-  "editorMode": "vim",
   "skipAutoPermissionPrompt": true
 }

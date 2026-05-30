@@ -12,15 +12,26 @@ def main [] {
     }
 
     if $should_ring {
-        # The hook subprocess may be detached from /dev/tty (macOS spawns it
-        # in a new session). When running under tmux, $TMUX_PANE is still
-        # inherited — resolve it to the pane's PTY path and write BEL there
-        # so tmux registers the bell event (shows `(!)` in the status line).
-        let tty = if "TMUX_PANE" in $env {
-            ^tmux display-message -p -t $env.TMUX_PANE "#{pane_tty}" | str trim
-        } else {
-            "/dev/tty"
+        # /dev/tty isn't reliable here: on macOS the hook is setsid'd so it
+        # ENXIOs, and on either OS, if Claude is running inside nvim's
+        # :terminal, /dev/tty resolves to nvim's PTY and the bell never
+        # reaches the outer terminal. Walk up the process tree and write
+        # the BEL to the *outermost* real TTY (the actual terminal app).
+        mut pid = $nu.pid
+        mut outer = ""
+        for _ in 0..15 {
+            let ppid_str = (^ps -o ppid= -p $pid | str trim)
+            if ($ppid_str | is-empty) { break }
+            let ppid = ($ppid_str | into int)
+            if $ppid <= 1 { break }
+            let name = (^ps -o tty= -p $ppid | str trim)
+            if $name != "??" and ($name | str length) > 0 {
+                $outer = $name
+            }
+            $pid = $ppid
         }
-        (char bel) | save --raw --force $tty
+        if ($outer | is-not-empty) {
+            (char bel) | save --raw --force $"/dev/($outer)"
+        }
     }
 }

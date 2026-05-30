@@ -5,4 +5,4 @@ keybind = super+ctrl+0=goto_split:next
 
 font-size = 24
 
-bell-features = attention
+bell-features = attention,title

@@ -871,4 +871,3 @@ source install/cmds/komorebi_mac.nu
 use jj/cmds.nu *
 use jj/completions.nu *
 use misc/wt-layout.nu *
-use misc/tmux-start.nu
