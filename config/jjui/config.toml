@@ -1,6 +1,11 @@
 # jjui custom actions + key bindings.
 # Lua-scripting docs: https://idursun.github.io/jjui/customization/lua-scripting/
 
+[ui]
+# everforest-dark-hard from https://github.com/vic/tinted-jjui
+# Theme file lives at themes/everforest.toml in this repo (symlinked).
+theme = "everforest"
+
 [[actions]]
 name = "nv_quickfix_checked"
 lua = '''
