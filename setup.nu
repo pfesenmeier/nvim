@@ -178,6 +178,16 @@ export def setup [] {
     } {
       src: [claude skills]
       dest: [.claude skills]
+    } {
+      src: [jjui]
+      dest: [.config jjui]
+    } {
+      src: [scripts nv]
+      root: true
+      dest: [.local bin nv]
+    } {
+      src: [zshenv]
+      dest: [.zshenv]
     }] | each {|x|
       let root = $x | get -o root | default false
 

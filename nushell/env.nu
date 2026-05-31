@@ -140,8 +140,9 @@ if ($nu.os-info.family != windows) {
       sbin
   ] | each { |dir| $prefix | path join $dir }
   $env.PATH = (
-    $env.PATH 
+    $env.PATH
     | prepend $brew_paths
+    | prepend ($nu.home-dir | path join ".local" "bin")
     | uniq
   )
 

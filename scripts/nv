@@ -1,0 +1,59 @@
+#!/usr/bin/env nu
+
+# nv: bridge to the parent nvim instance.
+# Each subcommand wraps an Ex command registered by the `remote` Lua plugin
+# (see neovim/lua/remote/init.lua). Calls go out over the RPC socket exposed
+# at $NVIM (set automatically by nvim's :terminal for child processes).
+#
+# We use --remote-expr (not --remote-send) so commands run regardless of which
+# mode the outer nvim is in (e.g. when this is invoked from inside a floatterm
+# where nvim's focused window is in terminal mode).
+
+# Assert we're inside a parent nvim instance.
+def need-nvim [] {
+  if ($env.NVIM? | is-empty) {
+    error make { msg: "not running inside a parent nvim ($NVIM is unset)" }
+  }
+}
+
+# Escape a string for use inside a vim double-quoted string literal.
+def vim-str-escape [s: string]: nothing -> string {
+  $s | str replace --all '\' '\\' | str replace --all '"' '\"'
+}
+
+# Build a vim expression that runs `:<cmd> arg1 arg2 …` via execute(), with
+# each arg passed through fnameescape() so spaces / special chars survive.
+def build-execute-expr [cmd: string, args: list<string>]: nothing -> string {
+  let pieces = ($args | each {|a| ('fnameescape("' + (vim-str-escape $a) + '")') })
+  let joined = ($pieces | str join ' . " " . ')
+  ('execute("' + $cmd + ' " . ' + $joined + ')')
+}
+
+# Open a file in the parent nvim.
+def "main open" [
+  file: path  # File to open in the parent nvim
+] {
+  need-nvim
+  let abs = ($file | path expand)
+  let expr = (build-execute-expr "RemoteOpen" [$abs])
+  ^nvim --server $env.NVIM --remote-expr $expr | ignore
+}
+
+# Replace the parent nvim's quickfix list with the given files and `:copen` it.
+# The floatterm float (if visible) is dismissed so quickfix is in focus.
+def "main quickfix" [
+  ...files: path  # Files to populate the quickfix list with
+] {
+  need-nvim
+  if ($files | is-empty) {
+    error make { msg: "quickfix: at least one file required" }
+  }
+  let abs = ($files | each {|f| $f | path expand })
+  let expr = (build-execute-expr "RemoteQuickfix" $abs)
+  ^nvim --server $env.NVIM --remote-expr $expr | ignore
+}
+
+def main []: nothing -> nothing {
+  print "nv: bridge to the parent nvim. Subcommands: open, quickfix."
+  print "See `nv <subcmd> --help`."
+}

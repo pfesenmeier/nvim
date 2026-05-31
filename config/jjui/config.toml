@@ -1,0 +1,21 @@
+# jjui custom actions + key bindings.
+# Lua-scripting docs: https://idursun.github.io/jjui/customization/lua-scripting/
+
+[[actions]]
+name = "nv_quickfix_checked"
+lua = '''
+  local files = context.checked_files()
+  if #files == 0 then
+    flash("nothing checked")
+    return
+  end
+  -- exec_shell inherits env, so the spawned shell sees $NVIM and runs `nv`.
+  exec_shell("nv quickfix " .. table.concat(files, " "))
+  flash("\u{2192} qflist (" .. #files .. ")")
+'''
+
+[[bindings]]
+action = "nv_quickfix_checked"
+key = "ctrl+q"
+scope = "revisions.details"
+desc = "Send checked files to nvim quickfix"
