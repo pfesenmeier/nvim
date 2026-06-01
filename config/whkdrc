@@ -38,13 +38,15 @@ alt + shift + l         : komorebic move right
 alt + space             : komorebic promote
 
 # Stack windows
-alt + shift + left      : komorebic stack left
+alt + shift + 9         : komorebic stack left # (
 alt + shift + down      : komorebic stack down
 alt + shift + up        : komorebic stack up
-alt + shift + right     : komorebic stack right
+alt + shift + right     : komorebic stack right # )
 alt + oem_1             : komorebic unstack # oem_1 is ;
-alt + oem_4             : komorebic cycle-stack previous # oem_4 is [
-alt + oem_6             : komorebic cycle-stack next # oem_6 is ]
+alt + 9                 : komorebic cycle-stack previous # (
+alt + 0                 : komorebic cycle-stack next     # )
+# alt + oem_4             : komorebic cycle-stack previous # oem_4 is [
+# alt + oem_6             : komorebic cycle-stack next # oem_6 is ]
 
 # Resize
 alt + oem_plus          : komorebic resize-axis horizontal increase
