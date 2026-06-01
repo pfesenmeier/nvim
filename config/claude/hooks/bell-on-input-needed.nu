@@ -25,7 +25,7 @@ def main [] {
             let ppid = ($ppid_str | into int)
             if $ppid <= 1 { break }
             let name = (^ps -o tty= -p $ppid | str trim)
-            if $name != "??" and ($name | str length) > 0 {
+            if $name != "??" and $name != "?" and ($name | str length) > 0 {
                 $outer = $name
             }
             $pid = $ppid

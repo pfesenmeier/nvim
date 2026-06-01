@@ -247,10 +247,10 @@ now_if_args(function()
   require('mini.misc').setup()
 
   -- Change current working directory based on the current file path. It
-  -- searches up the file tree until the first root marker ('.git' or 'Makefile')
+  -- searches up the file tree until the first root marker ('.git' or '.jj')
   -- and sets their parent directory as a current directory.
   -- This is helpful when simultaneously dealing with files from several projects.
-  MiniMisc.setup_auto_root()
+  MiniMisc.setup_auto_root({ '.git', '.jj' })
 
   -- Restore latest cursor position on file open
   MiniMisc.setup_restore_cursor()

@@ -4,6 +4,12 @@
 
 "create or go to" -> jjui, claude
 
+## NV tool
+
+- nv notify
+- have stop / prompt hooks call nv notify
+- have an edit refresh buffer if open???
+
 ## AI - <space> a
 
 - maybe wire up code companion, or do it custom
@@ -39,6 +45,13 @@
 
 - [ ] customize background in jjui to be darker
 - [ ] refresh lsp diagnostics when leaving normal mode
+- [ ] ft settings with default that shows error message
+## DX
+- [ ] Have "recent files" in dashboard scoped to current directory
+- [ ] Have "sort by" feature in built-in picker
+- [ ] wire in mini.sessions more...
+- [ ] shortcut for load most recent claude plan
+- [ ] shortcut for fp -> find plans (put title inside picker??)
 - [ ] add jj info to statusbar
 - [ ] make neovim homescreen more useful
 
