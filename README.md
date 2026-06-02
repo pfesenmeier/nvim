@@ -4,24 +4,34 @@
 
 "create or go to" -> jjui, claude
 
+## Floating Term
+
+- auto-resize??
+
 ## NV tool
 
 - nv notify
 - have stop / prompt hooks call nv notify
 - have an edit refresh buffer if open???
 
+## New Config -> Register
+
+- <leader>r
+
 ## AI - <space> a
 
 - maybe wire up code companion, or do it custom
+- :50at  ? share last 50 lines of terminal buffer
 - ap - input, submit prompt to claude
+- ass - share shell
 - aP - share buffer path with claude
 - as - share selection
 - ab - share buffer contents
 
 ## Execute buffer command
 
+- [ ] ft settings with default that shows error message
 - add <leader>r for running file
-- filetype extensions to set up
 <leader>rf - file
 <leader>rs - selection
 
@@ -43,10 +53,8 @@
 
 ## UI
 
-- [ ] customize background in jjui to be darker
-- [ ] refresh lsp diagnostics when leaving normal mode
-- [ ] ft settings with default that shows error message
-## DX
+- [ ] have ctrl+b in terminal mode begin scrollback
+- [ ] make ctrl+g scoped to current working dir
 - [ ] Have "recent files" in dashboard scoped to current directory
 - [ ] Have "sort by" feature in built-in picker
 - [ ] wire in mini.sessions more...
