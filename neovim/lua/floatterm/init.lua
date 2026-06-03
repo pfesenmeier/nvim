@@ -17,17 +17,20 @@ local defaults = {
   hide_key = [[<C-\><C-\>]],
   last_key = [[<C-\>]],
   resume_key = "r",  -- under keymap_prefix; <leader>tr reopens last terminal
-  window = { width = 0.9, height = 0.9, border = "rounded" },
+  window = { width = 0.95, height = 0.9, border = "rounded" },
 }
 
 local opts = defaults
 
 local function geometry()
+  -- Reserve the statusline and cmdline so the float doesn't sit on top of them.
+  local bottom_pad = vim.o.cmdheight + 1
+  local usable = vim.o.lines - bottom_pad
   local w = math.floor(vim.o.columns * opts.window.width)
-  local h = math.floor(vim.o.lines * opts.window.height)
+  local h = math.floor(usable * opts.window.height)
   return {
     relative = "editor",
-    row = math.floor((vim.o.lines - h) / 2),
+    row = math.floor((usable - h) / 2),
     col = math.floor((vim.o.columns - w) / 2),
     width = w,
     height = h,
@@ -35,8 +38,31 @@ local function geometry()
   }
 end
 
+local function update_title()
+  if not vim.api.nvim_win_is_valid(state.win) or not state.current then return end
+  local mode = vim.api.nvim_get_mode().mode == "t" and "TERM" or "NORMAL"
+  pcall(vim.api.nvim_win_set_config, state.win, {
+    title = " " .. state.current .. " [" .. mode .. "] ",
+    title_pos = "center",
+  })
+end
+
+local function is_normal_mode(mode)
+  -- "n" = normal; "nt" = terminal-normal (after <C-\><C-n>).
+  return mode == "n" or mode == "nt"
+end
+
 local function hide_internal()
   if vim.api.nvim_win_is_valid(state.win) then
+    local t = state.current and state.terms[state.current]
+    if t then
+      t.mode = vim.api.nvim_get_mode().mode
+      if is_normal_mode(t.mode) then
+        t.view = vim.api.nvim_win_call(state.win, vim.fn.winsaveview)
+      else
+        t.view = nil
+      end
+    end
     vim.api.nvim_win_hide(state.win)
   end
   state.win = -1
@@ -83,14 +109,28 @@ function M.open(name)
     vim.bo[term_buf].bufhidden = "hide"
     state.terms[name] = { buf = term_buf, cmd = cfg.cmd }
 
+    vim.keymap.set({ "t", "n" }, opts.hide_key, function() M.hide() end, {
+      buffer = term_buf,
+      desc = "Float: hide",
+    })
+
     if vim.api.nvim_buf_is_valid(placeholder) and placeholder ~= term_buf then
       pcall(vim.api.nvim_buf_delete, placeholder, { force = true })
     end
   end
 
-  vim.cmd("startinsert")
   state.current = name
   state.last = name
+  update_title()
+
+  local saved = state.terms[name]
+  if saved and is_normal_mode(saved.mode) then
+    if saved.view then
+      vim.api.nvim_win_call(state.win, function() vim.fn.winrestview(saved.view) end)
+    end
+  else
+    vim.cmd("startinsert")
+  end
 end
 
 function M.open_last()
@@ -122,10 +162,6 @@ function M.setup(user_opts)
     end
   end
 
-  vim.keymap.set("t", opts.hide_key, function() M.hide() end, {
-    desc = "Float: hide",
-  })
-
   vim.keymap.set({ "n", "i" }, opts.last_key, function() M.open_last() end, {
     desc = "Float: reopen last",
   })
@@ -135,6 +171,23 @@ function M.setup(user_opts)
       M.open_last()
     end, { desc = "Float: resume last" })
   end
+
+  local group = vim.api.nvim_create_augroup("FloatTerm", { clear = true })
+
+  vim.api.nvim_create_autocmd("VimResized", {
+    group = group,
+    callback = function()
+      if vim.api.nvim_win_is_valid(state.win) then
+        vim.api.nvim_win_set_config(state.win, geometry())
+        update_title()
+      end
+    end,
+  })
+
+  vim.api.nvim_create_autocmd({ "TermEnter", "TermLeave", "ModeChanged" }, {
+    group = group,
+    callback = update_title,
+  })
 
   -- mini.clue integration: push explicit clue entries so the popup shows the
   -- terminal name (mini.clue would otherwise just use the keymap desc, which

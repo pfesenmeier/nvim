@@ -341,13 +341,13 @@ $env.config = {
           }
         }
         {
-          name: change_dir_with_fzf_from_home_dir
+          name: change_dir_with_fzf
           modifier: control
           keycode: char_g
           mode: [vi_normal vi_insert]
           event: {
             send: executehostcommand,
-            cmd: "cd (fd -t d . ($env.HOME? | default $env.USERPROFILE?) | fzf | decode utf-8 | str trim)"
+            cmd: "cd (fd -t d | fzf | decode utf-8 | str trim)"
           }
         }
         {

@@ -108,6 +108,15 @@ end
 local explore_locations = function()
   vim.cmd(vim.fn.getloclist(0, { winid = true }).winid ~= 0 and 'lclose' or 'lopen')
 end
+local edit_latest_plan = function()
+  local files = vim.fn.glob(vim.fn.expand('~/.claude/plans') .. '/*.md', false, true)
+  if #files == 0 then
+    vim.notify('No Claude plans found', vim.log.levels.WARN)
+    return
+  end
+  table.sort(files, function(a, b) return vim.fn.getftime(a) > vim.fn.getftime(b) end)
+  vim.cmd('edit ' .. vim.fn.fnameescape(files[1]))
+end
 
 nmap_leader('ed', '<Cmd>lua MiniFiles.open()<CR>', 'Directory')
 nmap_leader('ef', explore_at_file, 'File directory')
@@ -117,6 +126,7 @@ nmap_leader('em', edit_plugin_file('30_mini.lua'), 'MINI config')
 nmap_leader('en', '<Cmd>lua MiniNotify.show_history()<CR>', 'Notifications')
 nmap_leader('eo', edit_plugin_file('10_options.lua'), 'Options config')
 nmap_leader('ep', edit_plugin_file('40_plugins.lua'), 'Plugins config')
+nmap_leader('eP', edit_latest_plan, 'Latest Claude plan')
 nmap_leader('eq', explore_quickfix, 'Quickfix list')
 nmap_leader('eQ', explore_locations, 'Location list')
 
@@ -229,6 +239,9 @@ nmap_leader('sw', '<Cmd>lua MiniSessions.write()<CR>', 'Write current')
 -- t is for 'Terminal'
 nmap_leader('tT', '<Cmd>horizontal term<CR>', 'Terminal (horizontal)')
 nmap_leader('tt', '<Cmd>vertical term<CR>', 'Terminal (vertical)')
+
+-- <C-b> in terminal mode: leave to terminal-normal and scroll back one page.
+vim.keymap.set('t', '<C-b>', [[<C-\><C-n><C-b>]], { desc = 'Term: exit + page up' })
 
 -- v is for 'Visits'. Common usage:
 -- - `<Leader>vv` - add    "core" label to current file.
