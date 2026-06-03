@@ -21,6 +21,6 @@ lua = '''
 
 [[bindings]]
 action = "nv_quickfix_checked"
-key = "ctrl+q"
+key = "Q"
 scope = "revisions.details"
 desc = "Send checked files to nvim quickfix"
