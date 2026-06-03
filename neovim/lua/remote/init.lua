@@ -5,6 +5,9 @@
 local M = {}
 
 function M.open(file)
+  -- Hide the floatterm first so focus returns to the main window;
+  -- otherwise `:edit` would replace the terminal buffer inside the float.
+  pcall(function() require("floatterm").hide() end)
   vim.cmd("edit " .. vim.fn.fnameescape(file))
 end
 

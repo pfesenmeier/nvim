@@ -24,3 +24,22 @@ action = "nv_quickfix_checked"
 key = "Q"
 scope = "revisions.details"
 desc = "Send checked files to nvim quickfix"
+
+[[actions]]
+name = "nv_edit_file"
+lua = '''
+  local file = context.file()
+  if not file or file == "" then
+    flash("no file under cursor")
+    return
+  end
+  -- exec_shell inherits env, so the spawned shell sees $NVIM and runs `nv`.
+  exec_shell("nv open " .. file)
+  flash("\u{2192} " .. file)
+'''
+
+[[bindings]]
+action = "nv_edit_file"
+key = "e"
+scope = "revisions.details"
+desc = "Open file under cursor in nvim"
