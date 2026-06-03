@@ -32,12 +32,13 @@
 
 ## UX
 
+- [ ] shorcut to go to starter?
+- [ ] put pr-review folder in standard location, have er to edit latest review
 - [ ] Have "sort by" feature in built-in picker
 - [ ] wire in mini.sessions more...
 - [ ] add jj info to statusbar
 - [ ] nushell formatting
 - [ ] Improve searching in large monorepo
-
 
 ## Inspiration - VSCode Extextension
 - Github Pull Requests
