@@ -114,6 +114,14 @@ function M.open(name)
       buffer = term_buf,
       desc = "Float: cycle next",
     })
+    vim.keymap.set({ "t", "n" }, "<M-Left>", function() M.cycle(-1) end, {
+      buffer = term_buf,
+      desc = "Float: cycle prev",
+    })
+    vim.keymap.set({ "t", "n" }, "<M-Right>", function() M.cycle(1) end, {
+      buffer = term_buf,
+      desc = "Float: cycle next",
+    })
 
     if vim.api.nvim_buf_is_valid(placeholder) and placeholder ~= term_buf then
       pcall(vim.api.nvim_buf_delete, placeholder, { force = true })

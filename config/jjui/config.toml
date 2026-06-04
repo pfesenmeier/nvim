@@ -16,12 +16,12 @@ lua = '''
   end
   -- exec_shell inherits env, so the spawned shell sees $NVIM and runs `nv`.
   exec_shell("nv quickfix " .. table.concat(files, " "))
-  flash("\u{2192} qflist (" .. #files .. ")")
+  flash("→ qflist (" .. #files .. ")")
 '''
 
 [[bindings]]
 action = "nv_quickfix_checked"
-key = "Q"
+key = "E"
 scope = "revisions.details"
 desc = "Send checked files to nvim quickfix"
 
@@ -35,7 +35,7 @@ lua = '''
   end
   -- exec_shell inherits env, so the spawned shell sees $NVIM and runs `nv`.
   exec_shell("nv open " .. file)
-  flash("\u{2192} " .. file)
+  flash("→ " .. file)
 '''
 
 [[bindings]]
@@ -43,3 +43,47 @@ action = "nv_edit_file"
 key = "e"
 scope = "revisions.details"
 desc = "Open file under cursor in nvim"
+
+[[actions]]
+name = "copy_focused_file"
+lua = '''
+  local file = context.file()
+  if not file or file == "" then
+    flash("no file under cursor")
+    return
+  end
+  local ok, err = copy_to_clipboard(file)
+  if ok then
+    flash("⎘ " .. file)
+  else
+    flash({ text = "copy failed: " .. (err or "?"), error = true })
+  end
+'''
+
+[[bindings]]
+action = "copy_focused_file"
+key = "y"
+scope = "revisions.details"
+desc = "Copy focused file path to clipboard"
+
+[[actions]]
+name = "copy_checked_files"
+lua = '''
+  local files = context.checked_files()
+  if #files == 0 then
+    flash("nothing checked")
+    return
+  end
+  local ok, err = copy_to_clipboard(table.concat(files, "\n"))
+  if ok then
+    flash("⎘ " .. #files .. " files")
+  else
+    flash({ text = "copy failed: " .. (err or "?"), error = true })
+  end
+'''
+
+[[bindings]]
+action = "copy_checked_files"
+key = "Y"
+scope = "revisions.details"
+desc = "Copy checked file paths to clipboard"
