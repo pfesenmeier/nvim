@@ -97,6 +97,9 @@ nmap_leader('bW', '<Cmd>lua MiniBufremove.wipeout(0, true)<CR>', 'Wipeout!')
 -- - `<Leader>ed` - open explorer at current working directory
 -- - `<Leader>ef` - open directory of current file (needs to be present on disk)
 -- - `<Leader>ei` - edit 'init.lua'
+-- - `<Leader>el` - open explorer at the plugin install directory
+-- - `<Leader>eP` - edit the most recent plan in '~/.claude/plans'
+-- - `<Leader>er` - edit the most recent PR review in '~/Documents/pr-reviews'
 -- - All mappings that use `edit_plugin_file` - edit 'plugin/' config files
 local edit_plugin_file = function(filename)
   return string.format('<Cmd>edit %s/plugin/%s<CR>', vim.fn.stdpath('config'), filename)
@@ -108,20 +111,28 @@ end
 local explore_locations = function()
   vim.cmd(vim.fn.getloclist(0, { winid = true }).winid ~= 0 and 'lclose' or 'lopen')
 end
-local edit_latest_plan = function()
-  local files = vim.fn.glob(vim.fn.expand('~/.claude/plans') .. '/*.md', false, true)
-  if #files == 0 then
-    vim.notify('No Claude plans found', vim.log.levels.WARN)
-    return
+local edit_latest_md = function(dir, label)
+  return function()
+    local files = vim.fn.glob(vim.fn.expand(dir) .. '/*.md', false, true)
+    if #files == 0 then
+      vim.notify('No ' .. label .. ' found', vim.log.levels.WARN)
+      return
+    end
+    table.sort(files, function(a, b) return vim.fn.getftime(a) > vim.fn.getftime(b) end)
+    vim.cmd('edit ' .. vim.fn.fnameescape(files[1]))
   end
-  table.sort(files, function(a, b) return vim.fn.getftime(a) > vim.fn.getftime(b) end)
-  vim.cmd('edit ' .. vim.fn.fnameescape(files[1]))
+end
+local edit_latest_plan      = edit_latest_md('~/.claude/plans',        'Claude plans')
+local edit_latest_pr_review = edit_latest_md('~/Documents/pr-reviews', 'PR reviews')
+local explore_plugins = function()
+  MiniFiles.open(vim.fn.stdpath('data') .. '/site/pack/core/opt')
 end
 
 nmap_leader('ed', '<Cmd>lua MiniFiles.open()<CR>', 'Directory')
 nmap_leader('ef', explore_at_file, 'File directory')
 nmap_leader('ei', '<Cmd>edit $MYVIMRC<CR>', 'init.lua')
 nmap_leader('ek', edit_plugin_file('20_keymaps.lua'), 'Keymaps config')
+nmap_leader('el', explore_plugins, 'Plugins install dir')
 nmap_leader('em', edit_plugin_file('30_mini.lua'), 'MINI config')
 nmap_leader('en', '<Cmd>lua MiniNotify.show_history()<CR>', 'Notifications')
 nmap_leader('eo', edit_plugin_file('10_options.lua'), 'Options config')
@@ -129,6 +140,7 @@ nmap_leader('ep', edit_plugin_file('40_plugins.lua'), 'Plugins config')
 nmap_leader('eP', edit_latest_plan, 'Latest Claude plan')
 nmap_leader('eq', explore_quickfix, 'Quickfix list')
 nmap_leader('eQ', explore_locations, 'Location list')
+nmap_leader('er', edit_latest_pr_review, 'Latest PR review')
 
 -- f is for 'Fuzzy Find'. Common usage:
 -- - `<Leader>ff` - find files; for best performance requires `ripgrep`
