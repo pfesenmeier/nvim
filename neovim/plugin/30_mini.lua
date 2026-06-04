@@ -138,7 +138,67 @@ end)
 -- See also:
 -- - `:h MiniStatusline-example-content` - example of default content. Use it to
 --   configure a custom statusline by setting `config.content.active` function.
-now(function() require('mini.statusline').setup() end)
+now(function()
+  local function terminal_strip()
+    local ok, ft = pcall(require, 'floatterm')
+    if not ok or not ft.state.order or #ft.state.order == 0 then return '' end
+    local parts = {}
+    for _, name in ipairs(ft.state.order) do
+      local hl
+      if name == ft.state.current then
+        hl = 'FloatTermSlotShown'
+      elseif name == ft.state.last then
+        hl = 'FloatTermSlotLast'
+      else
+        hl = 'FloatTermSlotHidden'
+      end
+      table.insert(parts, string.format('%%#%s# %s %%#MiniStatuslineDevinfo#', hl, name))
+    end
+    return table.concat(parts, '')
+  end
+
+  require('mini.statusline').setup({
+    content = {
+      active = function()
+        local mode, mode_hl = MiniStatusline.section_mode({ trunc_width = 120 })
+        local git         = MiniStatusline.section_git({ trunc_width = 40 })
+        local diff        = MiniStatusline.section_diff({ trunc_width = 75 })
+        local diagnostics = MiniStatusline.section_diagnostics({ trunc_width = 75 })
+        local lsp         = MiniStatusline.section_lsp({ trunc_width = 75 })
+        local filename    = MiniStatusline.section_filename({ trunc_width = 140 })
+        local fileinfo    = MiniStatusline.section_fileinfo({ trunc_width = 120 })
+        local location    = MiniStatusline.section_location({ trunc_width = 75 })
+        local search      = MiniStatusline.section_searchcount({ trunc_width = 75 })
+
+        return MiniStatusline.combine_groups({
+          { hl = mode_hl,                  strings = { mode } },
+          { hl = 'MiniStatuslineDevinfo',  strings = { git, diff, diagnostics, lsp } },
+          { hl = 'MiniStatuslineDevinfo',  strings = { terminal_strip() } },
+          '%<',
+          { hl = 'MiniStatuslineFilename', strings = { filename } },
+          '%=',
+          { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
+          { hl = mode_hl,                  strings = { search, location } },
+        })
+      end,
+    },
+  })
+
+  local function apply_floatterm_hls()
+    vim.api.nvim_set_hl(0, 'FloatTermSlotShown',  { link = 'MiniStatuslineModeNormal' })
+    vim.api.nvim_set_hl(0, 'FloatTermSlotHidden', { link = 'Comment' })
+    -- "Inverted" pill: swap fg/bg of the shown pill. Resolved at runtime so
+    -- it stays in sync if the colorscheme changes.
+    local shown = vim.api.nvim_get_hl(0, { name = 'MiniStatuslineModeNormal', link = false })
+    vim.api.nvim_set_hl(0, 'FloatTermSlotLast', {
+      fg = shown.bg,
+      bg = shown.fg,
+      bold = shown.bold,
+    })
+  end
+  apply_floatterm_hls()
+  vim.api.nvim_create_autocmd('ColorScheme', { callback = apply_floatterm_hls })
+end)
 
 -- Tabline. Sets `:h 'tabline'` to show all listed buffers in a line at the top.
 -- Buffers are ordered as they were created. Navigate with `[b` and `]b`.

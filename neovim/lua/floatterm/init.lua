@@ -9,6 +9,7 @@ local state = {
   current = nil,    -- name of terminal currently visible
   last = nil,       -- name of most-recently-shown terminal (for open_last)
   terms = {},       -- name -> { buf, cmd }
+  order = {},       -- ordered list of names (for M.cycle and statusline strip)
 }
 
 local defaults = {
@@ -36,15 +37,6 @@ local function geometry()
     height = h,
     border = opts.window.border,
   }
-end
-
-local function update_title()
-  if not vim.api.nvim_win_is_valid(state.win) or not state.current then return end
-  local mode = vim.api.nvim_get_mode().mode == "t" and "TERM" or "NORMAL"
-  pcall(vim.api.nvim_win_set_config, state.win, {
-    title = " " .. state.current .. " [" .. mode .. "] ",
-    title_pos = "center",
-  })
 end
 
 local function is_normal_mode(mode)
@@ -114,6 +106,15 @@ function M.open(name)
       desc = "Float: hide",
     })
 
+    vim.keymap.set({ "t", "n" }, "<M-h>", function() M.cycle(-1) end, {
+      buffer = term_buf,
+      desc = "Float: cycle prev",
+    })
+    vim.keymap.set({ "t", "n" }, "<M-l>", function() M.cycle(1) end, {
+      buffer = term_buf,
+      desc = "Float: cycle next",
+    })
+
     if vim.api.nvim_buf_is_valid(placeholder) and placeholder ~= term_buf then
       pcall(vim.api.nvim_buf_delete, placeholder, { force = true })
     end
@@ -121,7 +122,6 @@ function M.open(name)
 
   state.current = name
   state.last = name
-  update_title()
 
   local saved = state.terms[name]
   if saved and is_normal_mode(saved.mode) then
@@ -139,6 +139,19 @@ function M.open_last()
   end
 end
 
+function M.cycle(direction)
+  if #state.order == 0 then return end
+  local idx = 1
+  if state.current then
+    for i, name in ipairs(state.order) do
+      if name == state.current then idx = i; break end
+    end
+  end
+  local n = #state.order
+  local next_idx = ((idx - 1 + direction) % n) + 1
+  M.open(state.order[next_idx])
+end
+
 local function deep_merge(default, override)
   local result = vim.deepcopy(default)
   for k, v in pairs(override or {}) do
@@ -153,6 +166,8 @@ end
 
 function M.setup(user_opts)
   opts = deep_merge(defaults, user_opts or {})
+
+  state.order = opts.order or vim.tbl_keys(opts.terminals)
 
   for name, cfg in pairs(opts.terminals) do
     if cfg.key then
@@ -179,14 +194,8 @@ function M.setup(user_opts)
     callback = function()
       if vim.api.nvim_win_is_valid(state.win) then
         vim.api.nvim_win_set_config(state.win, geometry())
-        update_title()
       end
     end,
-  })
-
-  vim.api.nvim_create_autocmd({ "TermEnter", "TermLeave", "ModeChanged" }, {
-    group = group,
-    callback = update_title,
   })
 
   -- mini.clue integration: push explicit clue entries so the popup shows the
