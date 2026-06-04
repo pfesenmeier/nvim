@@ -117,6 +117,7 @@ now(function()
     items = {
       { name = 'Claude',  action = [[lua require('floatterm').open('claude')]], section = 'Terminals' },
       { name = 'JJUI',    action = [[lua require('floatterm').open('jjui')]],   section = 'Terminals' },
+      { name = 'Shell',   action = [[lua require('floatterm').open('shell')]],  section = 'Terminals' },
       function()
         if _G.MiniSessions == nil then return {} end
         return starter.sections.sessions(5, true)()
