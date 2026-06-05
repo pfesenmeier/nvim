@@ -480,6 +480,9 @@ later(function()
       { mode = { 'n', 'x' }, keys = 's' },        -- `s` key (mini.surround, etc.)
       { mode = { 'n', 'x' }, keys = 'z' },        -- `z` key
     },
+    window = {
+      config = { width = 'auto' },
+    },
   })
 end)
 
