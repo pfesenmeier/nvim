@@ -53,7 +53,19 @@ def "main quickfix" [
   ^nvim --server $env.NVIM --remote-expr $expr | ignore
 }
 
+# Send a notification to the parent nvim's mini.notify pane.
+def "main notify" [
+  message: string             # Text to display
+  --level: string = "info"    # info | warn | error | debug | trace
+] {
+  need-nvim
+  let m = (vim-str-escape $message)
+  let l = (vim-str-escape $level)
+  let expr = $"v:lua.require'remote'.notify\(\"($m)\", \"($l)\"\)"
+  ^nvim --server $env.NVIM --remote-expr $expr | ignore
+}
+
 def main []: nothing -> nothing {
-  print "nv: bridge to the parent nvim. Subcommands: open, quickfix."
+  print "nv: bridge to the parent nvim. Subcommands: open, quickfix, notify."
   print "See `nv <subcmd> --help`."
 }

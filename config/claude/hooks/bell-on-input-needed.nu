@@ -34,4 +34,17 @@ def main [] {
             (char bel) | save --raw --force $"/dev/($outer)"
         }
     }
+
+    # When running inside an nvim :terminal, surface the same signal in the
+    # parent nvim's mini.notify pane via the `nv` bridge.
+    let notify = match $event {
+        "Notification" => { message: "Claude needs input", level: "warn" },
+        "Stop"         => { message: "Claude stopped",     level: "info" },
+        _              => null,
+    }
+    if $notify != null and not ($env.NVIM? | is-empty) {
+        # Use the absolute path: Claude's hook may not inherit ~/.local/bin on PATH.
+        let nv = ($env.HOME | path join ".local/bin/nv")
+        try { ^$nv notify $notify.message --level $notify.level | ignore }
+    }
 }

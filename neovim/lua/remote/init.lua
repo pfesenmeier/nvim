@@ -11,6 +11,11 @@ function M.open(file)
   vim.cmd("edit " .. vim.fn.fnameescape(file))
 end
 
+function M.notify(msg, level)
+  local lvl = vim.log.levels[(level or "INFO"):upper()] or vim.log.levels.INFO
+  vim.notify(msg, lvl)
+end
+
 function M.quickfix(files)
   local entries = vim.tbl_map(function(f)
     return { filename = f, lnum = 1, col = 1 }
