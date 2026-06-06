@@ -867,7 +867,6 @@ export def install [] {}
 source install/cmds/roslyn_lsp.nu
 source install/cmds/netcoredbg.nu
 source install/cmds/roslynator.nu
-source install/cmds/komorebi_mac.nu
 use jj/cmds.nu *
 use jj/completions.nu *
 use misc/wt-layout.nu *

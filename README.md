@@ -32,8 +32,8 @@
 
 ## UX
 
-- [ ] shorcut to go to starter?
-- [ ] put pr-review folder in standard location, have er to edit latest review
+- [ ] shortcut edit nushell env / config
+- [ ] shortcut to go to starter?
 - [ ] Have "sort by" feature in built-in picker
 - [ ] wire in mini.sessions more...
 - [ ] add jj info to statusbar

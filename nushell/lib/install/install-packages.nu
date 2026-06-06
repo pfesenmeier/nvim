@@ -4,8 +4,6 @@ use ../misc/wsl.nu *
 
 let managers = package_managers
 
-
-
 def get-manager [name: string] {
   $managers | where name == $name | first
 }
@@ -98,13 +96,10 @@ def parse-pkg-row [package: string, input?: string] {
 }
 
 def get-package-column [] {
-  # TODO separate mac and linux
-  let isLinux = $nu.os-info.family == 'unix'
-
-  if $isLinux {
-    "srcUnix"
-  } else {
-    "srcWindows"
+  match $nu.os-info {
+    { name: macos } => "srcMac"
+    { family: unix } => "srcUnix"
+    _ => "srcWindows"
   }
 }
 

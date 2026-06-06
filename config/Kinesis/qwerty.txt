@@ -1,0 +1,5 @@
+[=]>[`]
+[caps]>[escape]
+[intl-\]>[=]
+[`]>[hyphen]
+[hyphen]>[`]
