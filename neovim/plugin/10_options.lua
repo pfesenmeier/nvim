@@ -127,14 +127,14 @@ if Config.env.is_wsl_linux then
   }
   vim.cmd([[
     let g:clipboard = {
-      \   'name': 'WslClipboard',
+      \   'name': 'win32yank-wsl',
       \   'copy': {
-      \      '+': '/mnt/c/Windows/System32/clip.exe',
-      \      '*': '/mnt/c/Windows/System32/clip.exe',
+      \      '+': 'win32yank.exe -i --crlf',
+      \      '*': 'win32yank.exe -i --crlf',
       \    },
       \   'paste': {
-      \      '+': '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoLogo -NoProfile -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-      \      '*': '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoLogo -NoProfile -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+      \      '+': 'win32yank.exe -o --lf',
+      \      '*': 'win32yank.exe -o --lf',
       \   },
       \   'cache_enabled': 0,
       \ }

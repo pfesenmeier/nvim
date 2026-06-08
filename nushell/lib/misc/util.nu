@@ -177,27 +177,16 @@ export def --env cdn [] {
    }
  }
  
- # TODO use /mnt/c/Windows/System32/clip.exe
- 
- # was broken due to stop adding windows PATH to WSL
- const powershell = "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
- 
- export def clip [] {
-      let stdin = $in;
-      if ($stdin | is-empty) {
-          if $nu.os-info.family == 'windows' {
-              run-external $powershell "-noprofile" "-c" "Get-Clipboard"
-          } else {
-              wl-paste
-          }
-      } else {
-         if $nu.os-info.family == 'windows' {
-             let quoted = $stdin | str replace --all "'" "''"
-             run-external $powershell "-noprofile" "-c" $"Set-Clipboard '($quoted)'"
-         } else {
-             $stdin | wl-copy
-         }
-      }
+export def clip [] {
+  let stdin = $in
+  let is_wsl = ($nu.os-info.family != 'windows') and ('WSL_DISTRO_NAME' in $env)
+  let use_win32yank = ($nu.os-info.family == 'windows') or $is_wsl
+
+  if ($stdin | is-empty) {
+    if $use_win32yank { win32yank.exe -o --lf } else { wl-paste }
+  } else {
+    if $use_win32yank { $stdin | win32yank.exe -i --crlf } else { $stdin | wl-copy }
+  }
 }
  
  # pastes windows clipboard contents to compressed png inside wsl

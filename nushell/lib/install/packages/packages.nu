@@ -53,6 +53,7 @@ export def main [] {
     [func                              winget=Microsoft.Azure.FunctionsCoreTools 'brew=azure/functions;azure-functions-core-tools@4' 'brew=azure/functions;azure-functions-core-tools@4']
     [linqpad                           winget=LINQPad.LINQPad.9                  null                                                null                                               ]
     [azure-storage-explorer            winget=Microsoft.Azure.StorageExplorer    null                                                null                                               ]
+    [win32yank                         winget=equalsraf.win32yank                null                                                null                                               ]
     [jb                                null                                      dotnet=JetBrains.ReSharper.GlobalTools              dotnet=JetBrains.ReSharper.GlobalTools             ]
     [Logitech.OptionsPlus              winget                                    null                                                brew=logi-options+                                 ]
   ]
