@@ -152,6 +152,11 @@ nmap_leader('er', edit_latest_pr_review, 'Latest PR review')
 -- All these use 'mini.pick'. See `:h MiniPick-overview` for an overview.
 local pick_added_hunks_buf = '<Cmd>Pick git_hunks path="%" scope="staged"<CR>'
 local pick_workspace_symbols_live = '<Cmd>Pick lsp scope="workspace_symbol_live"<CR>'
+local pick_files_cword = function()
+  local word = vim.fn.expand('<cword>')
+  vim.schedule(function() MiniPick.set_picker_query({ word }) end)
+  vim.cmd('Pick files')
+end
 
 nmap_leader('f/', '<Cmd>Pick history scope="/"<CR>', '"/" history')
 nmap_leader('f:', '<Cmd>Pick history scope=":"<CR>', '":" history')
@@ -163,6 +168,7 @@ nmap_leader('fC', '<Cmd>Pick git_commits path="%"<CR>', 'Commits (buf)')
 nmap_leader('fd', '<Cmd>Pick diagnostic scope="all"<CR>', 'Diagnostic workspace')
 nmap_leader('fD', '<Cmd>Pick diagnostic scope="current"<CR>', 'Diagnostic buffer')
 nmap_leader('ff', '<Cmd>Pick files<CR>', 'Files')
+nmap_leader('fF', pick_files_cword, 'Files current word')
 nmap_leader('fg', '<Cmd>Pick grep_live<CR>', 'Grep live')
 nmap_leader('fG', '<Cmd>Pick grep pattern="<cword>"<CR>', 'Grep current word')
 nmap_leader('fh', '<Cmd>Pick help<CR>', 'Help tags')

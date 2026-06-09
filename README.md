@@ -33,12 +33,8 @@
 ## UX
 
 - [ ] shortcut edit nushell env / config
-- [ ] shortcut to go to starter?
-- [ ] Have "sort by" feature in built-in picker
-- [ ] wire in mini.sessions more...
 - [ ] add jj info to statusbar
-- [ ] nushell formatting
-- [ ] Improve searching in large monorepo
+- [ ] add claude status to statusbar
 
 ## Inspiration - VSCode Extextension
 - Github Pull Requests

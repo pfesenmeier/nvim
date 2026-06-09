@@ -150,6 +150,18 @@ Config.new_autocmd('FileType', nil, f, "Proper 'formatoptions'")
 -- local fnu = function() vim.cmd('set filetype=nu')
 -- There are other autocommands created by 'mini.basics'. See 'plugin/30_mini.lua'.
 
+-- Reload buffers when their on-disk file changes. Neovim only checks file
+-- timestamps at specific moments (after `:!`, on `FocusGained`, on `:checktime`);
+-- `BufEnter` is not one of them, so out-of-process edits (e.g. AI tools) leave
+-- buffers stale until something forces a check. See `:h timestamp`.
+local check = function()
+  if vim.fn.mode() ~= 'c' and vim.bo.buftype == '' then vim.cmd('checktime') end
+end
+Config.new_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold', 'CursorHoldI' }, '*', check, 'Reload buffers changed on disk')
+
+local notify_reload = function() vim.notify('File changed on disk, buffer reloaded', vim.log.levels.WARN) end
+Config.new_autocmd('FileChangedShellPost', nil, notify_reload, 'Notify on external file change')
+
 -- Diagnostics ================================================================
 
 -- Neovim has built-in support for showing diagnostic messages. This configures
