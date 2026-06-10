@@ -110,10 +110,28 @@ local new_scratch_buffer = function()
   vim.api.nvim_win_set_buf(0, vim.api.nvim_create_buf(true, true))
 end
 
+local delete_buf_swaps = function()
+  local fname = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ':p')
+  if fname == '' then
+    vim.notify('No file for current buffer', vim.log.levels.WARN)
+    return
+  end
+  local mangled = fname:gsub('/', '%%')
+  local removed = {}
+  for dir in vim.gsplit(vim.o.directory, ',', { plain = true }) do
+    dir = vim.fn.expand(dir):gsub('/+$', '')
+    for _, path in ipairs(vim.fn.glob(dir .. '/' .. mangled .. '.s[a-w][a-z]', false, true)) do
+      if vim.fn.delete(path) == 0 then table.insert(removed, path) end
+    end
+  end
+  vim.notify(('Deleted %d swap file(s)'):format(#removed))
+end
+
 nmap_leader('ba', '<Cmd>b#<CR>', 'Alternate')
 nmap_leader('bd', '<Cmd>lua MiniBufremove.delete()<CR>', 'Delete')
 nmap_leader('bD', '<Cmd>lua MiniBufremove.delete(0, true)<CR>', 'Delete!')
 nmap_leader('bs', new_scratch_buffer, 'Scratch')
+nmap_leader('bS', delete_buf_swaps, 'Swap files (delete)')
 nmap_leader('bw', '<Cmd>lua MiniBufremove.wipeout()<CR>', 'Wipeout')
 nmap_leader('bW', '<Cmd>lua MiniBufremove.wipeout(0, true)<CR>', 'Wipeout!')
 
@@ -165,6 +183,7 @@ nmap_leader('eP', edit_latest_plan, 'Latest Claude plan')
 nmap_leader('eq', explore_quickfix, 'Quickfix list')
 nmap_leader('eQ', explore_locations, 'Location list')
 nmap_leader('er', edit_latest_pr_review, 'Latest PR review')
+nmap_leader('et', '<Cmd>edit ~/Documents/TODO.md<CR>', 'TODO')
 
 -- f is for 'Fuzzy Find'. Common usage:
 -- - `<Leader>ff` - find files; for best performance requires `ripgrep`
