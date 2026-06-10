@@ -1,5 +1,9 @@
 -- dadbod
-vim.b.db = "postgres://postgres:postgres@0.0.0.0:5432/db"
+-- vim.b.db = "postgres://postgres:postgres@0.0.0.0:5432/db"
+
+-- see scripts/sqlcmd
+-- jdbc adapter for sql server
+vim.b.db = "jdbc:sqlserver://localhost:1433;databaseName=LaserDB;user=sa;password=LaserDev!1234;trustServerCertificate=true"
 
 -- dadbod-completion
 -- Re-assert after LspAttach: buffer-local fires first (before global), so
