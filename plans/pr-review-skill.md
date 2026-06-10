@@ -1,0 +1,3 @@
+- Have a set diagnostic command from nv
+- Have PR Skill put possible code actions, diagnostics...
+- Be able to put all diagnostics project-wide into your settings
