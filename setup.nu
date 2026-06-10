@@ -182,6 +182,9 @@ export def setup [] {
       src: [jjui]
       dest: [.config jjui]
     } {
+      src: [jj config.toml]
+      dest: [.config jj config.toml]
+    } {
       src: [scripts nv]
       root: true
       dest: [.local bin nv]

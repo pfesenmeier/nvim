@@ -3,7 +3,7 @@ export def main [] {
     [name                              srcWindows                                srcUnix                                             srcMac                                             ];
     [deno                              scoop                                     brew                                                brew                                               ]
     [deno                              scoop                                     brew                                                brew                                               ]
-    [difftastic                        scoop                                     brew                                                brew                                               ]
+    [hunk                              null                                      brew=modem-dev/tap/hunk                             brew=modem-dev/tap/hunk                            ]
     [fd                                scoop                                     brew                                                brew                                               ]
     [fnm                               scoop                                     brew                                                brew                                               ]
     [fzf                               scoop                                     brew                                                brew                                               ]
