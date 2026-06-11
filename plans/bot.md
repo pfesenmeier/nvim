@@ -1,28 +1,26 @@
 # bot.nvim
 
+- I imagine how I'll work is moving around the codebase, gathering data on what I want to do (refactor)
+- I'll leave some comments on functions, areas I want to clean up
+- Then, when I'm ready, I'll dump the agent content into the chat window, and have claude code plan out some changes
+
 ## Commands
-
-- shortcut for queueing up context to prompt the bot (err, ai agent) (gb)
-- multiple commands to record a piece of context as an extmark
+- shortcut for adding up context to prompt the bot (gb)
+- the message in waiting will be a
+- each time shortcut is executed over a selection:
+  - the filename line numbers, and contents will be saved in the scratch buffer
+  - the user will be prompted for a comment
 - gbb - queue current line
+- gbd - diagnostic
 - gb<textobject> - queue textobject
-- gb? - add miscellanous text
+- gb? - just add text without additional context
 
-- commands to send queued messages into chat
-- gbx - send to TUI, draining the messages
+- commands to interact with buffer
+- gbe - open + edit buffer
+- gbx - send to TUI, and clear buffer (with confirmation)
 - gbp - dump (paste) contents of saved (no draining)
 
-## Sending To TUI
+## Additonal Work
 
-- internal FIFO of messages
-- wait until TUI is ready
-- use techniques not to overload the TUI (delay)
-- use techniques to prevent sending text if requesting for input
-
-## UI
-
-## Having the bot talk back
-
-- currently - edits on disk, text in the editor feed
-- future - status in the statusbar
-- 
+I'd like to add a status to my statusline on what state claude is in (i think idle, waiting input, working?)
+that would be a hint that it's ready for my gbx command

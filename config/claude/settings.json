@@ -55,6 +55,7 @@
   },
   "effortLevel": "medium",
   "autoUpdatesChannel": "stable",
+  "tui": "fullscreen",
   "theme": "auto",
   "skipAutoPermissionPrompt": true
 }
