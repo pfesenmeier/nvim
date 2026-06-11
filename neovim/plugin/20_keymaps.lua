@@ -177,6 +177,11 @@ nmap_leader('fl', '<Cmd>Pick buf_lines scope="all"<CR>', 'Lines (all)')
 nmap_leader('fL', '<Cmd>Pick buf_lines scope="current"<CR>', 'Lines (buf)')
 nmap_leader('fm', '<Cmd>Pick git_hunks<CR>', 'Modified hunks (all)')
 nmap_leader('fM', '<Cmd>Pick git_hunks path="%"<CR>', 'Modified hunks (buf)')
+nmap_leader('fp', function()
+  require('mini.extra').pickers.diagnostic({
+    get_opts = { namespace = require('bot.review').namespace() },
+  })
+end, 'PR review feedback')
 nmap_leader('fr', '<Cmd>Pick resume<CR>', 'Resume')
 nmap_leader('fR', '<Cmd>Pick lsp scope="references"<CR>', 'References (LSP)')
 nmap_leader('fs', pick_workspace_symbols_live, 'Symbols workspace (live)')

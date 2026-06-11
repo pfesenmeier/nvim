@@ -8,7 +8,9 @@ argument-hint: "[focus-area]"
 
 Perform a thorough code review of the current branch's changes. Follow these phases in order.
 
-The final review must be saved to `~/Documents/pr-reviews/` as a markdown file, in addition to being printed to the terminal. Create the directory with `mkdir -p ~/Documents/pr-reviews` if it does not already exist. Name the file `<YYYY-MM-DD>-<branch-or-change-id>.md` (use the current change's bookmark/branch name when available; fall back to the jj change ID). The last line of terminal output must be the absolute path to the saved file.
+The final review must be saved to `~/Documents/pr-reviews/` as a markdown file, in addition to being printed to the terminal. Create the directory with `mkdir -p ~/Documents/pr-reviews` if it does not already exist. Name the file `<YYYY-MM-DD>-<branch-or-change-id>.md` (use the current change's bookmark/branch name when available; fall back to the jj change ID).
+
+A JSON sidecar must also be written at the **same basename** (e.g. `2026-06-10-my-branch.json`) — see Phase 5 for shape. The JSON path is printed on its own line *before* the final markdown-path line. The last line of terminal output is still the absolute path to the markdown file.
 
 ## Phase 1 — Gather context
 
@@ -45,7 +47,7 @@ If `$ARGUMENTS` is provided, weight that area more heavily in your analysis but 
 
 ## Phase 4 — Output format
 
-Produce a structured markdown review. Print the full review to the terminal and also write the same content to `~/Documents/pr-reviews/<YYYY-MM-DD>-<branch-or-change-id>.md` (creating the directory if needed). After the review, the final line of terminal output must be the absolute path to that file (e.g. `/home/<user>/Documents/pr-reviews/2026-05-26-my-branch.md`) with no other text on that line.
+Produce a structured markdown review. Print the full review to the terminal and also write the same content to `~/Documents/pr-reviews/<YYYY-MM-DD>-<branch-or-change-id>.md` (creating the directory if needed). After the review, print the absolute path of the JSON sidecar (see Phase 5) on its own line, then on the next (and final) line the absolute path to the markdown file (e.g. `/home/<user>/Documents/pr-reviews/2026-05-26-my-branch.md`) with no other text on that line.
 
 ---
 
@@ -100,3 +102,43 @@ For each changed file, provide inline feedback with line references where releva
 ---
 
 Use precise line references (e.g. `L42`, `L100–115`) when calling out specific code. Be direct and actionable. Skip generic advice that doesn't apply to the actual changes.
+
+---
+
+## Phase 5 — JSON sidecar
+
+Write `<same-basename>.json` next to the markdown file. Shape:
+
+```json
+{
+  "items": [
+    {
+      "file": "neovim/lua/bot/init.lua",
+      "line": 42,
+      "end_line": 50,
+      "severity": "critical",
+      "message": "Race in `send_payload`: …"
+    }
+  ]
+}
+```
+
+- `file` is a path **relative to the repo root** (the same form used in the
+  Per-File Feedback section).
+- `line` is 1-based. `end_line` is optional; omit (or equal to `line`) for
+  single-line findings.
+- `severity` is one of: `critical`, `warn`, `suggestion` — mirrors the three
+  severity groups in the markdown.
+- One entry per actionable finding. Skip the Positive Observations and
+  Questions sections; those don't become diagnostics.
+
+## Phase 6 — Hand off to nvim (if available)
+
+After both files are written, if `$NVIM` is set in the environment, run:
+
+```bash
+nv bot-review "<absolute-path-to-json-sidecar>"
+```
+
+This loads the findings as diagnostics inside the parent nvim. If `$NVIM` is
+unset (running outside an nvim terminal), skip this step silently.

@@ -16,6 +16,14 @@ function M.notify(msg, level)
   vim.notify(msg, lvl)
 end
 
+function M.bot_status(state)
+  require("bot.status").set(state)
+end
+
+function M.bot_review(path)
+  require("bot.review").load(path)
+end
+
 function M.quickfix(files)
   local entries = vim.tbl_map(function(f)
     return { filename = f, lnum = 1, col = 1 }
@@ -34,6 +42,10 @@ function M.setup()
   vim.api.nvim_create_user_command("RemoteQuickfix", function(o)
     M.quickfix(o.fargs)
   end, { nargs = "+", complete = "file", desc = "Set qflist via remote" })
+
+  vim.api.nvim_create_user_command("RemoteBotReview", function(o)
+    M.bot_review(o.args)
+  end, { nargs = 1, complete = "file", desc = "Load PR-review JSON via remote" })
 end
 
 return M

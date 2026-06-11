@@ -162,6 +162,7 @@ now(function()
     content = {
       active = function()
         local mode, mode_hl = MiniStatusline.section_mode({ trunc_width = 120 })
+        local bot         = require('bot.status').component()
         local git         = MiniStatusline.section_git({ trunc_width = 40 })
         local diff        = MiniStatusline.section_diff({ trunc_width = 75 })
         local diagnostics = MiniStatusline.section_diagnostics({ trunc_width = 75 })
@@ -173,7 +174,7 @@ now(function()
 
         return MiniStatusline.combine_groups({
           { hl = mode_hl,                  strings = { mode } },
-          { hl = 'MiniStatuslineDevinfo',  strings = { git, diff, diagnostics, lsp } },
+          { hl = 'MiniStatuslineDevinfo',  strings = { bot, git, diff, diagnostics, lsp } },
           { hl = 'MiniStatuslineDevinfo',  strings = { terminal_strip() } },
           '%<',
           { hl = 'MiniStatuslineFilename', strings = { filename } },

@@ -33,6 +33,11 @@
             "type": "command",
             "command": "nu --stdin ~/.claude/hooks/bell-on-input-needed.nu",
             "timeout": 1
+          },
+          {
+            "type": "command",
+            "command": "nv bot-status needs-input",
+            "timeout": 1
           }
         ]
       }
@@ -43,6 +48,22 @@
           {
             "type": "command",
             "command": "nu --stdin ~/.claude/hooks/bell-on-input-needed.nu",
+            "timeout": 1
+          },
+          {
+            "type": "command",
+            "command": "nv bot-status idle",
+            "timeout": 1
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nv bot-status working",
             "timeout": 1
           }
         ]
