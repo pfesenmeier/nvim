@@ -4,12 +4,14 @@ let local_tools_path = if $nu.os-info.family == 'windows' {
   [$nu.home-dir .local bin] | path join
 }
 
+$env.binDir = $local_tools_path
+
 let local_tools = [
     [artempyanykh marksman],
     [microsoft vscode-js-debug js-debug src]
     [] # linux places executables in .local/bin
 ] | each {|tool| $local_tools_path | append $tool | path join }
-  | where {|| $in | path exists } 
+  | where {|| $in | path exists }
 
 if $nu.os-info.family == 'windows' {
   $env.Path = (
@@ -19,4 +21,4 @@ if $nu.os-info.family == 'windows' {
   $env.PATH = (
     $local_tools | reduce -f ($env.PATH | split row (char esep)) {|it, acc| $acc | prepend $it } | uniq
   )
-} 
+}

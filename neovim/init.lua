@@ -131,5 +131,6 @@ Config.env = {
   home = vim.uv.os_homedir(),
   -- see roslyn_lsp.nu
   roslyn_lsp = vim.env.ROSLYN_LSP,
-  node = "v24.13.0"
+  node = "v24.13.0",
+  binDir = vim.env.binDir
 }

@@ -144,6 +144,8 @@ now_if_args(function()
     -- "prismals",
     -- "tailwindcss",
     "lua_ls",
+    "vtsls",
+    "vue_ls",
     "marksman",
     "terraformls",
     "roslyn_ls"
