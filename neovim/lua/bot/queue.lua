@@ -51,35 +51,42 @@ local function highlight_region(buf, region)
   return function() vim.api.nvim_buf_clear_namespace(buf, hl_ns, 0, -1) end
 end
 
-local function queue_entry(path, range, lines, ft, clear_hl)
+local function with_note(path, range, lines, ft, clear_hl, sink)
   vim.ui.input({ prompt = "Note (empty for none, <esc> to cancel): " }, function(note)
     if clear_hl then clear_hl() end
     if note == nil then return end
-    local block = M.format_block(path, range, lines, ft, note)
-    local f, err = io.open(queue_path(), "a")
-    if not f then
-      vim.notify("bot: cannot open queue: " .. (err or "?"), vim.log.levels.ERROR)
-      return
-    end
-    f:write(block)
-    f:close()
+    sink(M.format_block(path, range, lines, ft, note))
   end)
+end
+
+local function queue_sink(block)
+  local f, err = io.open(queue_path(), "a")
+  if not f then
+    vim.notify("bot: cannot open queue: " .. (err or "?"), vim.log.levels.ERROR)
+    return
+  end
+  f:write(block)
+  f:close()
+end
+
+local function send_sink(block)
+  require("bot").send_to_terminal(block, { submit = true })
 end
 
 local function range_string(lstart, lend)
   return lstart == lend and tostring(lstart) or (lstart .. "-" .. lend)
 end
 
-function M.queue_line()
+local function capture_line(sink)
   local buf = vim.api.nvim_get_current_buf()
   local path = vim.api.nvim_buf_get_name(buf)
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
   local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1] or ""
   local clear_hl = highlight_region(buf, { kind = "line", lstart = lnum, lend = lnum })
-  queue_entry(path, tostring(lnum), { line }, vim.bo[buf].filetype, clear_hl)
+  with_note(path, tostring(lnum), { line }, vim.bo[buf].filetype, clear_hl, sink)
 end
 
-function M.queue_motion(motion_type)
+local function capture_motion(motion_type, sink)
   local buf = vim.api.nvim_get_current_buf()
   local path = vim.api.nvim_buf_get_name(buf)
   local ft = vim.bo[buf].filetype
@@ -98,15 +105,10 @@ function M.queue_motion(motion_type)
     region = { kind = "line", lstart = l0, lend = l1 }
   end
   local clear_hl = highlight_region(buf, region)
-  queue_entry(path, range_string(l0, l1), lines, ft, clear_hl)
+  with_note(path, range_string(l0, l1), lines, ft, clear_hl, sink)
 end
 
-function M.operator()
-  vim.go.operatorfunc = "v:lua.require'bot.queue'.queue_motion"
-  return "g@"
-end
-
-function M.queue_visual()
+local function capture_visual(sink)
   local buf = vim.api.nvim_get_current_buf()
   local path = vim.api.nvim_buf_get_name(buf)
   -- line("v") = visual anchor, line(".") = cursor; both valid mid-visual.
@@ -121,8 +123,26 @@ function M.queue_visual()
   local ft = vim.bo[buf].filetype
   vim.schedule(function()
     local clear_hl = highlight_region(buf, { kind = "line", lstart = lstart, lend = lend })
-    queue_entry(path, range, lines, ft, clear_hl)
+    with_note(path, range, lines, ft, clear_hl, sink)
   end)
+end
+
+function M.queue_line()           capture_line(queue_sink) end
+function M.queue_motion(mt)       capture_motion(mt, queue_sink) end
+function M.queue_visual()         capture_visual(queue_sink) end
+
+function M.send_line()            capture_line(send_sink) end
+function M.send_motion(mt)        capture_motion(mt, send_sink) end
+function M.send_visual()          capture_visual(send_sink) end
+
+function M.operator()
+  vim.go.operatorfunc = "v:lua.require'bot.queue'.queue_motion"
+  return "g@"
+end
+
+function M.send_operator()
+  vim.go.operatorfunc = "v:lua.require'bot.queue'.send_motion"
+  return "g@"
 end
 
 function M.edit_queue()

@@ -2,6 +2,7 @@ local M = {}
 
 local defaults = {
   prefix = "gb",
+  send_prefix = "gB",
   -- function(): integer|nil  — return a live terminal buffer, or nil if none.
   get_terminal = nil,
   -- function(): integer|nil  — start the terminal and return its buffer.
@@ -74,6 +75,11 @@ function M.setup(user_opts)
   vim.keymap.set("n", prefix .. prefix:sub(-1), queue.queue_line, { desc = "Bot: queue current line" })
   vim.keymap.set("x", prefix, queue.queue_visual, { desc = "Bot: queue visual selection" })
 
+  local send_prefix = M.opts.send_prefix
+  vim.keymap.set("n", send_prefix, queue.send_operator, { expr = true, desc = "Bot: send {motion}" })
+  vim.keymap.set("n", send_prefix .. send_prefix:sub(-1), queue.send_line, { desc = "Bot: send current line" })
+  vim.keymap.set("x", send_prefix, queue.send_visual, { desc = "Bot: send visual selection" })
+
   local leader_b = "<leader>b"
   vim.keymap.set("n", leader_b .. "e", queue.edit_queue, { desc = "Bot: edit queue" })
   vim.keymap.set("n", leader_b .. "x", queue.send_and_clear, { desc = "Bot: send and clear queue" })
@@ -85,6 +91,8 @@ function M.setup(user_opts)
   if ok and miniclue.config and miniclue.config.clues then
     table.insert(miniclue.config.clues, { mode = "n", keys = prefix, desc = "+bot (queue {motion})" })
     table.insert(miniclue.config.clues, { mode = "n", keys = prefix .. prefix:sub(-1), desc = "Queue current line" })
+    table.insert(miniclue.config.clues, { mode = "n", keys = send_prefix, desc = "+bot (send {motion})" })
+    table.insert(miniclue.config.clues, { mode = "n", keys = send_prefix .. send_prefix:sub(-1), desc = "Send current line" })
     table.insert(miniclue.config.clues, { mode = "n", keys = leader_b, desc = "+bot" })
     table.insert(miniclue.config.clues, { mode = "n", keys = leader_b .. "e", desc = "Edit queue" })
     table.insert(miniclue.config.clues, { mode = "n", keys = leader_b .. "x", desc = "Send and clear" })

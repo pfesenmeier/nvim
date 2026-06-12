@@ -67,6 +67,44 @@ function M.load(path)
   vim.notify(string.format("bot.review: loaded %d finding%s", count, count == 1 and "" or "s"))
 end
 
+local function dismiss(buf, d)
+  local remaining = {}
+  for _, existing in ipairs(vim.diagnostic.get(buf, { namespace = ns })) do
+    if not (existing.lnum == d.lnum
+      and existing.end_lnum == d.end_lnum
+      and existing.message == d.message) then
+      table.insert(remaining, existing)
+    end
+  end
+  vim.diagnostic.set(ns, buf, remaining)
+end
+
+local function apply_patch(buf, d, suggestion)
+  local lines = vim.split(suggestion, "\n", { plain = true })
+  if #lines > 0 and lines[#lines] == "" then table.remove(lines) end
+  vim.api.nvim_buf_set_lines(buf, d.lnum, (d.end_lnum or d.lnum) + 1, false, lines)
+  dismiss(buf, d)
+end
+
+local function send_suggestion_to_chat(buf, d, label, suggestion)
+  local lines = vim.api.nvim_buf_get_lines(buf, d.lnum, (d.end_lnum or d.lnum) + 1, false)
+  local range = (d.end_lnum and d.end_lnum ~= d.lnum)
+    and string.format("%d-%d", d.lnum + 1, d.end_lnum + 1)
+    or tostring(d.lnum + 1)
+  local ft = vim.bo[buf].filetype
+  local block = require("bot.queue").format_block(
+    vim.api.nvim_buf_get_name(buf),
+    range,
+    lines,
+    ft,
+    d.message
+  )
+  -- Append the proposed fix as a fenced block so claude can apply it in context.
+  local fix = string.format("Proposed fix (%s):\n```%s\n%s\n```\n\n", label, ft, suggestion)
+  require("bot").send_to_terminal(block .. fix, { submit = true })
+  dismiss(buf, d)
+end
+
 function M.code_action()
   local lnum = vim.fn.line(".") - 1
   local diags = vim.diagnostic.get(0, { lnum = lnum, namespace = ns })
@@ -75,11 +113,38 @@ function M.code_action()
     return
   end
   local d = diags[1]
+  local item = d.user_data and d.user_data.bot_review or {}
 
-  vim.ui.select({ "Chat about this", "Dismiss" }, { prompt = "Review action" }, function(choice)
+  -- Build the action list: caller-supplied actions first (each with its own
+  -- label describing the fix), then the always-present Chat / Dismiss.
+  local entries = {}
+  if type(item.actions) == "table" then
+    for _, a in ipairs(item.actions) do
+      if type(a) == "table" and a.label and a.suggestion then
+        -- kind: "patch" (default) → direct buffer edit; "prompt" → send to claude.
+        local kind = a.kind == "prompt" and "prompt" or "patch"
+        table.insert(entries, {
+          label = a.label,
+          kind = kind,
+          suggestion = a.suggestion,
+        })
+      end
+    end
+  end
+  table.insert(entries, { label = "Chat about this", kind = "chat" })
+  table.insert(entries, { label = "Dismiss", kind = "dismiss" })
+
+  vim.ui.select(entries, {
+    prompt = "Review action",
+    format_item = function(e) return e.label end,
+  }, function(choice)
     if not choice then return end
-    if choice == "Chat about this" then
-      local buf = vim.api.nvim_get_current_buf()
+    local buf = vim.api.nvim_get_current_buf()
+    if choice.kind == "patch" then
+      apply_patch(buf, d, choice.suggestion)
+    elseif choice.kind == "prompt" then
+      send_suggestion_to_chat(buf, d, choice.label, choice.suggestion)
+    elseif choice.kind == "chat" then
       local lines = vim.api.nvim_buf_get_lines(buf, d.lnum, (d.end_lnum or d.lnum) + 1, false)
       local range = (d.end_lnum and d.end_lnum ~= d.lnum)
         and string.format("%d-%d", d.lnum + 1, d.end_lnum + 1)
@@ -92,17 +157,8 @@ function M.code_action()
         d.message
       )
       require("bot").send_to_terminal(block, { submit = false })
-    elseif choice == "Dismiss" then
-      local buf = vim.api.nvim_get_current_buf()
-      local remaining = {}
-      for _, existing in ipairs(vim.diagnostic.get(buf, { namespace = ns })) do
-        if not (existing.lnum == d.lnum
-          and existing.end_lnum == d.end_lnum
-          and existing.message == d.message) then
-          table.insert(remaining, existing)
-        end
-      end
-      vim.diagnostic.set(ns, buf, remaining)
+    elseif choice.kind == "dismiss" then
+      dismiss(buf, d)
     end
   end)
 end
