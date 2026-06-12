@@ -31,11 +31,11 @@ def --env cd-sibling [previous?: bool = false] {
   cd $new
 }
 
-export def --env cdp [] {
+export def --env cdn [] {
   cd-sibling
 }
 
-export def --env cdn [] {
+export def --env cdp [] {
   cd-sibling true
 }
 
