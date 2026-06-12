@@ -1,9 +1,10 @@
-  local dap = require('dap')
-
 -- deno config
 vim.b.markdown_fenced_languages = {
   "ts=typescript"
 }
+
+local ok, dap = pcall(require, 'dap')
+if not ok then return end
 
 dap.configurations.typescript = {}
 dap.adapters["pwa-node"] = {
