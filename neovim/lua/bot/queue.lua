@@ -28,8 +28,32 @@ function M.format_block(path, range, lines, ft, note)
   return header .. note_line .. fence
 end
 
-local function queue_entry(path, range, lines, ft)
+local hl_ns = vim.api.nvim_create_namespace("bot_queue_hl")
+
+-- Highlight a region while the note prompt is open. `region` is either
+-- {kind="line", lstart, lend} or {kind="char", l0, c0, l1, c1} (1-indexed
+-- rows, 0-indexed cols, end col exclusive). Returns a clear function.
+local function highlight_region(buf, region)
+  if region.kind == "char" then
+    vim.api.nvim_buf_set_extmark(buf, hl_ns, region.l0 - 1, region.c0, {
+      end_row = region.l1 - 1,
+      end_col = region.c1,
+      hl_group = "Visual",
+    })
+  else
+    vim.api.nvim_buf_set_extmark(buf, hl_ns, region.lstart - 1, 0, {
+      end_row = region.lend,
+      hl_group = "Visual",
+      hl_eol = true,
+    })
+  end
+  vim.cmd("redraw")
+  return function() vim.api.nvim_buf_clear_namespace(buf, hl_ns, 0, -1) end
+end
+
+local function queue_entry(path, range, lines, ft, clear_hl)
   vim.ui.input({ prompt = "Note (empty for none, <esc> to cancel): " }, function(note)
+    if clear_hl then clear_hl() end
     if note == nil then return end
     local block = M.format_block(path, range, lines, ft, note)
     local f, err = io.open(queue_path(), "a")
@@ -42,12 +66,44 @@ local function queue_entry(path, range, lines, ft)
   end)
 end
 
+local function range_string(lstart, lend)
+  return lstart == lend and tostring(lstart) or (lstart .. "-" .. lend)
+end
+
 function M.queue_line()
   local buf = vim.api.nvim_get_current_buf()
   local path = vim.api.nvim_buf_get_name(buf)
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
   local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1] or ""
-  queue_entry(path, tostring(lnum), { line }, vim.bo[buf].filetype)
+  local clear_hl = highlight_region(buf, { kind = "line", lstart = lnum, lend = lnum })
+  queue_entry(path, tostring(lnum), { line }, vim.bo[buf].filetype, clear_hl)
+end
+
+function M.queue_motion(motion_type)
+  local buf = vim.api.nvim_get_current_buf()
+  local path = vim.api.nvim_buf_get_name(buf)
+  local ft = vim.bo[buf].filetype
+  local l0, c0 = unpack(vim.api.nvim_buf_get_mark(buf, "["))
+  local l1, c1 = unpack(vim.api.nvim_buf_get_mark(buf, "]"))
+  local lines, region
+  if motion_type == "char" then
+    -- nvim_buf_get_mark cols are 0-indexed; `]` end col is inclusive.
+    -- Clamp end col to the line length so EOL motions don't blow up.
+    local last = vim.api.nvim_buf_get_lines(buf, l1 - 1, l1, false)[1] or ""
+    local end_col = math.min(c1 + 1, #last)
+    lines = vim.api.nvim_buf_get_text(buf, l0 - 1, c0, l1 - 1, end_col, {})
+    region = { kind = "char", l0 = l0, c0 = c0, l1 = l1, c1 = end_col }
+  else
+    lines = vim.api.nvim_buf_get_lines(buf, l0 - 1, l1, false)
+    region = { kind = "line", lstart = l0, lend = l1 }
+  end
+  local clear_hl = highlight_region(buf, region)
+  queue_entry(path, range_string(l0, l1), lines, ft, clear_hl)
+end
+
+function M.operator()
+  vim.go.operatorfunc = "v:lua.require'bot.queue'.queue_motion"
+  return "g@"
 end
 
 function M.queue_visual()
@@ -58,10 +114,15 @@ function M.queue_visual()
   local a, b = vim.fn.line("v"), vim.fn.line(".")
   local lstart, lend = math.min(a, b), math.max(a, b)
   local lines = vim.api.nvim_buf_get_lines(buf, lstart - 1, lend, false)
-  local range = lstart == lend and tostring(lstart) or (lstart .. "-" .. lend)
-  -- Exit visual so the ui.input prompt isn't behind a visual highlight.
+  local range = range_string(lstart, lend)
+  -- Exit visual so the ui.input prompt gets focus. feedkeys is async, so
+  -- schedule the prompt to run after the <Esc> has been processed.
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
-  queue_entry(path, range, lines, vim.bo[buf].filetype)
+  local ft = vim.bo[buf].filetype
+  vim.schedule(function()
+    local clear_hl = highlight_region(buf, { kind = "line", lstart = lstart, lend = lend })
+    queue_entry(path, range, lines, ft, clear_hl)
+  end)
 end
 
 function M.edit_queue()

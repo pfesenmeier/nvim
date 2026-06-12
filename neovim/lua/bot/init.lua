@@ -70,21 +70,25 @@ function M.setup(user_opts)
   local queue = require("bot.queue")
   local prefix = M.opts.prefix
 
-  vim.keymap.set("n", prefix .. "b", queue.queue_line, { desc = "Bot: queue current line" })
+  vim.keymap.set("n", prefix, queue.operator, { expr = true, desc = "Bot: queue {motion}" })
+  vim.keymap.set("n", prefix .. prefix:sub(-1), queue.queue_line, { desc = "Bot: queue current line" })
   vim.keymap.set("x", prefix, queue.queue_visual, { desc = "Bot: queue visual selection" })
-  vim.keymap.set("n", prefix .. "e", queue.edit_queue, { desc = "Bot: edit queue" })
-  vim.keymap.set("n", prefix .. "x", queue.send_and_clear, { desc = "Bot: send and clear queue" })
-  vim.keymap.set("n", prefix .. "a", function()
+
+  local leader_b = "<leader>b"
+  vim.keymap.set("n", leader_b .. "e", queue.edit_queue, { desc = "Bot: edit queue" })
+  vim.keymap.set("n", leader_b .. "x", queue.send_and_clear, { desc = "Bot: send and clear queue" })
+  vim.keymap.set("n", leader_b .. "a", function()
     require("bot.review").code_action()
   end, { desc = "Bot: review action at cursor" })
 
   local ok, miniclue = pcall(require, "mini.clue")
   if ok and miniclue.config and miniclue.config.clues then
-    table.insert(miniclue.config.clues, { mode = "n", keys = prefix, desc = "+bot" })
-    table.insert(miniclue.config.clues, { mode = "n", keys = prefix .. "b", desc = "Queue current line" })
-    table.insert(miniclue.config.clues, { mode = "n", keys = prefix .. "e", desc = "Edit queue" })
-    table.insert(miniclue.config.clues, { mode = "n", keys = prefix .. "x", desc = "Send and clear" })
-    table.insert(miniclue.config.clues, { mode = "n", keys = prefix .. "a", desc = "Review action at cursor" })
+    table.insert(miniclue.config.clues, { mode = "n", keys = prefix, desc = "+bot (queue {motion})" })
+    table.insert(miniclue.config.clues, { mode = "n", keys = prefix .. prefix:sub(-1), desc = "Queue current line" })
+    table.insert(miniclue.config.clues, { mode = "n", keys = leader_b, desc = "+bot" })
+    table.insert(miniclue.config.clues, { mode = "n", keys = leader_b .. "e", desc = "Edit queue" })
+    table.insert(miniclue.config.clues, { mode = "n", keys = leader_b .. "x", desc = "Send and clear" })
+    table.insert(miniclue.config.clues, { mode = "n", keys = leader_b .. "a", desc = "Review action at cursor" })
   end
 end
 

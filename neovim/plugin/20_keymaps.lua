@@ -263,9 +263,6 @@ nmap_leader('sw', '<Cmd>lua MiniSessions.write()<CR>', 'Write current')
 nmap_leader('tT', '<Cmd>horizontal term<CR>', 'Terminal (horizontal)')
 nmap_leader('tt', '<Cmd>vertical term<CR>', 'Terminal (vertical)')
 
--- <C-b> in terminal mode: leave to terminal-normal and scroll back one page.
-vim.keymap.set('t', '<C-b>', [[<C-\><C-n><C-b>]], { desc = 'Term: exit + page up' })
-
 -- v is for 'Visits'. Common usage:
 -- - `<Leader>vv` - add    "core" label to current file.
 -- - `<Leader>vV` - remove "core" label to current file.

@@ -4,5 +4,5 @@ require("floatterm").setup({
     jjui   = { key = "j", cmd = "jjui"  },
     shell  = { key = "s", cmd = nil     },
   },
-  order = { "jjui", "claude", "shell" },
+  order = { "claude", "jjui", "shell" },
 })

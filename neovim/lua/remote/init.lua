@@ -17,7 +17,7 @@ function M.notify(msg, level)
 end
 
 function M.bot_status(state)
-  require("bot.status").set(state)
+  require("floatterm").set_status("claude", state)
 end
 
 function M.bot_review(path)

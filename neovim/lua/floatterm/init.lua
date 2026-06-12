@@ -10,7 +10,16 @@ local state = {
   last = nil,       -- name of most-recently-shown terminal (for open_last)
   terms = {},       -- name -> { buf, cmd }
   order = {},       -- ordered list of names (for M.cycle and statusline strip)
+  status = {},      -- name -> icon char (absent = no icon)
 }
+
+local status_icons = { working = "⏳", ["needs-input"] = "🔔" }
+
+function M.set_status(name, s)
+  state.status[name] = status_icons[s]
+  vim.api.nvim_exec_autocmds("User", { pattern = "FloatTermStatusChanged" })
+  vim.cmd("redrawstatus")
+end
 
 local defaults = {
   terminals = {},
