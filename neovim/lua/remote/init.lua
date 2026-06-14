@@ -8,20 +8,16 @@ function M.open(file)
   -- Hide the floatterm first so focus returns to the main window;
   -- otherwise `:edit` would replace the terminal buffer inside the float.
   pcall(function() require("floatterm").hide() end)
-  vim.cmd("edit " .. vim.fn.fnameescape(file))
+  vim.cmd.edit(vim.fn.fnameescape(file))
 end
 
 function M.notify(msg, level)
-  local lvl = vim.log.levels[(level or "INFO"):upper()] or vim.log.levels.INFO
+  local lvl = vim.log.levels[(level or "INFO"):upper()]
   vim.notify(msg, lvl)
 end
 
 function M.bot_status(state)
   require("floatterm").set_status("claude", state)
-end
-
-function M.bot_review(path)
-  require("bot.review").load(path)
 end
 
 function M.quickfix(files)
@@ -42,10 +38,6 @@ function M.setup()
   vim.api.nvim_create_user_command("RemoteQuickfix", function(o)
     M.quickfix(o.fargs)
   end, { nargs = "+", complete = "file", desc = "Set qflist via remote" })
-
-  vim.api.nvim_create_user_command("RemoteBotReview", function(o)
-    M.bot_review(o.args)
-  end, { nargs = 1, complete = "file", desc = "Load PR-review JSON via remote" })
 end
 
 return M
