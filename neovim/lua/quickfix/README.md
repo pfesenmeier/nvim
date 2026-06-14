@@ -1,27 +1,28 @@
 # Custom Quickfix Shortcuts
 
-- Make it easier to create / manage custom quickfix lists
-- Make it easier to dump their contents
+- Shortcuts to interact with quickfix
 
 ## Proposed Keymaps:
 
 ### Add to Current List (operator)
 
-normal: gK<textobject>
-visual: gK
+normal: gca<textobject>
+visual: gca
 
 ### Remove from list
 
-quickfix: <leader>kd
+- For "delete entry under cursor in the qf window," a buffer-local `dd` in `ftplugin/qf.lua` that calls `setqflist({}, 'r', { items = remaining })` is small and idiomatic.
 
 ### Manage Lists
 
-<leader>ka new list (prompt for name)
-<leader>kD (remove quickfix) (with confirm)
-<leader>kt toggle quickfix
-[k, ]K, etc.. mini.bracketed style first/next/previous/last quick fix lists
+gcA new list (prompt for name)
 
+### Mini bindings
 
+<leader>eq toggle quickfix (already implemented)
+<leader>fq explore quickfix lists
+mini.bracketed eE for quickfix lists (hint: enumerations)
 
-
-
+unrelated but would be nice:
+<leader>fm find marks
+<leader>fb find buffers
