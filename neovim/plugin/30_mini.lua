@@ -169,6 +169,15 @@ now(function()
         local diagnostics = MiniStatusline.section_diagnostics({ trunc_width = 75 })
         local lsp         = MiniStatusline.section_lsp({ trunc_width = 75 })
         local filename    = MiniStatusline.section_filename({ trunc_width = 140 })
+        if vim.bo.buftype == 'quickfix' then
+          local q  = vim.fn.getqflist({ title = 1, idx = 0, size = 0, nr = 0 })
+          local last = vim.fn.getqflist({ nr = '$' }).nr
+          filename = ('[QF #%d/%d %s — %d/%d]'):format(
+            q.nr, last,
+            q.title ~= '' and q.title or '(no title)',
+            q.idx, q.size
+          )
+        end
         local fileinfo    = MiniStatusline.section_fileinfo({ trunc_width = 120 })
         local location    = MiniStatusline.section_location({ trunc_width = 75 })
         local search      = MiniStatusline.section_searchcount({ trunc_width = 75 })

@@ -19,6 +19,30 @@ end
 nmap('[p', '<Cmd>exe "iput! " . v:register<CR>', 'Paste Above')
 nmap(']p', '<Cmd>exe "iput "  . v:register<CR>', 'Paste Below')
 
+-- Quickfix list stack navigation (mini.bracketed-style: lowercase=step, uppercase=end)
+nmap('[e', function() require('quickfix').list_goto('prev')  end, 'Older qf list')
+nmap(']e', function() require('quickfix').list_goto('next')  end, 'Newer qf list')
+nmap('[E', function() require('quickfix').list_goto('first') end, 'Oldest qf list')
+nmap(']E', function() require('quickfix').list_goto('last')  end, 'Newest qf list')
+
+-- Quickfix add (operator/visual) and new list. See `lua/quickfix/init.lua`.
+-- - `gca<motion>` add motion range as a single qf entry (e.g. `gca_` for current line)
+-- - `gca`        in visual mode adds the selection
+-- - `gcn`        push a new (empty) qf list with a prompted title
+vim.keymap.set('n', 'gca', function() return require('quickfix').operator() end,
+  { expr = true, desc = 'QF add (operator)' })
+vim.keymap.set('x', 'gca', function() require('quickfix').visual() end,
+  { desc = 'QF add selection' })
+vim.keymap.set('n', 'gcn', function() require('quickfix').new_list() end,
+  { desc = 'QF new list' })
+
+-- Pretty-yank a buffer range to a register without going through quickfix.
+-- Uses `share`'s "location" formatter. e.g. `gY_`, `gYj`, `gYap`, visual `gY`.
+vim.keymap.set('n', 'gY', function() return require('share').buffer_operator() end,
+  { expr = true, desc = 'Pretty yank (operator)' })
+vim.keymap.set('x', 'gY', function() require('share').buffer_visual() end,
+  { desc = 'Pretty yank selection' })
+
 -- Many general mappings are created by 'mini.basics'. See 'plugin/30_mini.lua'
 
 -- stylua: ignore start
@@ -182,12 +206,15 @@ nmap_leader('fp', function()
     get_opts = { namespace = require('bot.review').namespace() },
   })
 end, 'PR review feedback')
+nmap_leader('fq', function() require('quickfix').pick_lists() end, 'Quickfix lists')
 nmap_leader('fr', '<Cmd>Pick resume<CR>', 'Resume')
 nmap_leader('fR', '<Cmd>Pick lsp scope="references"<CR>', 'References (LSP)')
 nmap_leader('fs', pick_workspace_symbols_live, 'Symbols workspace (live)')
 nmap_leader('fS', '<Cmd>Pick lsp scope="document_symbol"<CR>', 'Symbols document')
 nmap_leader('fv', '<Cmd>Pick visit_paths cwd=""<CR>', 'Visit paths (all)')
 nmap_leader('fV', '<Cmd>Pick visit_paths<CR>', 'Visit paths (cwd)')
+nmap_leader("f'", '<Cmd>Pick marks<CR>',     'Marks')
+nmap_leader('f"', '<Cmd>Pick registers<CR>', 'Registers')
 
 -- g is for 'Git'. Common usage:
 -- - `<Leader>gs` - show information at cursor

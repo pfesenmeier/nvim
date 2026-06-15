@@ -66,4 +66,19 @@ end
 
 M.location = M.lsp_ref
 
+function M.range(item, _opts, _cache)
+  local bufnr = item.bufnr and item.bufnr > 0 and item.bufnr or nil
+  local name  = item.filename or (bufnr and vim.api.nvim_buf_get_name(bufnr)) or ""
+  local path  = name ~= "" and vim.fn.fnamemodify(name, ":.") or "?"
+  local s     = item.lnum or 1
+  local e     = (item.end_lnum and item.end_lnum > 0) and item.end_lnum or s
+  local loc   = s == e and ("%s:%d"):format(path, s) or ("%s:%d-%d"):format(path, s, e)
+  local lines = (bufnr and vim.api.nvim_buf_is_loaded(bufnr))
+                and vim.api.nvim_buf_get_lines(bufnr, s - 1, e, false) or {}
+  local lang  = (bufnr and vim.filetype.match({ buf = bufnr })) or ""
+  local body  = {}
+  for _, l in ipairs(lines) do body[#body + 1] = "  " .. l end
+  return ("- `%s`\n  ```%s\n%s\n  ```"):format(loc, lang, table.concat(body, "\n"))
+end
+
 return M

@@ -1,28 +1,44 @@
 # Custom Quickfix Shortcuts
 
-- Shortcuts to interact with quickfix
+Helpers to build and manage quickfix lists without leaving the buffer you're
+working in. Module: `require("quickfix")`.
 
-## Proposed Keymaps:
+## Keymaps
 
-### Add to Current List (operator)
+### Add entries (normal buffer)
 
-normal: gca<textobject>
-visual: gca
+| Map           | Action                                                  |
+| ------------- | ------------------------------------------------------- |
+| `gca<motion>` | Add the motion range as a single qf entry               |
+| `gca_`        | Add the current line (the `_` motion is linewise)       |
+| `gcaj` / `gcak` | Add the current line + next/prev line                 |
+| `gca` (visual) | Add the visual selection                               |
 
-### Remove from list
+Entries are appended to the current list with full range info
+(`lnum`, `col`, `end_lnum`, `end_col`, `text`).
 
-- For "delete entry under cursor in the qf window," a buffer-local `dd` in `ftplugin/qf.lua` that calls `setqflist({}, 'r', { items = remaining })` is small and idiomatic.
+Note: no `gcaa` shortcut — it would shadow `gca` + `a<textobject>`
+(e.g. `gcaa(`).
 
-### Manage Lists
+### Manage lists
 
-gcA new list (prompt for name)
+| Map         | Action                                              |
+| ----------- | --------------------------------------------------- |
+| `gcn`       | Push a new empty qf list (prompts for title)        |
+| `[e` / `]e` | Older / newer list in the qf stack                  |
+| `[E` / `]E` | Oldest / newest list in the qf stack                |
 
-### Mini bindings
+### Quickfix window (buffer-local)
 
-<leader>eq toggle quickfix (already implemented)
-<leader>fq explore quickfix lists
-mini.bracketed eE for quickfix lists (hint: enumerations)
+| Map  | Action                                  |
+| ---- | --------------------------------------- |
+| `dd` | Delete the entry under cursor (preserves title + context) |
 
-unrelated but would be nice:
-<leader>fm find marks
-<leader>fb find buffers
+### Leader
+
+| Map           | Action                          |
+| ------------- | ------------------------------- |
+| `<leader>eq`  | Toggle quickfix window          |
+| `<leader>fq`  | Pick from quickfix list history |
+| `<leader>f'`  | Pick marks                      |
+| `<leader>f"`  | Pick registers                  |
