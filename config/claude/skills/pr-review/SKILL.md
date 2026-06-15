@@ -131,14 +131,3 @@ Write `<same-basename>.json` next to the markdown file. Shape:
   severity groups in the markdown.
 - One entry per actionable finding. Skip the Positive Observations and
   Questions sections; those don't become diagnostics.
-
-## Phase 6 — Hand off to nvim (if available)
-
-After both files are written, if `$NVIM` is set in the environment, run:
-
-```bash
-nv bot-review "<absolute-path-to-json-sidecar>"
-```
-
-This loads the findings as diagnostics inside the parent nvim. If `$NVIM` is
-unset (running outside an nvim terminal), skip this step silently.

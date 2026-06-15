@@ -156,7 +156,7 @@ now(function()
         hl = 'FloatTermSlotHidden'
       end
       local label = name
-      local icon = ft.state.status[name]
+      local icon = ft.get_status(name)
       if icon and name ~= ft.state.current then label = icon .. name:sub(2) end
       table.insert(parts, string.format('%%#%s# %s %%#MiniStatuslineDevinfo#', hl, label))
     end

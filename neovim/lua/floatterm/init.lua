@@ -21,6 +21,10 @@ function M.set_status(name, s)
   vim.cmd("redrawstatus")
 end
 
+function M.get_status(name)
+  return state.status[name]
+end
+
 local defaults = {
   terminals = {},
   keymap_prefix = "<leader>t",

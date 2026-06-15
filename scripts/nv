@@ -63,16 +63,6 @@ def "main bot-status" [
   ^nvim --server $env.NVIM --remote-expr $expr | ignore
 }
 
-# Load a PR-review JSON file as diagnostics in the parent nvim.
-def "main bot-review" [
-  path: path  # Absolute path to the review JSON sidecar
-] {
-  need-nvim
-  let abs = ($path | path expand)
-  let expr = (build-execute-expr "RemoteBotReview" [$abs])
-  ^nvim --server $env.NVIM --remote-expr $expr | ignore
-}
-
 # Send a notification to the parent nvim's mini.notify pane.
 def "main notify" [
   message: string             # Text to display
@@ -86,6 +76,6 @@ def "main notify" [
 }
 
 def main []: nothing -> nothing {
-  print "nv: bridge to the parent nvim. Subcommands: open, quickfix, notify, bot-status, bot-review."
+  print "nv: bridge to the parent nvim. Subcommands: open, quickfix, notify, bot-status."
   print "See `nv <subcmd> --help`."
 }
