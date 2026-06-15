@@ -11,9 +11,7 @@
 -- Make concise helpers for installing/adding plugins in two stages
 local add = vim.pack.add
 local now_if_args, later = Config.now_if_args, Config.later
-
 -- Tree-sitter ================================================================
-
 -- Tree-sitter is a tool for fast incremental parsing. It converts text into
 -- a hierarchical structure (called tree) that can be used to implement advanced
 -- and/or more precise actions: syntax highlighting, textobjects, indent, etc.

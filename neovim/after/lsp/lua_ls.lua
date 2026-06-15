@@ -10,6 +10,7 @@
 --
 -- This config is designed for Lua's activity around Neovim. It provides only
 -- basic config and can be further improved.
+
 return {
   on_attach = function(client, buf_id)
     -- Reduce very long list of triggers for better 'mini.completion' experience
