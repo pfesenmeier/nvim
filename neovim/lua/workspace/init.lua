@@ -34,7 +34,7 @@ local function bot_status_remote(sock)
   local got, icon = pcall(vim.rpcrequest, chan, "nvim_exec_lua",
     "return require('floatterm').get_status('claude')", {})
   pcall(vim.fn.chanclose, chan)
-  if got then return icon end
+  if got and icon ~= vim.NIL then return icon end
 end
 
 function M.bot_status(name)
