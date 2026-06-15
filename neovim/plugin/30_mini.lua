@@ -114,10 +114,12 @@ now(function() require('mini.sessions').setup() end)
 now(function()
   local starter = require('mini.starter')
   starter.setup({
+    header = function() return 'Workspace: ' .. require('workspace').current_name() end,
     items = {
       { name = 'Claude',  action = [[lua require('floatterm').open('claude')]], section = 'Terminals' },
       { name = 'JJUI',    action = [[lua require('floatterm').open('jjui')]],   section = 'Terminals' },
       { name = 'Shell',   action = [[lua require('floatterm').open('shell')]],  section = 'Terminals' },
+      function() return require('workspace').starter_items() end,
       function()
         if _G.MiniSessions == nil then return {} end
         return starter.sections.sessions(5, true)()
@@ -182,9 +184,10 @@ now(function()
         local location    = MiniStatusline.section_location({ trunc_width = 75 })
         local search      = MiniStatusline.section_searchcount({ trunc_width = 75 })
 
+        local workspace = require('workspace').current_name()
         return MiniStatusline.combine_groups({
           { hl = mode_hl,                  strings = { mode } },
-          { hl = 'MiniStatuslineDevinfo',  strings = { diff, diagnostics, lsp } },
+          { hl = 'MiniStatuslineDevinfo',  strings = { workspace, diff, diagnostics, lsp } },
           { hl = 'MiniStatuslineDevinfo',  strings = { terminal_strip() } },
           '%<',
           { hl = 'MiniStatuslineFilename', strings = { filename } },
