@@ -4,19 +4,70 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hello</title>
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (t === "light" || t === "dark") {
+          document.documentElement.setAttribute("data-theme", t);
+        }
+      } catch (e) {}
+    })();
+  </script>
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/highlights.css">
 </head>
 <body>
+  <header class="topbar">
+    <nav class="theme-toggle" aria-label="Theme">
+      <button type="button" data-theme="light" aria-pressed="false">minilight</button>
+      <span class="sep" aria-hidden="true">·</span>
+      <button type="button" data-theme="dark" aria-pressed="false">miniwinter</button>
+    </nav>
+  </header>
   <main><h1>Hello</h1>
 <p>A paragraph of plain text. This site is built with `nvim -l` and `vim.treesitter`,
 served by `vim.uv`.</p>
 <h2>Subheading</h2>
 <p>Another paragraph. Edit this file and the page should reload automatically.</p>
-<pre><code class="language-lua">local function hello()
-  print(&quot;code block&quot;)
-end</code></pre>
+<pre><code class="language-lua"><span class="ts-keyword">local</span> <span class="ts-keyword-function">function</span> <span class="ts-function">hello</span><span class="ts-punctuation-bracket">()</span>
+  <span class="ts-function-builtin">print</span><span class="ts-punctuation-bracket">(</span><span class="ts-string">&quot;code block&quot;</span><span class="ts-punctuation-bracket">)</span>
+<span class="ts-keyword-function">end</span></code></pre>
 <h3>A deeper heading</h3>
-<p>One more paragraph to wrap things up.</p></main>
+<p>One more paragraph to wrap things up.</p>
+<pre><code class="language-python"><span class="ts-keyword-function">def</span> <span class="ts-function">greet</span><span class="ts-punctuation-bracket">(</span><span class="ts-variable-parameter">name</span><span class="ts-punctuation-delimiter">:</span> <span class="ts-type-builtin">str</span><span class="ts-punctuation-bracket">)</span> <span class="ts-operator">-&gt;</span> <span class="ts-type-builtin">str</span><span class="ts-punctuation-delimiter">:</span>
+    <span class="ts-keyword-return">return</span> <span class="ts-string">f&quot;hello, </span><span class="ts-punctuation-special">{</span><span class="ts-variable">name</span><span class="ts-punctuation-special">}</span><span class="ts-string">&quot;</span>
+
+<span class="ts-function-builtin">print</span><span class="ts-punctuation-bracket">(</span><span class="ts-function-call">greet</span><span class="ts-punctuation-bracket">(</span><span class="ts-string">&quot;world&quot;</span><span class="ts-punctuation-bracket">))</span></code></pre></main>
+  <script>
+    (function () {
+      var html = document.documentElement;
+      var buttons = document.querySelectorAll(".theme-toggle button");
+      var media = window.matchMedia("(prefers-color-scheme: dark)");
+
+      function effective() {
+        var explicit = html.getAttribute("data-theme");
+        if (explicit === "light" || explicit === "dark") return explicit;
+        return media.matches ? "dark" : "light";
+      }
+      function sync() {
+        var cur = effective();
+        buttons.forEach(function (b) {
+          b.setAttribute("aria-pressed", String(b.dataset.theme === cur));
+        });
+      }
+      function pick(t) {
+        html.setAttribute("data-theme", t);
+        try { localStorage.setItem("theme", t); } catch (e) {}
+        sync();
+      }
+      buttons.forEach(function (b) {
+        b.addEventListener("click", function () { pick(b.dataset.theme); });
+      });
+      media.addEventListener("change", sync);
+      sync();
+    })();
+  </script>
   <script>new EventSource("/__reload").onmessage = () => location.reload();</script>
 </body>
 </html>

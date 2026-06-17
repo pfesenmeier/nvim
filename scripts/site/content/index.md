@@ -16,3 +16,10 @@ end
 ### A deeper heading
 
 One more paragraph to wrap things up.
+
+```python
+def greet(name: str) -> str:
+    return f"hello, {name}"
+
+print(greet("world"))
+```

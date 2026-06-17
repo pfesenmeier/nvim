@@ -1,4 +1,12 @@
+local script_path = debug.getinfo(1, "S").source:sub(2)
+local script_dir = script_path:match("(.*)/") or "."
+package.path = script_dir .. "/?.lua;" .. package.path
+
+local highlight = require("highlight")
+
 local M = {}
+
+M.captures_seen = {}
 
 local function escape(s)
   return (s:gsub("[&<>\"']", {
@@ -48,12 +56,34 @@ local function walk(node, src, out, state)
     local info = child_of_type(node, "info_string")
     local content = child_of_type(node, "code_fence_content")
     local lang = info and trim(node_text(info, src)) or ""
+    lang = lang:match("^(%S+)") or ""
     local code = content and node_text(content, src) or ""
     code = code:gsub("\n$", "")
+    local spans, caps = highlight.tokenize(code, lang)
+    local body
+    if spans then
+      for cap in pairs(caps) do M.captures_seen[cap] = true end
+      local parts = {}
+      for _, span in ipairs(spans) do
+        local chunk = code:sub(span.start, span.stop)
+        if span.capture then
+          parts[#parts + 1] = string.format(
+            '<span class="%s">%s</span>',
+            highlight.class_for(span.capture),
+            escape(chunk)
+          )
+        else
+          parts[#parts + 1] = escape(chunk)
+        end
+      end
+      body = table.concat(parts)
+    else
+      body = escape(code)
+    end
     out[#out + 1] = string.format(
       '<pre><code class="language-%s">%s</code></pre>',
       escape(lang),
-      escape(code)
+      body
     )
   else
     for child in node:iter_children() do

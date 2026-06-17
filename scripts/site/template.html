@@ -4,10 +4,57 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{title}}</title>
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (t === "light" || t === "dark") {
+          document.documentElement.setAttribute("data-theme", t);
+        }
+      } catch (e) {}
+    })();
+  </script>
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/highlights.css">
 </head>
 <body>
+  <header class="topbar">
+    <nav class="theme-toggle" aria-label="Theme">
+      <button type="button" data-theme="light" aria-pressed="false">{{light_name}}</button>
+      <span class="sep" aria-hidden="true">·</span>
+      <button type="button" data-theme="dark" aria-pressed="false">{{dark_name}}</button>
+    </nav>
+  </header>
   <main>{{body}}</main>
+  <script>
+    (function () {
+      var html = document.documentElement;
+      var buttons = document.querySelectorAll(".theme-toggle button");
+      var media = window.matchMedia("(prefers-color-scheme: dark)");
+
+      function effective() {
+        var explicit = html.getAttribute("data-theme");
+        if (explicit === "light" || explicit === "dark") return explicit;
+        return media.matches ? "dark" : "light";
+      }
+      function sync() {
+        var cur = effective();
+        buttons.forEach(function (b) {
+          b.setAttribute("aria-pressed", String(b.dataset.theme === cur));
+        });
+      }
+      function pick(t) {
+        html.setAttribute("data-theme", t);
+        try { localStorage.setItem("theme", t); } catch (e) {}
+        sync();
+      }
+      buttons.forEach(function (b) {
+        b.addEventListener("click", function () { pick(b.dataset.theme); });
+      });
+      media.addEventListener("change", sync);
+      sync();
+    })();
+  </script>
   <script>new EventSource("/__reload").onmessage = () => location.reload();</script>
 </body>
 </html>

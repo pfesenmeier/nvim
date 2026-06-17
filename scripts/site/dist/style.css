@@ -1,23 +1,14 @@
 :root {
   color-scheme: light dark;
-  --fg: #1a1a1a;
-  --bg: #fdfdfd;
-  --muted: #555;
-  --code-bg: #f4f4f4;
-  --code-border: #e4e4e4;
-  --accent: #2a6db5;
+  --fg: light-dark(#1a1a1a, #e8e8e8);
+  --bg: light-dark(#fdfdfd, #181818);
+  --muted: light-dark(#555, #a0a0a0);
+  --accent: light-dark(#2a6db5, #82b4ff);
+  --code-border: rgba(127, 127, 127, 0.2);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --fg: #e8e8e8;
-    --bg: #181818;
-    --muted: #a0a0a0;
-    --code-bg: #232323;
-    --code-border: #333;
-    --accent: #82b4ff;
-  }
-}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"]  { color-scheme: dark; }
 
 * { box-sizing: border-box; }
 
@@ -31,10 +22,65 @@ html, body {
   line-height: 1.6;
 }
 
+.topbar {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 1.4rem 1.25rem 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.theme-toggle {
+  font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.55em;
+  color: var(--muted);
+}
+
+.theme-toggle button {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.theme-toggle button:hover { color: var(--fg); }
+
+.theme-toggle button:focus-visible {
+  outline: 1px dashed var(--fg);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+.theme-toggle button[aria-pressed="true"] {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+}
+
+.theme-toggle .sep {
+  opacity: 0.45;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle button { transition: none; }
+}
+
 main {
   max-width: 42rem;
   margin: 0 auto;
-  padding: 3rem 1.25rem 6rem;
+  padding: 1.4rem 1.25rem 6rem;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -52,6 +98,7 @@ p { margin: 0 0 1em; }
 
 pre {
   background: var(--code-bg);
+  color: var(--code-fg);
   border: 1px solid var(--code-border);
   border-radius: 6px;
   padding: 0.9em 1.1em;
@@ -71,7 +118,7 @@ pre code {
 }
 
 :not(pre) > code {
-  background: var(--code-bg);
+  background: rgba(127, 127, 127, 0.12);
   border: 1px solid var(--code-border);
   border-radius: 4px;
   padding: 0.1em 0.35em;
