@@ -762,8 +762,60 @@ end)
 --   Execute one either with Lua function, `:Pick <picker-name>` command, or
 --   one of `<Leader>f` mappings defined in 'plugin/20_keymaps.lua'
 later(function()
+  -- Custom `source.show`: truncate long lines from the left so the tail
+  -- (typically the filename or match) stays visible when an item is wider
+  -- than the picker window. Match highlights are recomputed against the
+  -- truncated text by `default_show`.
+  local function truncate_left(text, max_width)
+    if vim.fn.strdisplaywidth(text) <= max_width then return text end
+    local nchars = vim.fn.strchars(text)
+    local lo, hi = 0, nchars
+    while lo < hi do
+      local mid = math.floor((lo + hi) / 2)
+      if vim.fn.strdisplaywidth(vim.fn.strcharpart(text, mid)) > max_width - 1 then
+        lo = mid + 1
+      else
+        hi = mid
+      end
+    end
+    return '…' .. vim.fn.strcharpart(text, lo)
+  end
+
+  local function show_truncated(buf_id, items, query)
+    local win_id = vim.fn.bufwinid(buf_id)
+    local pick = require('mini.pick')
+    if win_id == -1 then return pick.default_show(buf_id, items, query, { show_icons = true }) end
+
+    -- Reserve a few cells for the icon prefix and a small margin.
+    local max_text_width = math.max(1, vim.api.nvim_win_get_width(win_id) - 4)
+
+    local trimmed = {}
+    for i, item in ipairs(items) do
+      local text
+      if type(item) == 'string' then
+        text = item
+      elseif type(item) == 'table' and type(item.text) == 'string' then
+        text = item.text
+      end
+
+      if text and vim.fn.strdisplaywidth(text) > max_text_width then
+        local new_text = truncate_left(text, max_text_width)
+        if type(item) == 'table' then
+          trimmed[i] = vim.tbl_extend('force', {}, item, { text = new_text })
+        else
+          trimmed[i] = new_text
+        end
+      else
+        trimmed[i] = item
+      end
+    end
+
+    return pick.default_show(buf_id, trimmed, query, { show_icons = true })
+  end
+
   require('mini.pick').setup({
     mappings = { choose_marked = '<C-y>' },
+    source = { show = show_truncated },
   })
 end)
 

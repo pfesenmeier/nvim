@@ -120,6 +120,9 @@ Config.on_packchanged = function(plugin_name, kinds, callback, desc)
   Config.new_autocmd('PackChanged', '*', f, desc)
 end
 
+-- try new messaging system
+require('vim._core.ui2').enable()
+
 local sysname = vim.uv.os_uname().sysname:lower()
 Config.env = {
   islinux = string.match(sysname, "linux") ~= nil,
