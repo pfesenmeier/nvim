@@ -1,19 +1,19 @@
- use std log
- 
+ use std/log
+
  export def dump [] {
    let result = $in;
    $result | print
    $result
  }
- 
+
 def --env cd-sibling [previous?: bool = false] {
   let current = pwd | path basename
 
   let options = (
-    ls .. -s 
-    | where type == dir 
-    | get name 
-    | enumerate 
+    ls .. -s
+    | where type == dir
+    | get name
+    | enumerate
     | rename index name
   )
 
@@ -42,7 +42,7 @@ export def --env cdp [] {
  export def azurite-tmp [] {
    job spawn { azurite --inMemoryPersistence } -d azurite
  }
- 
+
  # Copy zoxide entries from one jj workspace to every sibling jj workspace.
  # Paths are rewritten (source prefix -> sibling prefix); scores are preserved.
  # Re-running accumulates scores (`zoxide import --merge`).
@@ -114,28 +114,28 @@ export def --env cdp [] {
      }
    }
  }
- 
+
  export def job-select [] {
    let jobs = job list | sort-by id --reverse
- 
+
    # TODO pattern matching
    let num_jobs = $jobs | length
    if $num_jobs == 1 {
      job unfreeze $jobs.0.id
    } else if $num_jobs > 1 {
      job list | input list | job unfreeze $in.id
-   } 
+   }
  }
- 
+
  def job-resume [name: string] {
    let existing = job list | where { $in.tag == $name } | first
- 
+
    match $existing {
      null => { ^$name },
      _ => { job unfreeze $existing.id }
    }
  }
- 
+
  export def jn [] {
    job-resume nvim
  }
@@ -143,8 +143,8 @@ export def --env cdp [] {
  export def jc [] {
    job-resume claude
  }
- 
- # TODO 
+
+ # TODO
  # "z within"
  # jj workspace - away z [] {}
  # jj workspace root
@@ -163,7 +163,7 @@ export def --env cdp [] {
    zoxide add $dir
    cd $dir
  }
- 
+
  # "z change" -> switches to other if two, or asks for input
  export def --env zc [word: string] {
    try {
@@ -176,7 +176,7 @@ export def --env cdp [] {
      cd $word
    }
  }
- 
+
 export def clip [] {
   let stdin = $in
   let is_wsl = ($nu.os-info.family != 'windows') and ('WSL_DISTRO_NAME' in $env)
@@ -188,32 +188,32 @@ export def clip [] {
     if $use_win32yank { $stdin | win32yank.exe -i --crlf } else { $stdin | wl-copy }
   }
 }
- 
+
  # pastes windows clipboard contents to compressed png inside wsl
 export def png-paste [name: string, --force (-f)] {
    let data = clip
    let name = $name + .png
- 
+
    if ($data | is-empty) {
      print "no data found"
      exit 1
    }
- 
+
    if $force {
      $data | save -f $name
    } else {
      $data | save $name
    }
- 
+
    optipng -o5 $name
    let success = (ls $name | get size | first) < 256kb
- 
+
    if not $success {
      print "warning: compressed image is still too large for claude"
    }
- 
+
 }
- 
+
 export alias ip = image-paste
 
 export def prs [] {

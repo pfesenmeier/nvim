@@ -9,11 +9,11 @@
 # mode the outer nvim is in (e.g. when this is invoked from inside a floatterm
 # where nvim's focused window is in terminal mode).
 
-# Assert we're inside a parent nvim instance.
-def need-nvim [] {
-  if ($env.NVIM? | is-empty) {
-    error make { msg: "not running inside a parent nvim ($NVIM is unset)" }
-  }
+# True when running inside a parent nvim instance (nvim sets $NVIM for its
+# :terminal children). Subcommands use this to silently no-op when there's no
+# parent nvim to talk to, rather than erroring.
+def inside-nvim []: nothing -> bool {
+  $env.NVIM? | is-not-empty
 }
 
 # Escape a string for use inside a vim double-quoted string literal.
@@ -33,7 +33,7 @@ def build-execute-expr [cmd: string, args: list<string>]: nothing -> string {
 def "main open" [
   file: path  # File to open in the parent nvim
 ] {
-  need-nvim
+  if not (inside-nvim) { return }
   let abs = ($file | path expand)
   let expr = (build-execute-expr "RemoteOpen" [$abs])
   ^nvim --server $env.NVIM --remote-expr $expr | ignore
@@ -44,7 +44,7 @@ def "main open" [
 def "main quickfix" [
   ...files: path  # Files to populate the quickfix list with
 ] {
-  need-nvim
+  if not (inside-nvim) { return }
   if ($files | is-empty) {
     error make { msg: "quickfix: at least one file required" }
   }
@@ -57,7 +57,7 @@ def "main quickfix" [
 def "main bot-status" [
   state: string  # idle | working | needs-input
 ] {
-  need-nvim
+  if not (inside-nvim) { return }
   let s = (vim-str-escape $state)
   let expr = $"v:lua.require'remote'.bot_status\(\"($s)\"\)"
   ^nvim --server $env.NVIM --remote-expr $expr | ignore
@@ -68,7 +68,7 @@ def "main notify" [
   message: string             # Text to display
   --level: string = "info"    # info | warn | error | debug | trace
 ] {
-  need-nvim
+  if not (inside-nvim) { return }
   let m = (vim-str-escape $message)
   let l = (vim-str-escape $level)
   let expr = $"v:lua.require'remote'.notify\(\"($m)\", \"($l)\"\)"

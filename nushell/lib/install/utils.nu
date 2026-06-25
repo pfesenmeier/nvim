@@ -1,4 +1,4 @@
-use std log;
+use std/log;
 use ../constants.nu app_dir
 
 export def 'github install' [
