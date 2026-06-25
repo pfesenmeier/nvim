@@ -139,7 +139,7 @@ export def --env cdp [] {
  export def jn [] {
    job-resume nvim
  }
- 
+
  export def jc [] {
    job-resume claude
  }
