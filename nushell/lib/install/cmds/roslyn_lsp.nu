@@ -1,7 +1,6 @@
 # perhaps dotnet 10 has dotnet nuget install?
 # https://github.com/NuGet/Home/issues/12513
 # Microsoft.CodeAnalysis.LanguageServer.linux-x64
-
 use ../../constants.nu app_dir
 
 const lsp_dir = $app_dir | path join "microsoft" "roslyn-lsp"
@@ -15,12 +14,12 @@ const rid = if $nu.os-info.name == "windows" {
   "linux-x64"
 }
 
-const package_name = "Microsoft.CodeAnalysis.LanguageServer." + $rid
+const package_name = "roslyn-language-server." + $rid
 const downloads_folder = $nu.home-dir | path join Downloads
 
 const download_url = "https://dev.azure.com/azure-public/vside/_artifacts/feed/vs-impl/NuGet/" + $package_name
 
-const exe_dir = $lsp_dir | path join content LanguageServer $rid
+const exe_dir = $lsp_dir | path join tools net10.0 $rid
 
 $env.PATH = $env.PATH | prepend $exe_dir
 
@@ -60,6 +59,10 @@ export def "install roslyn-lsp" [] {
 
   unzip $download -d $lsp_dir
   chmod u+x $exe_full_path
+
+  if $nu.os-info.name == "macos" {
+    xattr -dr com.apple.quarantine $lsp_dir
+  }
 }
 
 # source this file to add to path

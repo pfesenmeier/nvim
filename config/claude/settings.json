@@ -23,7 +23,6 @@
       "Bash(curl -s -X POST http://localhost:5049/graphql:*)"
     ]
   },
-  "model": "opus",
   "hooks": {
     "Notification": [
       {
@@ -80,5 +79,6 @@
   "autoUpdatesChannel": "stable",
   "tui": "fullscreen",
   "theme": "auto",
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "model": "opus"
 }

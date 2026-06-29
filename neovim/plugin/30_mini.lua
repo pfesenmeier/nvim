@@ -346,12 +346,8 @@ now_if_args(function()
 
   -- Synchronize terminal emulator background with Neovim's background to remove
   -- possibly different color padding around Neovim instance.
-  -- Skip on Windows Terminal: it doesn't answer the OSC 11 background-color
-  -- query, so `setup_termbg_sync()` would emit a WARN notification ~1s after
-  -- startup. Any capable terminal (WezTerm, kitty, ...) still enables it.
-  if vim.env.WT_SESSION == nil then
-    MiniMisc.setup_termbg_sync()
-  end
+  -- so far, I have not gotten this to work (macos ghostty, windows terminal)
+  -- MiniMisc.setup_termbg_sync()
 end)
 
 -- Step two ===================================================================
@@ -826,6 +822,11 @@ later(function()
     plaintex = latex_patterns,
     -- Recognize special injected language of markdown tree-sitter parser
     markdown_inline = { 'markdown.json' },
+    -- 'friendly-snippets' stores C# snippets under 'csharp/'. Context 'lang'
+    -- is 'c_sharp' (tree-sitter parser name, used when parser is attached)
+    -- or 'cs' (vim filetype, used as fallback otherwise) - map both.
+    c_sharp = { 'csharp/**/*.json' },
+    cs = { 'csharp/**/*.json' },
   }
 
   local snippets = require('mini.snippets')
@@ -842,7 +843,7 @@ later(function()
   -- By default snippets available at cursor are not shown as candidates in
   -- 'mini.completion' menu. This requires a dedicated in-process LSP server
   -- that will provide them. To have that, uncomment next line (use `gcc`).
-  -- MiniSnippets.start_lsp_server()
+  MiniSnippets.start_lsp_server()
 end)
 
 -- Split and join arguments (regions inside brackets between allowed separators).

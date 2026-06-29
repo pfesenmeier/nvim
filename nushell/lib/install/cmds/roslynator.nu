@@ -1,5 +1,7 @@
 use ../../constants.nu app_dir
 
+const version = "4.15.0"
+
 const roslynator_dir = $app_dir | path join dotnet roslynator
 
 export def "install roslynator" [] {
@@ -25,10 +27,10 @@ export def "install roslynator" [] {
    mkdir $dest
    mkdir $exdir
 
-   curl -Lo $zip https://open-vsx.org/api/josefpihrt-vscode/roslynator/4.14.0/file/josefpihrt-vscode.roslynator-4.14.0.vsix
+   curl -Lo $zip $"https://open-vsx.org/api/josefpihrt-vscode/roslynator/($version)/file/josefpihrt-vscode.roslynator-($version).vsix"
    unzip -o $zip -d $exdir
 
-   let dlls = $"($exdir)/**/*.dll" | into glob 
+   let dlls = $"($exdir)/**/*.dll" | into glob
    ls $dlls | each {|dll| print $dll; print $dest; cp $dll.name $dest }
    cleanup
    ls $dest
