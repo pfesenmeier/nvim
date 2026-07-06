@@ -346,7 +346,12 @@ now_if_args(function()
 
   -- Synchronize terminal emulator background with Neovim's background to remove
   -- possibly different color padding around Neovim instance.
-  MiniMisc.setup_termbg_sync()
+  -- Skip on Windows Terminal: it doesn't answer the OSC 11 background-color
+  -- query, so `setup_termbg_sync()` would emit a WARN notification ~1s after
+  -- startup. Any capable terminal (WezTerm, kitty, ...) still enables it.
+  if vim.env.WT_SESSION == nil then
+    MiniMisc.setup_termbg_sync()
+  end
 end)
 
 -- Step two ===================================================================
@@ -504,7 +509,11 @@ end)
 -- - Autocompletion. Basically an automated `:h cmdline-completion`.
 -- - Autocorrection of words as-you-type. Like `:W`->`:w`, `:lau`->`:lua`, etc.
 -- - Autopeek command range (like line number at the start) as-you-type.
-later(function() require('mini.cmdline').setup() end)
+-- Disable command line autocompletion on Windows/WSL where it is sluggish.
+later(function()
+  local no_autocomplete = Config.env.iswindows or Config.env.is_wsl_linux
+  require('mini.cmdline').setup({ autocomplete = { enable = not no_autocomplete } })
+end)
 
 -- Tweak and save any color scheme. Contains utility functions to work with
 -- color spaces and color schemes. Example usage:

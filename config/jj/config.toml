@@ -3,7 +3,7 @@
 [ui]
 editor = "nvim"
 diff-editor = ":builtin"
-diff.tool = ["hunk", "diff", "$left", "$right"]
+diff-formatter = ["difft", "--color=always", "$left", "$right"]
 default-command = "log"
 
 [user]

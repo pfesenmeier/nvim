@@ -1,5 +1,19 @@
 # personal dev config
 
+## Niceties
+
+Insert mode shortcuts
+- alt+$, alt+0 for start, end of lines
+- alt+Enter for creating newline
+
+Commands
+- dotnet helpers -> :DotnetTest
+  - find closest test project
+  - passes in closest test project, test method name
+
+Move terminal commands
+- I forget that they are tuis. explore? float?
+
 ## NV
 
 - nv notify
