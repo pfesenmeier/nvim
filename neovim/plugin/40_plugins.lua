@@ -125,7 +125,9 @@ end)
 --
 -- Add it now if file (and not 'mini.starter') is shown after startup.
 now_if_args(function()
-  add({ 'https://github.com/neovim/nvim-lspconfig' })
+  add({
+    'https://github.com/neovim/nvim-lspconfig',
+  })
 
   -- Use `:h vim.lsp.enable()` to automatically enable language server based on
   -- the rules provided by 'nvim-lspconfig'.
@@ -135,7 +137,7 @@ now_if_args(function()
     'lua_ls',
     'nushell',
     -- enabled via vscode-langservers-extracted
-    -- "html",
+    "html",
     -- "cssls",
     "jsonls",
     -- "eslint",
@@ -287,4 +289,12 @@ later(function ()
   dap.listeners.before.event_exited['dap-view-config'] = function()
     require('dap-view').close()
   end
+end)
+
+-- Db
+later(function()
+  add({
+    'https://github.com/tpope/vim-dadbod',
+    'https://github.com/kristijanhusak/vim-dadbod-completion'
+  })
 end)
