@@ -20,10 +20,10 @@ nmap('[p', '<Cmd>exe "iput! " . v:register<CR>', 'Paste Above')
 nmap(']p', '<Cmd>exe "iput "  . v:register<CR>', 'Paste Below')
 
 -- Quickfix list stack navigation (mini.bracketed-style: lowercase=step, uppercase=end)
-nmap('[e', function() require('quickfix').list_goto('prev')  end, 'Older qf list')
-nmap(']e', function() require('quickfix').list_goto('next')  end, 'Newer qf list')
+nmap('[e', function() require('quickfix').list_goto('prev') end, 'Older qf list')
+nmap(']e', function() require('quickfix').list_goto('next') end, 'Newer qf list')
 nmap('[E', function() require('quickfix').list_goto('first') end, 'Oldest qf list')
-nmap(']E', function() require('quickfix').list_goto('last')  end, 'Newest qf list')
+nmap(']E', function() require('quickfix').list_goto('last') end, 'Newest qf list')
 
 -- Quickfix add (operator/visual) and new list. See `lua/quickfix/init.lua`.
 -- - `gca<motion>` add motion range as a single qf entry (e.g. `gca_` for current line)
@@ -110,6 +110,27 @@ local new_scratch_buffer = function()
   vim.api.nvim_win_set_buf(0, vim.api.nvim_create_buf(true, true))
 end
 
+vim.api.nvim_create_user_command("Scratch", function(opts)
+  new_scratch_buffer()
+  if opts.bang then return end
+
+  local ft = opts.args
+  if ft == "" then
+    local inputopts = { prompt = 'filetype: ', scope = 'buffer' }
+    vim.ui.input(inputopts, function(input)
+      ft = input
+    end)
+  end
+
+  if not (vim.tbl_contains(vim.fn.getcompletion(ft, 'filetype'), ft)) then
+    vim.notify("unknown ft", vim.log.levels.ERROR)
+  end
+
+  if ft ~= "" then
+    vim.bo.filetype = ft
+  end
+end, { nargs = "?", complete = "filetype", bang = true })
+
 local delete_buf_swaps = function()
   local fname = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ':p')
   if fname == '' then
@@ -130,8 +151,9 @@ end
 nmap_leader('ba', '<Cmd>b#<CR>', 'Alternate')
 nmap_leader('bd', '<Cmd>lua MiniBufremove.delete()<CR>', 'Delete')
 nmap_leader('bD', '<Cmd>lua MiniBufremove.delete(0, true)<CR>', 'Delete!')
-nmap_leader('bs', new_scratch_buffer, 'Scratch')
-nmap_leader('bS', delete_buf_swaps, 'Swap files (delete)')
+nmap_leader('bs', '<Cmd>Scratch<CR>', 'Scratch')
+nmap_leader('bS', '<Cmd>Scratch!<CR>', 'Scratch!')
+nmap_leader('bP', delete_buf_swaps, 'Swap files (delete)')
 nmap_leader('bw', '<Cmd>lua MiniBufremove.wipeout()<CR>', 'Wipeout')
 nmap_leader('bW', '<Cmd>lua MiniBufremove.wipeout(0, true)<CR>', 'Wipeout!')
 
@@ -143,17 +165,17 @@ nmap_leader('bW', '<Cmd>lua MiniBufremove.wipeout(0, true)<CR>', 'Wipeout!')
 -- - `<Leader>eP` - edit the most recent plan in '~/.claude/plans'
 -- - `<Leader>er` - edit the most recent PR review in '~/Documents/pr-reviews'
 -- - All mappings that use `edit_plugin_file` - edit 'plugin/' config files
-local edit_plugin_file = function(filename)
+local edit_plugin_file      = function(filename)
   return string.format('<Cmd>edit %s/plugin/%s<CR>', vim.fn.stdpath('config'), filename)
 end
-local explore_at_file = '<Cmd>lua MiniFiles.open(vim.api.nvim_buf_get_name(0))<CR>'
-local explore_quickfix = function()
+local explore_at_file       = '<Cmd>lua MiniFiles.open(vim.api.nvim_buf_get_name(0))<CR>'
+local explore_quickfix      = function()
   vim.cmd(vim.fn.getqflist({ winid = true }).winid ~= 0 and 'cclose' or 'copen')
 end
-local explore_locations = function()
+local explore_locations     = function()
   vim.cmd(vim.fn.getloclist(0, { winid = true }).winid ~= 0 and 'lclose' or 'lopen')
 end
-local edit_latest_md = function(dir, label)
+local edit_latest_md        = function(dir, label)
   return function()
     local files = vim.fn.glob(vim.fn.expand(dir) .. '/*.md', false, true)
     if #files == 0 then
@@ -164,9 +186,9 @@ local edit_latest_md = function(dir, label)
     vim.cmd('edit ' .. vim.fn.fnameescape(files[1]))
   end
 end
-local edit_latest_plan      = edit_latest_md('~/.claude/plans',        'Claude plans')
+local edit_latest_plan      = edit_latest_md('~/.claude/plans', 'Claude plans')
 local edit_latest_pr_review = edit_latest_md('~/Documents/pr-reviews', 'PR reviews')
-local explore_plugins = function()
+local explore_plugins       = function()
   MiniFiles.open(vim.fn.stdpath('data') .. '/site/pack/core/opt')
 end
 
@@ -229,7 +251,7 @@ nmap_leader('fS', '<Cmd>Pick lsp scope="document_symbol"<CR>', 'Symbols document
 nmap_leader('fv', '<Cmd>Pick visit_paths cwd=""<CR>', 'Visit paths (all)')
 nmap_leader('fV', '<Cmd>Pick visit_paths<CR>', 'Visit paths (cwd)')
 nmap_leader('fw', function() require('workspace').pick() end, 'Workspaces')
-nmap_leader("f'", '<Cmd>Pick marks<CR>',     'Marks')
+nmap_leader("f'", '<Cmd>Pick marks<CR>', 'Marks')
 nmap_leader('f"', '<Cmd>Pick registers<CR>', 'Registers')
 
 -- g is for 'Git'. Common usage:
@@ -270,7 +292,9 @@ nmap_leader('ll', '<Cmd>lua vim.lsp.codelens.run()<CR>', 'Lens')
 nmap_leader('lr', '<Cmd>lua vim.lsp.buf.rename()<CR>', 'Rename')
 nmap_leader('lR', '<Cmd>lua vim.lsp.buf.references()<CR>', 'References')
 nmap_leader('ls', '<Cmd>lua vim.lsp.buf.definition()<CR>', 'Source definition')
-nmap_leader('lH', '<Cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }), { bufnr = 0 })<CR>', 'Toggle inlay hints')
+nmap_leader('lH',
+  '<Cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }), { bufnr = 0 })<CR>',
+  'Toggle inlay hints')
 nmap_leader('lt', '<Cmd>lua vim.lsp.buf.type_definition()<CR>', 'Type definition')
 
 xmap_leader('lf', '<Cmd>lua require("conform").format()<CR>', 'Format selection')
@@ -355,7 +379,8 @@ nmap_leader('di', "<Cmd>DapStepInto<CR>", "Step Into")
 nmap_leader('dO', "<Cmd>DapStepOut<CR>", "Step Out")
 nmap_leader('db', "<Cmd>DapToggleBreakpoint<CR>", "Toggle Breakpoint")
 nmap_leader('dB', "<Cmd>DapClearBreakpoints<CR>", "Clear Breakpoints")
-nmap_leader('dl', "<Cmd>lua require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>", "Set Log Point")
+nmap_leader('dl', "<Cmd>lua require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>",
+  "Set Log Point")
 nmap_leader('dL', "<Cmd>lua require('dap').run_last()<CR>", "Run Last")
 nmap_leader('dr', "<Cmd>DapToggleRepl<CR>", "Toggle Repl")
 nmap_leader('dh', "<Cmd>lua require('dap.ui.widgets').hover()<CR>", "Hover")

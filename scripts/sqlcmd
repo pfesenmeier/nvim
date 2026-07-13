@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# place in ~/.local/bin
+
+# Shim: go-sqlcmd ignores $SQLCMDPASSWORD in its backwards-compat flag mode,
+# which is how vim-dadbod's sqlserver adapter passes the password (confirmed on
+# go-sqlcmd 1.10.0). Translate the env var into an explicit -P flag,
+# then hand off to the real sqlcmd. 
+real="/home/linuxbrew/.linuxbrew/bin/sqlcmd"
+if [ -n "${SQLCMDPASSWORD:-}" ]; then
+  pw="$SQLCMDPASSWORD"
+  unset SQLCMDPASSWORD
+  exec "$real" -P "$pw" "$@"
+fi
+exec "$real" "$@"
