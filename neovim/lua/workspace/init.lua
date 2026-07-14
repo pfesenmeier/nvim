@@ -1,8 +1,25 @@
 local M = {}
 
+-- A stable, per-user socket directory shared by every nvim process (the TUI
+-- and all headless workspace servers). It MUST be identical across processes
+-- so they can discover each other's sockets via probe().
+--
+-- On Linux, stdpath("run") is $XDG_RUNTIME_DIR/nvim.user and is stable. On
+-- macOS, XDG_RUNTIME_DIR is unset and stdpath("run") falls back to a temp dir
+-- that is *unique per process* -- so each process would look in a different
+-- place, never reuse a server, and keep spawning competing duplicates. Use a
+-- stable TMPDIR-based path there instead.
+local function default_server_dir()
+  if vim.env.XDG_RUNTIME_DIR and vim.env.XDG_RUNTIME_DIR ~= "" then
+    return vim.fn.stdpath("run") .. "/workspaces"
+  end
+  local tmp = (vim.env.TMPDIR or "/tmp"):gsub("/+$", "")
+  return tmp .. "/nvim-workspaces-" .. (vim.env.USER or vim.env.LOGNAME or "user")
+end
+
 local defaults = {
   workspaces = {},  -- list of { name = string, path = string }
-  server_dir = vim.fn.stdpath("run") .. "/workspaces",
+  server_dir = default_server_dir(),
   home_name  = "home",
 }
 
