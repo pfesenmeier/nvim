@@ -70,6 +70,9 @@ alt + y                 : komorebic flip-layout vertical
 alt + s                 : komorebic change-layout scrolling
 alt + b                 : komorebic change-layout bsp
 
+# TODO - focus-workspace
+# TODO - focus-name-workspace
+# TODO - cycle-worspace
 # Focus container by index on current workspace
 alt + 1                 : $s = komorebic.exe state | ConvertFrom-Json; $m = $s.monitors.elements[$s.monitors.focused]; $w = $m.workspaces.elements[$m.workspaces.focused]; $target = 0; $current = $w.containers.focused; $count = $w.containers.elements.Count; if ($target -lt $count -and $target -ne $current) { $diff = (($target - $current + $count) % $count); 1..$diff | ForEach-Object { komorebic.exe cycle-focus next } }
 alt + 2                 : $s = komorebic.exe state | ConvertFrom-Json; $m = $s.monitors.elements[$s.monitors.focused]; $w = $m.workspaces.elements[$m.workspaces.focused]; $target = 1; $current = $w.containers.focused; $count = $w.containers.elements.Count; if ($target -lt $count -and $target -ne $current) { $diff = (($target - $current + $count) % $count); 1..$diff | ForEach-Object { komorebic.exe cycle-focus next } }

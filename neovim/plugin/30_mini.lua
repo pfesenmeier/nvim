@@ -116,9 +116,6 @@ now(function()
   starter.setup({
     header = function() return 'Workspace: ' .. require('workspace').current_name() end,
     items = {
-      { name = 'Claude',  action = [[lua require('floatterm').open('claude')]], section = 'Terminals' },
-      { name = 'JJUI',    action = [[lua require('floatterm').open('jjui')]],   section = 'Terminals' },
-      { name = 'Shell',   action = [[lua require('floatterm').open('shell')]],  section = 'Terminals' },
       function() return require('workspace').starter_items() end,
       function()
         if _G.MiniSessions == nil then return {} end
