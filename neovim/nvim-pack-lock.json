@@ -60,6 +60,10 @@
       "rev": "74b06c6c75e4eeb3108ec01852001636d85a932b",
       "src": "https://github.com/nvim-lua/plenary.nvim"
     },
+    "roslyn.nvim": {
+      "rev": "b4954e97e145bd8129b3bbe99809759f6ced2235",
+      "src": "https://github.com/seblyng/roslyn.nvim"
+    },
     "vim-dadbod": {
       "rev": "6d1d41da4873a445c5605f2005ad2c68c99d8770",
       "src": "https://github.com/tpope/vim-dadbod"

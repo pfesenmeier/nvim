@@ -139,27 +139,6 @@ end)
 -- - `:h MiniStatusline-example-content` - example of default content. Use it to
 --   configure a custom statusline by setting `config.content.active` function.
 now(function()
-  local function terminal_strip()
-    local ok, ft = pcall(require, 'floatterm')
-    if not ok or not ft.state.order or #ft.state.order == 0 then return '' end
-    local parts = {}
-    for _, name in ipairs(ft.state.order) do
-      local hl
-      if name == ft.state.current then
-        hl = 'FloatTermSlotShown'
-      elseif name == ft.state.last then
-        hl = 'FloatTermSlotLast'
-      else
-        hl = 'FloatTermSlotHidden'
-      end
-      local label = name
-      local icon = ft.get_status(name)
-      if icon and name ~= ft.state.current then label = icon .. name:sub(2) end
-      table.insert(parts, string.format('%%#%s# %s %%#MiniStatuslineDevinfo#', hl, label))
-    end
-    return table.concat(parts, '')
-  end
-
   require('mini.statusline').setup({
     content = {
       active = function()
@@ -185,7 +164,6 @@ now(function()
         return MiniStatusline.combine_groups({
           { hl = mode_hl,                  strings = { mode } },
           { hl = 'MiniStatuslineDevinfo',  strings = { workspace, diff, diagnostics, lsp } },
-          { hl = 'MiniStatuslineDevinfo',  strings = { terminal_strip() } },
           '%<',
           { hl = 'MiniStatuslineFilename', strings = { filename } },
           '%=',

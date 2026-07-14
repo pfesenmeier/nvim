@@ -356,19 +356,6 @@ nmap_leader('vl', '<Cmd>lua MiniVisits.add_label()<CR>', 'Add label')
 nmap_leader('vL', '<Cmd>lua MiniVisits.remove_label()<CR>', 'Remove label')
 -- stylua: ignore end
 
---- Code Companion
-local nvmap_leader = function(suffix, rhs, desc)
-  vim.keymap.set({ 'n', 'v' }, '<Leader>' .. suffix, rhs, { desc = desc })
-end
-
-local vmap_leader = function(suffix, rhs, desc)
-  vim.keymap.set('v', '<Leader>' .. suffix, rhs, { desc = desc })
-end
-
-nvmap_leader("aa", "<cmd>CodeCompanionActions<cr>", "CC Actions")
-nvmap_leader("at", "<cmd>CodeCompanionChat Toggle<cr>", "CC Toggle")
-vmap_leader("aA", "<cmd>CodeCompanionChat Add<cr>", "CC Add")
-
 -- command line motions from :h cmdline.txt
 vim.keymap.set('c', '<C-A>', '<Home>')
 vim.keymap.set('c', '<C-F>', '<Right>')
