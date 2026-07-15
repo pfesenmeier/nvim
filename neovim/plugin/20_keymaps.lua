@@ -17,8 +17,7 @@ end
 -- Paste linewise before/after current line
 -- Usage: `yiw` to yank a word and `]p` to put it on the next line.
 nmap('[p', '<Cmd>exe "iput! " . v:register<CR>', 'Paste Above')
-nmap(']p', '<Cmd>exe "iput "  . v:register<CR>', 'Paste Below')
-
+nmap(']p', '<Cmd>ee "iput "  . v:register<CR>', 'Paste Below')
 -- Many general mappings are created by 'mini.basics'. See 'plugin/30_mini.lua'
 
 -- stylua: ignore start
@@ -252,8 +251,7 @@ nmap_leader('tt', '<Cmd>vertical term<CR>', 'Terminal (vertical)')
 nmap_leader('cc', '<Cmd>term claude<CR>', 'Claude code')
 nmap_leader('jj', '<Cmd>term jjui<CR>', 'jjui')
 
--- ctrl is a pain on mac
-vim.keymap.set('t', "<Esc><Enter>", "<C-\\><C-n>", { desc = 'Exit term mode' })
+vim.keymap.set('t', "<C-b>", "<C-\\><C-n>", { desc = 'Exit term mode' })
 
 -- v is for 'Visits'. Common usage:
 -- - `<Leader>vv` - add    "core" label to current file.
