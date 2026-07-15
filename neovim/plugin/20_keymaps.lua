@@ -19,30 +19,6 @@ end
 nmap('[p', '<Cmd>exe "iput! " . v:register<CR>', 'Paste Above')
 nmap(']p', '<Cmd>exe "iput "  . v:register<CR>', 'Paste Below')
 
--- Quickfix list stack navigation (mini.bracketed-style: lowercase=step, uppercase=end)
-nmap('[e', function() require('quickfix').list_goto('prev') end, 'Older qf list')
-nmap(']e', function() require('quickfix').list_goto('next') end, 'Newer qf list')
-nmap('[E', function() require('quickfix').list_goto('first') end, 'Oldest qf list')
-nmap(']E', function() require('quickfix').list_goto('last') end, 'Newest qf list')
-
--- Quickfix add (operator/visual) and new list. See `lua/quickfix/init.lua`.
--- - `gca<motion>` add motion range as a single qf entry (e.g. `gca_` for current line)
--- - `gca`        in visual mode adds the selection
--- - `gcn`        push a new (empty) qf list with a prompted title
-vim.keymap.set('n', 'gca', function() return require('quickfix').operator() end,
-  { expr = true, desc = 'QF add (operator)' })
-vim.keymap.set('x', 'gca', function() require('quickfix').visual() end,
-  { desc = 'QF add selection' })
-vim.keymap.set('n', 'gcn', function() require('quickfix').new_list() end,
-  { desc = 'QF new list' })
-
--- Pretty-yank a buffer range to a register without going through quickfix.
--- Uses `share`'s "location" formatter. e.g. `gY_`, `gYj`, `gYap`, visual `gY`.
-vim.keymap.set('n', 'gY', function() return require('share').buffer_operator() end,
-  { expr = true, desc = 'Pretty yank (operator)' })
-vim.keymap.set('x', 'gY', function() require('share').buffer_visual() end,
-  { desc = 'Pretty yank selection' })
-
 -- Many general mappings are created by 'mini.basics'. See 'plugin/30_mini.lua'
 
 -- stylua: ignore start
@@ -106,56 +82,15 @@ end
 -- - `<Leader>bs` - create scratch (temporary) buffer
 -- - `<Leader>ba` - navigate to the alternative buffer
 -- - `<Leader>bw` - wipeout (fully delete) current buffer
-local new_scratch_buffer = function()
-  vim.api.nvim_win_set_buf(0, vim.api.nvim_create_buf(true, true))
-end
-
-vim.api.nvim_create_user_command("Scratch", function(opts)
-  new_scratch_buffer()
-  if opts.bang then return end
-
-  local ft = opts.args
-  if ft == "" then
-    local inputopts = { prompt = 'filetype: ', scope = 'buffer' }
-    vim.ui.input(inputopts, function(input)
-      ft = input
-    end)
-  end
-
-  if not (vim.tbl_contains(vim.fn.getcompletion(ft, 'filetype'), ft)) then
-    vim.notify("unknown ft", vim.log.levels.ERROR)
-  end
-
-  if ft ~= "" then
-    vim.bo.filetype = ft
-  end
-end, { nargs = "?", complete = "filetype", bang = true })
-
-local delete_buf_swaps = function()
-  local fname = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ':p')
-  if fname == '' then
-    vim.notify('No file for current buffer', vim.log.levels.WARN)
-    return
-  end
-  local mangled = fname:gsub('/', '%%')
-  local removed = {}
-  for dir in vim.gsplit(vim.o.directory, ',', { plain = true }) do
-    dir = vim.fn.expand(dir):gsub('/+$', '')
-    for _, path in ipairs(vim.fn.glob(dir .. '/' .. mangled .. '.s[a-w][a-z]', false, true)) do
-      if vim.fn.delete(path) == 0 then table.insert(removed, path) end
-    end
-  end
-  vim.notify(('Deleted %d swap file(s)'):format(#removed))
-end
-
 nmap_leader('ba', '<Cmd>b#<CR>', 'Alternate')
 nmap_leader('bd', '<Cmd>lua MiniBufremove.delete()<CR>', 'Delete')
 nmap_leader('bD', '<Cmd>lua MiniBufremove.delete(0, true)<CR>', 'Delete!')
-nmap_leader('bs', '<Cmd>Scratch<CR>', 'Scratch')
-nmap_leader('bS', '<Cmd>Scratch!<CR>', 'Scratch!')
-nmap_leader('bP', delete_buf_swaps, 'Swap files (delete)')
+nmap_leader('bs', '<Cmd>lua HueyBuffer.new_scratch_buffer()<CR>', 'Scratch')
+nmap_leader('bs', '<Cmd>lua HueyBuffer.new_scratch_buffer_with_ft()<CR>', 'Scratch (ft)')
+nmap_leader('bP', '<Cmd>lua HueyBuffer.delete_buf_swaps()<CR>', 'Swap files (delete)')
 nmap_leader('bw', '<Cmd>lua MiniBufremove.wipeout()<CR>', 'Wipeout')
 nmap_leader('bW', '<Cmd>lua MiniBufremove.wipeout(0, true)<CR>', 'Wipeout!')
+nmap_leader('bo', '<Cmd>%bd | e #<CR>', 'Buf only')
 
 -- e is for 'Explore' and 'Edit'. Common usage:
 -- - `<Leader>ed` - open explorer at current working directory
@@ -175,24 +110,10 @@ end
 local explore_locations     = function()
   vim.cmd(vim.fn.getloclist(0, { winid = true }).winid ~= 0 and 'lclose' or 'lopen')
 end
-local edit_latest_md        = function(dir, label)
-  return function()
-    local files = vim.fn.glob(vim.fn.expand(dir) .. '/*.md', false, true)
-    if #files == 0 then
-      vim.notify('No ' .. label .. ' found', vim.log.levels.WARN)
-      return
-    end
-    table.sort(files, function(a, b) return vim.fn.getftime(a) > vim.fn.getftime(b) end)
-    vim.cmd('edit ' .. vim.fn.fnameescape(files[1]))
-  end
-end
-local edit_latest_plan      = edit_latest_md('~/.claude/plans', 'Claude plans')
-local edit_latest_pr_review = edit_latest_md('~/Documents/pr-reviews', 'PR reviews')
 local explore_plugins       = function()
   MiniFiles.open(vim.fn.stdpath('data') .. '/site/pack/core/opt')
 end
 
-nmap_leader('ec', edit_latest_plan, 'Latest Claude plan')
 nmap_leader('ed', '<Cmd>lua MiniFiles.open()<CR>', 'Directory')
 nmap_leader('ef', explore_at_file, 'File directory')
 nmap_leader('ei', '<Cmd>edit $MYVIMRC<CR>', 'init.lua')
@@ -205,7 +126,6 @@ nmap_leader('ep', edit_plugin_file('40_plugins.lua'), 'Plugins config')
 nmap_leader('eP', '<Cmd>edit ~/nvim/nushell/lib/install/packages/packages.nu<CR>', 'Packages List')
 nmap_leader('eq', explore_quickfix, 'Quickfix list')
 nmap_leader('eQ', explore_locations, 'Location list')
-nmap_leader('er', edit_latest_pr_review, 'Latest PR review')
 nmap_leader('et', '<Cmd>edit ~/Documents/TODO.md<CR>', 'TODO')
 
 -- f is for 'Fuzzy Find'. Common usage:
@@ -331,7 +251,6 @@ nmap_leader('tT', '<Cmd>horizontal term<CR>', 'Terminal (horizontal)')
 nmap_leader('tt', '<Cmd>vertical term<CR>', 'Terminal (vertical)')
 nmap_leader('cc', '<Cmd>term claude<CR>', 'Claude code')
 nmap_leader('jj', '<Cmd>term jjui<CR>', 'jjui')
-
 
 -- ctrl is a pain on mac
 vim.keymap.set('t', "<Esc><Enter>", "<C-\\><C-n>", { desc = 'Exit term mode' })

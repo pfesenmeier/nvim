@@ -224,48 +224,6 @@ Config.now(function()
   vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F99' })
 end)
 
--- AI
-
-later(function()
-  add({
-      "https://github.com/nvim-lua/plenary.nvim",
-      "https://github.com/olimorris/codecompanion.nvim",
-  })
-  require("codecompanion").setup(
-{
-      interactions = {
-        chat = {
-          adapter = "claude_code"
-        },
-        inline = {
-          adapter = "claude_code"
-        },
-        cmd = {
-          adapter = "claude_code"
-        }
-      },
-      display = {
-        chat = {
-          window = {
-            position = 'left',
-          }
-        }
-      },
-      adapters = {
-        acp = {
-          claude_code = function()
-            return require("codecompanion.adapters").extend("claude_code", {
-              env = {
-                CLAUDE_CODE_OAUTH_TOKEN = "CLAUDE_CODE_OAUTH_TOKEN"
-              }
-            })
-          end,
-        },
-      }
-    })
-
-  end)
-
 -- Dap
 later(function ()
   add({
