@@ -12,55 +12,60 @@
 # True when running inside a parent nvim instance (nvim sets $NVIM for its
 # :terminal children). Subcommands use this to silently no-op when there's no
 # parent nvim to talk to, rather than erroring.
-def inside-nvim []: nothing -> bool {
-  $env.NVIM? | is-not-empty
+def nvim-bufnr [] {
+   $env.NVIM_BUFNR?
 }
 
-# Escape a string for use inside a vim double-quoted string literal.
-def vim-str-escape [s: string]: nothing -> string {
-  $s | str replace --all '\' '\\' | str replace --all '"' '\"'
+def nvim-server [] {
+   $env.NVIM?
 }
 
-# Build a vim expression that runs `:<cmd> arg1 arg2 …` via execute(), with
-# each arg passed through fnameescape() so spaces / special chars survive.
-def build-execute-expr [cmd: string, args: list<string>]: nothing -> string {
-  let pieces = ($args | each {|a| ('fnameescape("' + (vim-str-escape $a) + '")') })
-  let joined = ($pieces | str join ' . " " . ')
-  ('execute("' + $cmd + ' " . ' + $joined + ')')
+def bot-status-keys [
+  state: string  # idle | working | needs-input
+] {
+
 }
 
 # Open a file in the parent nvim.
 def "main open" [
-  file: path  # File to open in the parent nvim
+  ...files: path  # File to open in the parent nvim
 ] {
-  if not (inside-nvim) { return }
-  let abs = ($file | path expand)
-  let expr = (build-execute-expr "RemoteOpen" [$abs])
-  ^nvim --server $env.NVIM --remote-expr $expr | ignore
+  let server = nvim-server
+  if not ($server) { return }
+
+  let abs = $files | each { path expand }
+
+  nvim --server $server --remote ...$abs
 }
 
-# Replace the parent nvim's quickfix list with the given files and `:copen` it.
-# The floatterm float (if visible) is dismissed so quickfix is in focus.
-def "main quickfix" [
-  ...files: path  # Files to populate the quickfix list with
-] {
-  if not (inside-nvim) { return }
-  if ($files | is-empty) {
-    error make { msg: "quickfix: at least one file required" }
-  }
-  let abs = ($files | each {|f| $f | path expand })
-  let expr = (build-execute-expr "RemoteQuickfix" $abs)
-  ^nvim --server $env.NVIM --remote-expr $expr | ignore
+def notify-keys [msg: string, level: string] {
+  $"<Cmd>:lua vim.notify\(\"($msg)\", vim.log.levels.($level))<CR>"
 }
+
+def hueyterm-keys [
+  method: string,
+  bufnr: number,
+] {
+  $"<Cmd>:lua HueyTerm.($method)\(($bufnr))<CR>"
+}
+
 
 # Update the parent nvim's bot status (drives the statusline indicator).
 def "main bot-status" [
   state: string  # idle | working | needs-input
 ] {
-  if not (inside-nvim) { return }
-  let s = (vim-str-escape $state)
-  let expr = $"v:lua.require'remote'.bot_status\(\"($s)\"\)"
-  ^nvim --server $env.NVIM --remote-expr $expr | ignore
+  let server = nvim-server
+  if ($server | is-empty) { return }
+  let bufnr = nvim-bufnr 
+  if ($bufnr | is-empty) { return }
+
+  let keys = hueyterm-keys bot_started 
+
+  nvim --server $server --remote-send 
+}
+
+def notify-keys [msg: string, level: string] {
+  $"<Cmd>:lua vim.notify\(\"($msg)\", vim.log.levels.($level))<CR>"
 }
 
 # Send a notification to the parent nvim's mini.notify pane.
@@ -68,11 +73,13 @@ def "main notify" [
   message: string             # Text to display
   --level: string = "info"    # info | warn | error | debug | trace
 ] {
-  if not (inside-nvim) { return }
-  let m = (vim-str-escape $message)
-  let l = (vim-str-escape $level)
-  let expr = $"v:lua.require'remote'.notify\(\"($m)\", \"($l)\"\)"
-  ^nvim --server $env.NVIM --remote-expr $expr | ignore
+  let server = nvim-server
+  if ($server | is-empty) { return }
+
+  let level = $level | str uppercase
+  let keys = notify-keys $message $level
+
+  nvim --server $server --remote-send $keys
 }
 
 def main []: nothing -> nothing {
