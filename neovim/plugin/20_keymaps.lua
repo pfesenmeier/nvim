@@ -253,7 +253,17 @@ nmap_leader('cc', '<Cmd>term claude<CR>', 'Claude code')
 nmap_leader('jj', '<Cmd>term jjui<CR>', 'jjui')
 
 -- ctrl is a pain on mac
-vim.keymap.set('t', "<Esc><Enter>", "<C-\\><C-n>", { desc = 'Exit term mode' })
+-- use <C-c> to stop claude instead
+vim.keymap.set('t', "<Esc><Esc>", "<C-\\><C-n>", { desc = 'Exit term mode' })
+-- allows these to move around on any buffer
+vim.keymap.set('t', "<C-j>", "<C-\\><C-n><C-w>j", { desc = 'Exit term mode' })
+vim.keymap.set('t', "<C-k>", "<C-\\><C-n><C-w>k", { desc = 'Exit term mode' })
+vim.keymap.set('t', "<C-h>", "<C-\\><C-n><C-w>h", { desc = 'Exit term mode' })
+-- use 'clear' command instead
+vim.keymap.set('t', "<C-l>", "<C-\\><C-n><C-w>l", { desc = 'Exit term mode' })
+
+-- is there someway of having "enter" in normal mode in terminal buffer
+-- to be submit?
 
 -- v is for 'Visits'. Common usage:
 -- - `<Leader>vv` - add    "core" label to current file.
