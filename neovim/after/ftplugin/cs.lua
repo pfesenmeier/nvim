@@ -66,23 +66,25 @@ local dap_config = {
   },
 }
 
-local netcoredbg
-local islinux = Config.env.islinux
-local home = Config.env.home
-local dap = require('dap')
+Config.later(function()
+  local islinux = Config.env.islinux
+  local home = Config.env.home
+  local dap = require('dap')
 
-if islinux then
-  netcoredbg = home .. '/.local/bin/Samsung/netcoredbg/netcoredbg/netcoredbg'
-else
-  netcoredbg = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe'
-end
+  local netcoredbg
+  if islinux then
+    netcoredbg = home .. '/.local/bin/Samsung/netcoredbg/netcoredbg/netcoredbg'
+  else
+    netcoredbg = home .. '\\AppData\\Local\\Samsung\\netcoredbg\\netcoredbg\\netcoredbg.exe'
+  end
 
--- if experiencing problems, make sure treesitter is up to date first!
-dap.adapters.netcoredbg = {
-  type = 'executable',
-  command = netcoredbg,
-  args = { '--interpreter=vscode' }
-}
+  -- if experiencing problems, make sure treesitter is up to date first!
+  dap.adapters.netcoredbg = {
+    type = 'executable',
+    command = netcoredbg,
+    args = { '--interpreter=vscode' }
+  }
 
-dap.configurations.cs = dap_config
-dap.configurations.fsharp = dap_config
+  dap.configurations.cs = dap_config
+  dap.configurations.fsharp = dap_config
+end)
