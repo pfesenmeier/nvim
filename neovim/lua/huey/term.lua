@@ -66,6 +66,31 @@ H.get_icon = function(progress)
   if state == 4 then return '⏸' end  -- U+23F8 PAUSE — paused
 end
 
+
+---@param buf number
+---@param progress Progress
+H.notify = function(buf, progress)
+  local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t")
+
+  ---@type string, vim.log.levels
+  local msg, level
+
+  if progress.state == 1 and progress.value == 100 then
+    msg, level = " is done.", vim.log.levels.INFO
+  elseif progress.value == 2 then
+    msg, level = " has errored.", vim.log.levels.ERROR
+  elseif progress.value == 3 then
+    msg, level = " has ???.", vim.log.levels.INFO
+  elseif progress.value == 4 then
+    msg, level = " is waiting.", vim.log.levels.WARN
+  end
+
+  if msg then
+    vim.notify(name .. msg, level)
+  end
+end
+
+
 ---@param buf number
 ---@return string|nil
 HueyTerm.get_icon = function(buf)
