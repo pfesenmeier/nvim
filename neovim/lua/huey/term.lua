@@ -63,39 +63,84 @@ H.get_icon = function(progress)
 
   if state == 2 then return '⊘' end  -- U+2298 CIRCLED DIVISION SLASH — error
   if state == 3 then return '◌' end  -- U+25CC DOTTED CIRCLE — indeterminate (outline, no 
-  fill = unknown amount)
   if state == 4 then return '⏸' end  -- U+23F8 PAUSE — paused
 end
 
-H.get_progress = function(bufnr)
+---@param buf number
+---@return string|nil
+HueyTerm.get_icon = function(buf)
+  local progress = bufstatuses[buf]
+
+  if not progress then return nil end
+
+  return H.get_icon(progress)
 end
 
-
 H.create_autocmds = function()
-  local gr = vim.api.nvim_create_augroup("HueyTerm", {})
+  local gr = vim.api.nvim_create_augroup("HueyTerm", { desc = "HueyTerm events"})
 
   vim.api.nvim_create_autocmd({ "TermRequest" }, {
+    group = gr,
+    desc = "Update tabline when progress event receieved",
     callback = function(ev)
       local progress = H.parse_progress(ev.data.sequence)
+      local buf = ev.buf
+      if not buf or not progress then return end
+
+      if progress.state == 0 then
+        bufstatuses[buf] = nil
+      else
+        bufstatuses[buf] = progress
+      end
+
+      vim.cmd.redrawtabline()
+    end
+  })
+
+  vim.api.nvim_create_autocmd({ "BufEnter" }, {
+    group = gr,
+    desc = "Removes terminal ('done') statuses when enter a buffer",
+    callback = function(ev)
+      if (vim.bo[ev.buf].buftype ~= 'terminal') then return end
+      local progress = bufstatuses[ev.buf]
+      if not progress then return end
+
+      -- 1 => "in progress"
+      if progress.state ~= 1 or progress.value == 100 then
+        bufstatuses[ev.buf] = nil
+      end
     end
   })
 end
--- When a 1-4 event received, set the status
--- When a state 0 received, remove it
 
--- Provide a method to draw the tab icon
--- in progress         -> U+25D0 (CIRCLE WITH LEFT HALF BLACK)
--- 2 -> error          -> X
--- 3 -> indeterminate  -> ?
--- 4 -> paused/warning -> !
+-- 2 error
+-- 4 warning/paused
+-- 1 in progress
+-- 1 w/ 100 value done
+-- 3 indeterminate
+local sortOrder = { 3, 1, 4, 2 }
 
--- When a terminal buffer is entered, clear a done value (0, 100).
+---@param first Progress
+---@param second Progress
+---@return boolean
+H.sort_progress = function(first, second)
+  if first.state == 1 and second.state == 1 then
+    return first.value < second.value
+  end
 
+  return sortOrder[first.state] < sortOrder[second.state]
+end
 
+--- @return string|nil icon
+HueyTerm.get_editor_icon = function()
+  local values = vim.tbl_values(bufstatuses)
 
+  table.sort(values, H.sort_progress)
 
+  return values[1]
+end
 
-HueTerm.setup = function()
+HueyTerm.setup = function()
   _G.HueyTerm = HueyTerm
 end
 

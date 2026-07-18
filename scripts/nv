@@ -38,10 +38,6 @@ def "main open" [
   nvim --server $server --remote ...$abs
 }
 
-def notify-keys [msg: string, level: string] {
-  $"<Cmd>:lua vim.notify\(\"($msg)\", vim.log.levels.($level))<CR>"
-}
-
 def hueyterm-keys [
   method: string,
   bufnr: number,
@@ -56,12 +52,12 @@ def "main bot-status" [
 ] {
   let server = nvim-server
   if ($server | is-empty) { return }
-  let bufnr = nvim-bufnr 
+  let bufnr = nvim-bufnr
   if ($bufnr | is-empty) { return }
 
-  let keys = hueyterm-keys bot_started 
-
-  nvim --server $server --remote-send 
+  # let keys = hueyterm-keys bot_started 'INFO'
+  #
+  # nvim --server $server --remote-send
 }
 
 def notify-keys [msg: string, level: string] {

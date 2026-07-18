@@ -144,27 +144,27 @@ now(function()
     content = {
       active = function()
         local mode, mode_hl = MiniStatusline.section_mode({ trunc_width = 120 })
-        local diff        = MiniStatusline.section_diff({ trunc_width = 75 })
-        local diagnostics = MiniStatusline.section_diagnostics({ trunc_width = 75 })
-        local lsp         = MiniStatusline.section_lsp({ trunc_width = 75 })
-        local filename    = MiniStatusline.section_filename({ trunc_width = 140 })
+        local diff          = MiniStatusline.section_diff({ trunc_width = 75 })
+        local diagnostics   = MiniStatusline.section_diagnostics({ trunc_width = 75 })
+        local lsp           = MiniStatusline.section_lsp({ trunc_width = 75 })
+        local filename      = MiniStatusline.section_filename({ trunc_width = 140 })
         if vim.bo.buftype == 'quickfix' then
-          local q  = vim.fn.getqflist({ title = 1, idx = 0, size = 0, nr = 0 })
+          local q    = vim.fn.getqflist({ title = 1, idx = 0, size = 0, nr = 0 })
           local last = vim.fn.getqflist({ nr = '$' }).nr
-          filename = ('[QF #%d/%d %s — %d/%d]'):format(
+          filename   = ('[QF #%d/%d %s — %d/%d]'):format(
             q.nr, last,
             q.title ~= '' and q.title or '(no title)',
             q.idx, q.size
           )
         end
-        local fileinfo    = MiniStatusline.section_fileinfo({ trunc_width = 120 })
-        local location    = MiniStatusline.section_location({ trunc_width = 75 })
-        local search      = MiniStatusline.section_searchcount({ trunc_width = 75 })
+        local fileinfo  = MiniStatusline.section_fileinfo({ trunc_width = 120 })
+        local location  = MiniStatusline.section_location({ trunc_width = 75 })
+        local search    = MiniStatusline.section_searchcount({ trunc_width = 75 })
 
         local workspace = require('workspace').current_name()
         return MiniStatusline.combine_groups({
-          { hl = mode_hl,                  strings = { mode } },
-          { hl = 'MiniStatuslineDevinfo',  strings = { workspace, diff, diagnostics, lsp } },
+          { hl = mode_hl,                 strings = { mode } },
+          { hl = 'MiniStatuslineDevinfo', strings = { workspace, diff, diagnostics, lsp } },
           '%<',
           { hl = 'MiniStatuslineFilename', strings = { filename } },
           '%=',
@@ -176,7 +176,7 @@ now(function()
   })
 
   local function apply_floatterm_hls()
-    vim.api.nvim_set_hl(0, 'FloatTermSlotShown',  { link = 'MiniStatuslineModeNormal' })
+    vim.api.nvim_set_hl(0, 'FloatTermSlotShown', { link = 'MiniStatuslineModeNormal' })
     vim.api.nvim_set_hl(0, 'FloatTermSlotHidden', { link = 'Comment' })
     -- "Inverted" pill: swap fg/bg of the shown pill. Resolved at runtime so
     -- it stays in sync if the colorscheme changes.
@@ -193,7 +193,16 @@ end)
 
 -- Tabline. Sets `:h 'tabline'` to show all listed buffers in a line at the top.
 -- Buffers are ordered as they were created. Navigate with `[b` and `]b`.
-now(function() require('mini.tabline').setup() end)
+now(function()
+  require('huey.term').setup()
+  require('mini.tabline').setup({
+    format = function(buf_id, label)
+      local icon = HueyTerm.get_icon(buf_id)
+      icon = icon and icon .. ' ' or ''
+      return MiniTabline.default_format(buf_id, label) .. icon
+    end
+  })
+end)
 
 -- Step one or two ============================================================
 -- Load now if Neovim is started like `nvim -- path/to/file`, otherwise - later.
@@ -458,16 +467,16 @@ later(function()
     -- Explicitly opt-in for set of common keys to trigger clue window
     triggers = {
       { mode = { 'n', 'x' }, keys = '<Leader>' }, -- Leader triggers
-      { mode =   'n',        keys = '\\' },       -- mini.basics
+      { mode = 'n',          keys = '\\' },       -- mini.basics
       { mode = { 'n', 'x' }, keys = '[' },        -- mini.bracketed
       { mode = { 'n', 'x' }, keys = ']' },
-      { mode =   'i',        keys = '<C-x>' },    -- Built-in completion
+      { mode = 'i',          keys = '<C-x>' },    -- Built-in completion
       { mode = { 'n', 'x' }, keys = 'g' },        -- `g` key
       { mode = { 'n', 'x' }, keys = "'" },        -- Marks
       { mode = { 'n', 'x' }, keys = '`' },
       { mode = { 'n', 'x' }, keys = '"' },        -- Registers
       { mode = { 'i', 'c' }, keys = '<C-r>' },
-      { mode =   'n',        keys = '<C-w>' },    -- Window commands
+      { mode = 'n',          keys = '<C-w>' },    -- Window commands
       { mode = { 'n', 'x' }, keys = 's' },        -- `s` key (mini.surround, etc.)
       { mode = { 'n', 'x' }, keys = 'z' },        -- `z` key
     },
@@ -654,9 +663,9 @@ later(function()
   -- Map built-in navigation characters to force map refresh
   for _, key in ipairs({ 'n', 'N', '*', '#' }) do
     local rhs = key
-      -- Also open enough folds when jumping to the next match
-      .. 'zv'
-      .. '<Cmd>lua MiniMap.refresh({}, { lines = false, scrollbar = false })<CR>'
+        -- Also open enough folds when jumping to the next match
+        .. 'zv'
+        .. '<Cmd>lua MiniMap.refresh({}, { lines = false, scrollbar = false })<CR>'
     vim.keymap.set('n', key, rhs)
   end
 end)
