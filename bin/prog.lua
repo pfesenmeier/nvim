@@ -1,4 +1,4 @@
-#!/usr/env -S nvim -l
+#!/usr/bin/env -S nvim -l
 
 ---@param state number
 ---@param value number?
@@ -16,18 +16,24 @@ local run_cmd = function(...)
   local cmd = vim.iter({
     shell,
     shellcmdflag,
-    ...
+    table.concat({ ... }, " ")
   }):flatten():totable()
 
-  return vim.system(cmd):wait()
+  return vim.system(cmd, {
+    stdout = function(_, data)
+      if data then io.stdout:write(data) end
+    end,
+    stderr = function(_, data)
+      if data then io.stderr:write(data) end
+    end,
+  }):wait()
 end
 
 if #arg == 0 then return end
 
 send_progress(1, 25)
--- remove non-positive entries
-local cmd = table.unpack(arg)
-local completed =  run_cmd(cmd)
+-- splat all non-positive entries
+local completed = run_cmd(unpack(arg))
 if completed.code == 0 then
   send_progress(1, 100)
 else
