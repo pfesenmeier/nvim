@@ -108,7 +108,8 @@ if Config.env.iswindows then
 else
   vim.opt.shell = vim.fs.joinpath(vim.env.HOMEBREW_PREFIX, "bin/nu")
 end
-vim.opt.shellcmdflag = "--no-config-file --commands"
+-- vim.opt.shellcmdflag = "--no-config-file --commands"
+vim.opt.shellcmdflag = "-c"
 vim.opt.shellquote = ""
 vim.opt.shellxquote = ""
 -- ":r !ls | to text" or ":r !ls | get name"

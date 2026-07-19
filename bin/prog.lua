@@ -11,15 +11,7 @@ end
 ---@param ... string
 ---@return vim.SystemCompleted
 local run_cmd = function(...)
-  local shell = vim.o.shell
-  local shellcmdflag = vim.split(vim.o.shellcmdflag, "%s+", { trimempty = true })
-  local cmd = vim.iter({
-    shell,
-    shellcmdflag,
-    table.concat({ ... }, " ")
-  }):flatten():totable()
-
-  return vim.system(cmd, {
+  return vim.system({ ... }, {
     stdout = function(_, data)
       if data then io.stdout:write(data) end
     end,
@@ -32,10 +24,16 @@ end
 if #arg == 0 then return end
 
 send_progress(1, 25)
--- splat all non-positive entries
-local completed = run_cmd(unpack(arg))
+-- splat all non-positive entries; vim.system throws if the command can't be spawned
+local ok, completed = pcall(run_cmd, unpack(arg))
+if not ok then
+  io.stderr:write(tostring(completed) .. "\n")
+  send_progress(2)
+  os.exit(127)
+end
 if completed.code == 0 then
   send_progress(1, 100)
 else
   send_progress(2)
 end
+os.exit(completed.code)
