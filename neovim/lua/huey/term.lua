@@ -31,7 +31,7 @@ local bufstatuses = {}
 --- @param sequence string
 --- @return Progress?
 H.parse_progress = function(sequence)
-  local state, value = sequence:match('^\027%]9;4;(%d+);?(%d)$')
+  local state, value = sequence:match('^\027%]9;4;(%d+);?(%d*)$')
 
   if not state then
     return nil
@@ -77,11 +77,11 @@ H.notify = function(buf, progress)
 
   if progress.state == 1 and progress.value == 100 then
     msg, level = " is done.", vim.log.levels.INFO
-  elseif progress.value == 2 then
+  elseif progress.state == 2 then
     msg, level = " has errored.", vim.log.levels.ERROR
-  elseif progress.value == 3 then
+  elseif progress.state == 3 then
     msg, level = " has ???.", vim.log.levels.INFO
-  elseif progress.value == 4 then
+  elseif progress.state == 4 then
     msg, level = " is waiting.", vim.log.levels.WARN
   end
 
@@ -102,7 +102,7 @@ HueyTerm.get_icon = function(buf)
 end
 
 H.create_autocmds = function()
-  local gr = vim.api.nvim_create_augroup("HueyTerm", { desc = "HueyTerm events"})
+  local gr = vim.api.nvim_create_augroup("HueyTerm", {})
 
   vim.api.nvim_create_autocmd({ "TermRequest" }, {
     group = gr,
@@ -119,6 +119,8 @@ H.create_autocmds = function()
       end
 
       vim.cmd.redrawtabline()
+
+      H.notify(buf, progress)
     end
   })
 
@@ -167,6 +169,7 @@ end
 
 HueyTerm.setup = function()
   _G.HueyTerm = HueyTerm
+  H.create_autocmds()
 end
 
 return HueyTerm
