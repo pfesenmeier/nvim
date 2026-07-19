@@ -186,7 +186,6 @@ $env.ENV_CONVERSIONS = {
 # Directories to search for scripts when calling source or use
 $env.NU_LIB_DIRS = [
     # FIXME: This default is not implemented in rust code as of 2023-09-06.
-    ($nu.default-config-dir | path join 'scripts') # add <nushell-config-dir>/scripts
     ($nu.default-config-dir | path join 'lib')
 ]
 
@@ -199,13 +198,12 @@ $env.NU_PLUGIN_DIRS = [
 # To add entries to PATH (on Windows you might use Path), you can use the following pattern:
 # $env.PATH = ($env.PATH | split row (char esep) | prepend '/some/path')
 
-$env.lib-path = ($nu.config-path | path dirname | path join 'lib')
-
 # pnpm
 $env.PNPM_HOME = $nu.home-dir | path join .local share pnpm
 let orbBin = $nu.home-dir | path join .orbstack bin
+let localBins = $nu.home-dir | path join nvim bin
 
-$env.PATH = ($env.PATH | split row (char esep) | prepend [$env.PNPM_HOME $orbBin] )
+$env.PATH = ($env.PATH | split row (char esep) | prepend [$env.PNPM_HOME $orbBin $localBins] )
 
 # for linux credential manager
 # OR git config --global credential.credentialStore gpg

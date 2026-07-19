@@ -1,8 +1,0 @@
-# Sourced for every zsh invocation (interactive, login, and non-interactive
-# subshells like the ones jjui's exec_shell spawns). Keep this file minimal —
-# anything that should NOT run for non-interactive shells belongs in .zshrc
-# or .zprofile.
-
-# Make user-installed binaries (e.g., `nv` from this dotfiles repo) reachable
-# from any zsh subshell.
-export PATH="$HOME/.local/bin:$PATH"

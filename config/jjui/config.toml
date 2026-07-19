@@ -7,36 +7,8 @@
 theme = "everforest"
 
 [[actions]]
-name = "nv_quickfix_checked"
-lua = '''
-  local files = context.checked_files()
-  if #files == 0 then
-    flash("nothing checked")
-    return
-  end
-  -- exec_shell inherits env, so the spawned shell sees $NVIM and runs `nv`.
-  exec_shell("nv quickfix " .. table.concat(files, " "))
-  flash("→ qflist (" .. #files .. ")")
-'''
-
-[[bindings]]
-action = "nv_quickfix_checked"
-key = "E"
-scope = "revisions.details"
-desc = "Send checked files to nvim quickfix"
-
-[[actions]]
 name = "nv_edit_file"
-lua = '''
-  local file = context.file()
-  if not file or file == "" then
-    flash("no file under cursor")
-    return
-  end
-  -- exec_shell inherits env, so the spawned shell sees $NVIM and runs `nv`.
-  exec_shell("nv open " .. file)
-  flash("→ " .. file)
-'''
+lua = "EditFile()"
 
 [[bindings]]
 action = "nv_edit_file"
@@ -46,19 +18,7 @@ desc = "Open file under cursor in nvim"
 
 [[actions]]
 name = "copy_focused_file"
-lua = '''
-  local file = context.file()
-  if not file or file == "" then
-    flash("no file under cursor")
-    return
-  end
-  local ok, err = copy_to_clipboard(file)
-  if ok then
-    flash("⎘ " .. file)
-  else
-    flash({ text = "copy failed: " .. (err or "?"), error = true })
-  end
-'''
+lua = "CopyFocusedFile()"
 
 [[bindings]]
 action = "copy_focused_file"
@@ -68,19 +28,7 @@ desc = "Copy focused file path to clipboard"
 
 [[actions]]
 name = "copy_checked_files"
-lua = '''
-  local files = context.checked_files()
-  if #files == 0 then
-    flash("nothing checked")
-    return
-  end
-  local ok, err = copy_to_clipboard(table.concat(files, "\n"))
-  if ok then
-    flash("⎘ " .. #files .. " files")
-  else
-    flash({ text = "copy failed: " .. (err or "?"), error = true })
-  end
-'''
+lua = "CopyCheckedFiles()"
 
 [[bindings]]
 action = "copy_checked_files"

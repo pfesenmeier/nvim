@@ -24,7 +24,8 @@ end
 if #arg == 0 then return end
 
 send_progress(1, 25)
--- splat all non-positive entries; vim.system throws if the command can't be spawned
+-- splat all non-positive entries
+-- pcall here sinc vim.system throws if the command can't be spawned
 local ok, completed = pcall(run_cmd, unpack(arg))
 if not ok then
   io.stderr:write(tostring(completed) .. "\n")
