@@ -65,6 +65,7 @@ now(function()
     },
   })
 end)
+vim.keymap.set('n', 'gY', '<Cmd>let @+ = expand("%")', { desc = 'Copy path to system clipboard' })
 
 -- Icon provider. Usually no need to use manually. It is used by plugins like
 -- 'mini.pick', 'mini.files', 'mini.statusline', and others.
