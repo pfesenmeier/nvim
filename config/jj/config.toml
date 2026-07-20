@@ -8,7 +8,7 @@ default-command = "log"
 
 [user]
 name = "Paul Fesenmeier"
-email = "pfesenmeier@gmail.com"
+email = "pbfesenmeier@sep.com"
 
 [revsets]
 bookmark-advance-to = "@-"
