@@ -1,0 +1,52 @@
+#!/usr/bin/env nu
+
+# nv: bridge to the parent nvim instance.
+# Each subcommand wraps an Ex command registered by the `remote` Lua plugin
+# (see neovim/lua/remote/init.lua). Calls go out over the RPC socket exposed
+# at $NVIM (set automatically by nvim's :terminal for child processes).
+#
+# We use --remote-expr (not --remote-send) so commands run regardless of which
+# mode the outer nvim is in (e.g. when this is invoked from inside a floatterm
+# where nvim's focused window is in terminal mode).
+
+# True when running inside a parent nvim instance (nvim sets $NVIM for its
+# :terminal children). Subcommands use this to silently no-op when there's no
+# parent nvim to talk to, rather than erroring.
+def nvim-server [] {
+   $env.NVIM?
+}
+
+# Open a file in the parent nvim.
+def "main open" [
+  ...files: path  # File to open in the parent nvim
+] {
+  let server = nvim-server
+  if not ($server) { return }
+
+  let abs = $files | each { path expand }
+
+  nvim --server $server --remote ...$abs
+}
+
+def notify-keys [msg: string, level: string] {
+  $"<Cmd>:lua vim.notify\(\"($msg)\", vim.log.levels.($level))<CR>"
+}
+
+# Send a notification to the parent nvim's mini.notify pane.
+def "main notify" [
+  message: string             # Text to display
+  --level: string = "info"    # info | warn | error | debug | trace
+] {
+  let server = nvim-server
+  if ($server | is-empty) { return }
+
+  let level = $level | str uppercase
+  let keys = notify-keys $message $level
+
+  nvim --server $server --remote-send $keys
+}
+
+def main []: nothing -> nothing {
+  print "nv: bridge to the parent nvim. Subcommands: open, notify."
+  print "See `nv <subcmd> --help`."
+}

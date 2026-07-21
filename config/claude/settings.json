@@ -23,21 +23,15 @@
       "Bash(curl -s -X POST http://localhost:5049/graphql:*)"
     ]
   },
-  "model": "opus",
+  "model": "sonnet",
   "hooks": {
-    "Notification": [
+    "UserPromptSubmit": [
       {
-        "matcher": "permission_prompt",
         "hooks": [
           {
             "type": "command",
-            "command": "nu --stdin ~/.claude/hooks/bell-on-input-needed.nu",
-            "timeout": 1
-          },
-          {
-            "type": "command",
-            "command": "nv bot-status needs-input",
-            "timeout": 1
+            "command": "~/.local/bin/prog-claude 1 25",
+            "timeout": 5
           }
         ]
       }
@@ -47,24 +41,42 @@
         "hooks": [
           {
             "type": "command",
-            "command": "nu --stdin ~/.claude/hooks/bell-on-input-needed.nu",
-            "timeout": 1
-          },
-          {
-            "type": "command",
-            "command": "nv bot-status idle",
-            "timeout": 1
+            "command": "~/.local/bin/prog-claude 1 100",
+            "timeout": 5
           }
         ]
       }
     ],
-    "UserPromptSubmit": [
+    "StopFailure": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "nv bot-status working",
-            "timeout": 1
+            "command": "~/.local/bin/prog-claude 2",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt|idle_prompt|agent_needs_input",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.local/bin/prog-claude 4",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.local/bin/prog-claude 0",
+            "timeout": 5
           }
         ]
       }

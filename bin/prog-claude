@@ -1,0 +1,20 @@
+#!/usr/bin/env -S nvim -l
+
+--- a script to output a json message in the format claude expects
+--- call it like prog-claude 1 100
+
+--- @param state number
+--- @param value number?
+local format_term_code = function(state, value)
+  if value then
+    return string.format("\27]9;4;%d;%d\7", state, value)
+  end
+  return string.format("\27]9;4;%d\7", state)
+end
+
+local state = tonumber(arg[1])
+local value = tonumber(arg[2])
+
+vim.print(vim.json.encode({
+  terminalSequence = format_term_code(state, value)
+}))

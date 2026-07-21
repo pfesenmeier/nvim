@@ -14,6 +14,23 @@ def set_secrets_file [] {
   }
 }
 
+# the folder itself cannot be symlinked,
+# because self-installed programs depend on it (e.g. roslyn lsp)
+def symlink_local_bins [] {
+  let srcs = $self_path | path dirname | path join bin
+  let srcs = glob ($srcs + "/*")
+
+  let dest_dir = $nu.home-dir | path join .local bin
+
+  $srcs | each {|src|
+    let dest = $src | path basename
+    let dest = $dest_dir | path join $dest
+
+    log info $"linking ($src) to ($dest)"
+    idempotent_symlink $src $dest
+  }
+}
+
 # https://www.nushell.sh/blog/2023-08-23-happy-birthday-nushell-4.html
 def symlink [
     existing: path   # The existing file
@@ -106,15 +123,8 @@ export def setup [] {
       src: [claude CLAUDE.md]
       dest: [.claude CLAUDE.md]
     } {
-      src: [claude hooks]
-      dest: [.claude hooks]
-    } {
       src: [claude skills]
       dest: [.claude skills]
-    } {
-      src: [bin]
-      root: true
-      dest: [.local bin]
     } {
       src: [jjui]
       dest: [.config jjui]
@@ -134,6 +144,8 @@ export def setup [] {
       log info $"linking ($src) to ($dest)"
       idempotent_symlink $src $dest
     }
+
+    symlink_local_bins
 
     if (which komorebic.exe | is-not-empty) {
        komorebic.exe fetch-app-specific-configuration
