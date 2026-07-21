@@ -2,9 +2,6 @@
 #
 # version = "0.85.0"
 
-# Disable XON/XOFF flow control so Ctrl+S reaches applications (e.g. Neovim)
-stty -ixon
-
 def jj-prompt-info [] {
     let result = try {
         jj log --no-pager -r "@ | @-" -T 'change_id.shortest() ++ "\t" ++ description.first_line() ++ "\t" ++ bookmarks.join(",") ++ "\t" ++ if(empty, "true", "false") ++ "\t" ++ working_copies ++ "\n"' --no-graph e> /dev/null
@@ -209,5 +206,18 @@ $env.PATH = ($env.PATH | split row (char esep) | prepend [$env.PNPM_HOME $orbBin
 # OR git config --global credential.credentialStore gpg
 # https://github.com/git-ecosystem/git-credential-manager/blob/main/docs/credstores.md#gpgpass-compatible-files
 $env.GCM_CREDENTIAL_STORE = "gpg"
-let tty = tty
-$env.GPG_TTY = $tty
+
+# Ensure a dbus session bus exists so gpg's graphical pinentry (pinentry-gnome3)
+# can prompt under WSL.
+if ($nu.os-info.family != windows) and ('DBUS_SESSION_BUS_ADDRESS' not-in $env) {
+    let addr = (
+        dbus-launch e> /dev/null
+        | lines
+        | parse '{key}={value}'
+        | where key == DBUS_SESSION_BUS_ADDRESS
+        | get -o value.0
+    )
+    if ($addr | is-not-empty) {
+        $env.DBUS_SESSION_BUS_ADDRESS = $addr
+    }
+}

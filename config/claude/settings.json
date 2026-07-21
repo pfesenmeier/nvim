@@ -23,14 +23,14 @@
       "Bash(curl -s -X POST http://localhost:5049/graphql:*)"
     ]
   },
-  "model": "sonnet",
+  "model": "opus",
   "hooks": {
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "~/.local/bin/prog-claude 1 25",
+            "command": "prog-claude 1 25",
             "timeout": 5
           }
         ]
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.local/bin/prog-claude 1 100",
+            "command": "prog-claude 1 100",
             "timeout": 5
           }
         ]
@@ -52,7 +52,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.local/bin/prog-claude 2",
+            "command": "prog-claude 2",
             "timeout": 5
           }
         ]
@@ -64,7 +64,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.local/bin/prog-claude 4",
+            "command": "prog-claude 4",
             "timeout": 5
           }
         ]
@@ -75,7 +75,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.local/bin/prog-claude 0",
+            "command": "prog-claude 0",
             "timeout": 5
           }
         ]

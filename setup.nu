@@ -3,6 +3,13 @@ use std/log
 
 const self_path = path self
 
+def check-pinentry [] {
+  if $nu.os-info.name == "linux" and (which pinentry-gnome3 | is-empty) {
+    log warning "pinentry-gnome3 is not installed on this system"
+    log warning "install with 'sudo apt install pinentry-gnome3'"
+  }
+}
+
 def set_secrets_file [] {
   let $env_file = $self_path | path dirname | path join nushell lib secrets.nu
 
@@ -93,6 +100,14 @@ export def setup [] {
     }
   )
 
+  let gpg_config_file = (
+    if $nu.os-info.name == 'macos' {
+      'gpg-agent.conf.mac'
+    } else {
+      'gpg-agent.conf'
+    }
+  )
+
     # root: true -> src relative to ~/nvim/config
     # root: false -> src relative to ~/nvim
     # dest: relative to ~
@@ -131,6 +146,9 @@ export def setup [] {
     } {
       src: [jj config.toml]
       dest: [.config jj config.toml]
+    } {
+      src: [$gpg_config_file]
+      dest: [.gnupg gpg-agent.conf]
     }] | each {|x|
       let root = $x | get root? | default false
 
@@ -147,7 +165,7 @@ export def setup [] {
 
     symlink_local_bins
 
-    if (which komorebic.exe | is-not-empty) {
+    if (which komorebic | is-not-empty) {
        komorebic.exe fetch-app-specific-configuration
     } else {
       log info "Komorebi is not installed, skipping fetch-app-specific-configuration"
@@ -166,6 +184,11 @@ export def setup [] {
     set_secrets_file
 
     fnm use lts-latest --install-if-missing
+
+    # Disable XON/XOFF flow control so Ctrl+S reaches applications (e.g. Neovim)
+    stty -ixon
+
+    check-pinentry
 }
 
 def main [] {
