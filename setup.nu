@@ -164,6 +164,8 @@ export def setup [] {
     }
 
     set_secrets_file
+
+    fnm use lts-latest --install-if-missing
 }
 
 def main [] {

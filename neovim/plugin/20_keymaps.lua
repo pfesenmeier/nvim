@@ -253,11 +253,11 @@ nmap_leader('jj', '<Cmd>term jjui<CR>', 'jjui')
 
 vim.keymap.set('t', "<C-b>", "<C-\\><C-n>", { desc = 'Exit term mode' })
 -- allows these to move around on any buffer
-vim.keymap.set('t', "<C-j>", "<C-\\><C-n><C-w>j", { desc = 'Exit term mode' })
-vim.keymap.set('t', "<C-k>", "<C-\\><C-n><C-w>k", { desc = 'Exit term mode' })
-vim.keymap.set('t', "<C-h>", "<C-\\><C-n><C-w>h", { desc = 'Exit term mode' })
+vim.keymap.set({'t', 'i'}, "<C-j>", "<C-\\><C-n><C-w>j", { desc = 'Exit term mode' })
+vim.keymap.set({'t', 'i'}, "<C-k>", "<C-\\><C-n><C-w>k", { desc = 'Exit term mode' })
+vim.keymap.set({'t', 'i'}, "<C-h>", "<C-\\><C-n><C-w>h", { desc = 'Exit term mode' })
 -- use 'clear' command instead
-vim.keymap.set('t', "<C-l>", "<C-\\><C-n><C-w>l", { desc = 'Exit term mode' })
+vim.keymap.set({'t', 'i'}, "<C-l>", "<C-\\><C-n><C-w>l", { desc = 'Exit term mode' })
 
 -- is there someway of having "enter" in normal mode in terminal buffer
 -- to be submit?
