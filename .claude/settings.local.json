@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.nushell.sh)",
+      "WebFetch(domain:idursun.github.io)",
+      "Bash(jjui --install-lua-types)",
+      "Bash(NVIM=/tmp/fake nu -c ' *)",
+      "Bash(nu -c ' *)",
+      "WebFetch(domain:neovim.io)",
+      "Bash(nvim --headless '+help timestamp' '+normal! 1G' '+$s/\\\\\\\\n/\\\\\\\\n/g' +%print +qa)",
+      "Bash(nvim --headless +'help timestamp' +'redir > /tmp/nvim-timestamp.txt' +'silent! %print' +'redir END' +'qa!')",
+      "Read(//tmp/**)",
+      "Read(//Users/pfes/.local/bin/microsoft/roslyn-lsp/**)",
+      "Bash(nu --version)"
+    ]
+  }
+}
