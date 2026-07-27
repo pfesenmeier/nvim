@@ -2,6 +2,8 @@
 
 ## Niceties
 
+- Have nushell emit prompt sequences for navigation
+
 Insert mode shortcuts
 - alt+$, alt+0 for start, end of lines
 - alt+Enter for creating newline
