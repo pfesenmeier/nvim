@@ -21,7 +21,10 @@ local run_cmd = function(...)
   }):wait()
 end
 
-if #arg == 0 then return end
+if #arg == 0 then
+  send_progress(0)
+  return
+end
 
 send_progress(1, 25)
 -- splat all non-positive entries

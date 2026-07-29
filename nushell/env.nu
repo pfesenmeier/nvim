@@ -209,7 +209,7 @@ $env.GCM_CREDENTIAL_STORE = "gpg"
 
 # Ensure a dbus session bus exists so gpg's graphical pinentry (pinentry-gnome3)
 # can prompt under WSL.
-if ($nu.os-info.family != windows) and ('DBUS_SESSION_BUS_ADDRESS' not-in $env) {
+if ($nu.os-info.family != windows) and ('DBUS_SESSION_BUS_ADDRESS' not-in $env) and (which dbus-launch | is-not-empty) {
     let addr = (
         dbus-launch e> /dev/null
         | lines
