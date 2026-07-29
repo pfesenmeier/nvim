@@ -15,6 +15,9 @@ end
 local state = tonumber(arg[1])
 local value = tonumber(arg[2])
 
-vim.print(vim.json.encode({
+-- vim.print/print write to stderr in `nvim -l` scripts; Claude Code reads
+-- hook control JSON from stdout, so this must use io.write instead.
+io.write(vim.json.encode({
   terminalSequence = format_term_code(state, value)
 }))
+io.write("\n")

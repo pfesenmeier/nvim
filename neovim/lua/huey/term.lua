@@ -48,6 +48,37 @@ H.parse_progress = function(sequence)
   }
 end
 
+--- Writes a raw OSC sequence straight to the TUI host terminal.
+--- @param sequence string
+H.forward_raw = function(sequence)
+  vim.api.nvim_ui_send(sequence)
+end
+--- Emits progress as Nvim's internal |Progress| event via nvim_echo,
+--- for anything (statusline, other autocmds) hooking that event.
+--- @param progress Progress
+--- @param title    string?
+--- @param source   string?
+H.echo_progress = function(progress, title, source)
+    local opts = { kind = 'progress', title = title, source = source }
+
+    if progress.state == 1 then
+      opts.percent = progress.value
+      opts.status = progress.value == 100 and 'success' or 'running'
+    elseif progress.state == 2 then
+      opts.status = 'failed'
+      opts.percent = progress.value
+    elseif progress.state == 3 then
+      opts.status = 'running' -- percent omitted => indeterminate (OSC 9;4;3)
+    else
+      -- states 0, 4
+      -- no distinct "paused" status; closest is running w/ no percent, or 'cancel'
+      opts.status = 'cancel'
+      opts.percent = progress.value
+    end
+
+    vim.api.nvim_echo({ { title or '' } }, false, opts)
+end
+
 --- @param progress Progress
 --- @return string|nil
 H.get_icon = function(progress)
@@ -61,9 +92,9 @@ H.get_icon = function(progress)
     return moons[idx + 1]
   end
 
-  if state == 2 then return '⊘' end  -- U+2298 CIRCLED DIVISION SLASH — error
-  if state == 3 then return '◌' end  -- U+25CC DOTTED CIRCLE — indeterminate (outline, no 
-  if state == 4 then return '⏸' end  -- U+23F8 PAUSE — paused
+  if state == 2 then return '⊘' end -- U+2298 CIRCLED DIVISION SLASH — error
+  if state == 3 then return '∿' end -- U+223F SINE WAVE — indeterminate
+  if state == 4 then return '⏸' end -- U+23F8 PAUSE — paused
 end
 
 
@@ -79,15 +110,17 @@ H.notify = function(buf, progress)
     msg, level = " is done.", vim.log.levels.INFO
   elseif progress.state == 2 then
     msg, level = " has errored.", vim.log.levels.ERROR
-  elseif progress.state == 3 then
-    msg, level = " has ???.", vim.log.levels.INFO
+    -- skip level 3, which claude likes to emit
   elseif progress.state == 4 then
     msg, level = " is waiting.", vim.log.levels.WARN
   end
 
   if msg then
-    vim.notify(name .. msg, level)
+    msg = name .. msg
+    vim.notify(msg, level)
   end
+
+  H.echo_progress(progress, msg, name)
 end
 
 
@@ -121,6 +154,7 @@ H.create_autocmds = function()
       vim.cmd.redrawtabline()
 
       H.notify(buf, progress)
+      H.forward_raw(ev.data.sequence)
     end
   })
 
@@ -135,6 +169,27 @@ H.create_autocmds = function()
       -- 1 => "in progress"
       if progress.state ~= 1 or progress.value == 100 then
         bufstatuses[ev.buf] = nil
+      end
+    end
+  })
+
+  -- :h terminal-osc7
+  vim.api.nvim_create_autocmd({ 'TermRequest' }, {
+    group = gr,
+    desc = 'Handles OSC 7 dir change requests',
+    callback = function(ev)
+      local val, n = string.gsub(ev.data.sequence, '\027]7;file://[^/]*', '')
+      if n > 0 then
+        -- OSC 7: dir-change
+        local dir = val
+        if vim.fn.isdirectory(dir) == 0 then
+          vim.notify('invalid dir: ' .. dir)
+          return
+        end
+        vim.b[ev.buf].osc7_dir = dir
+        if vim.api.nvim_get_current_buf() == ev.buf then
+          vim.cmd.lcd(dir)
+        end
       end
     end
   })

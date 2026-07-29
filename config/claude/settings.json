@@ -60,11 +60,21 @@
     ],
     "Notification": [
       {
-        "matcher": "permission_prompt|idle_prompt|agent_needs_input",
+        "matcher": "permission_prompt|idle_prompt|agent_needs_input|elicitation_dialog",
         "hooks": [
           {
             "type": "command",
             "command": "prog-claude 4",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "elicitation_complete|elicitation_response",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "prog-claude 1 25",
             "timeout": 5
           }
         ]
