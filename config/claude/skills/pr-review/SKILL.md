@@ -47,7 +47,7 @@ If `$ARGUMENTS` is provided, weight that area more heavily in your analysis but 
 
 ## Phase 4 — Output format
 
-Produce a structured markdown review. Print the full review to the terminal and also write the same content to `~/Documents/pr-reviews/<YYYY-MM-DD>-<branch-or-change-id>.md` (creating the directory if needed). After the review, print the absolute path of the JSON sidecar (see Phase 5) on its own line, then on the next (and final) line the absolute path to the markdown file (e.g. `/home/<user>/Documents/pr-reviews/2026-05-26-my-branch.md`) with no other text on that line.
+Produce a structured markdown review. Print the full review to the terminal and also write the same content to `~/Documents/pr-reviews/<YYYY-MM-DD>-<branch-or-change-id>.md` (creating the directory if needed). After the review, print the absolute path to the markdown file (e.g. `/home/<user>/Documents/pr-reviews/2026-05-26-my-branch.md`) with no other text on that line.
 
 ---
 
@@ -105,29 +105,3 @@ Use precise line references (e.g. `L42`, `L100–115`) when calling out specific
 
 ---
 
-## Phase 5 — JSON sidecar
-
-Write `<same-basename>.json` next to the markdown file. Shape:
-
-```json
-{
-  "items": [
-    {
-      "file": "neovim/lua/bot/init.lua",
-      "line": 42,
-      "end_line": 50,
-      "severity": "critical",
-      "message": "Race in `send_payload`: …"
-    }
-  ]
-}
-```
-
-- `file` is a path **relative to the repo root** (the same form used in the
-  Per-File Feedback section).
-- `line` is 1-based. `end_line` is optional; omit (or equal to `line`) for
-  single-line findings.
-- `severity` is one of: `critical`, `warn`, `suggestion` — mirrors the three
-  severity groups in the markdown.
-- One entry per actionable finding. Skip the Positive Observations and
-  Questions sections; those don't become diagnostics.
