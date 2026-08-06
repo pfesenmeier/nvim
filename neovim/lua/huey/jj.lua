@@ -343,4 +343,7 @@ HueyJj.setup = function()
   end
 end
 
+--- @private exported for 'tests/test_jj.lua'
+HueyJj.H = H
+
 return HueyJj
