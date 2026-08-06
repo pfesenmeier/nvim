@@ -135,7 +135,6 @@ nmap_leader('et', '<Cmd>edit ~/Documents/TODO.md<CR>', 'TODO')
 -- - `<Leader>fv` - all visited paths; requires 'mini.visits'
 --
 -- All these use 'mini.pick'. See `:h MiniPick-overview` for an overview.
-local pick_added_hunks_buf = '<Cmd>Pick git_hunks path="%" scope="staged"<CR>'
 local pick_workspace_symbols_live = '<Cmd>Pick lsp scope="workspace_symbol_live"<CR>'
 local pick_files_cword = function()
   local word = vim.fn.expand('<cword>')
@@ -145,8 +144,8 @@ end
 
 nmap_leader('f/', '<Cmd>Pick history scope="/"<CR>', '"/" history')
 nmap_leader('f:', '<Cmd>Pick history scope=":"<CR>', '":" history')
-nmap_leader('fa', '<Cmd>Pick git_hunks scope="staged"<CR>', 'Added hunks (all)')
-nmap_leader('fA', pick_added_hunks_buf, 'Added hunks (buf)')
+nmap_leader('fa', '<Cmd>Pick jj_hunks revset="@-"<CR>', 'Hunks in @- (all)')
+nmap_leader('fA', '<Cmd>Pick jj_hunks revset="@-" path="%"<CR>', 'Hunks in @- (buf)')
 nmap_leader('fb', '<Cmd>Pick buffers<CR>', 'Buffers')
 nmap_leader('fc', '<Cmd>Pick git_commits<CR>', 'Commits (all)')
 nmap_leader('fC', '<Cmd>Pick git_commits path="%"<CR>', 'Commits (buf)')
@@ -160,8 +159,8 @@ nmap_leader('fh', '<Cmd>Pick help<CR>', 'Help tags')
 nmap_leader('fH', '<Cmd>Pick hl_groups<CR>', 'Highlight groups')
 nmap_leader('fl', '<Cmd>Pick buf_lines scope="all"<CR>', 'Lines (all)')
 nmap_leader('fL', '<Cmd>Pick buf_lines scope="current"<CR>', 'Lines (buf)')
-nmap_leader('fm', '<Cmd>Pick git_hunks<CR>', 'Modified hunks (all)')
-nmap_leader('fM', '<Cmd>Pick git_hunks path="%"<CR>', 'Modified hunks (buf)')
+nmap_leader('fm', '<Cmd>Pick jj_hunks<CR>', 'Hunks in @ (all)')
+nmap_leader('fM', '<Cmd>Pick jj_hunks path="%"<CR>', 'Hunks in @ (buf)')
 nmap_leader('fq', function() require('quickfix').pick_lists() end, 'Quickfix lists')
 nmap_leader('fr', '<Cmd>Pick resume<CR>', 'Resume')
 nmap_leader('fR', '<Cmd>Pick lsp scope="references"<CR>', 'References (LSP)')

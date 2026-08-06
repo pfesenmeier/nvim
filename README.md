@@ -1,5 +1,13 @@
 # personal dev config
 
+## TODO
+
+- [ ] jj pickers
+- [ ] jj bracketed
+- [ ] jj diff? (color line numbers)
+- [ ] workspace bracketed
+
+
 ## Niceties
 
 - Have nushell emit prompt sequences for navigation

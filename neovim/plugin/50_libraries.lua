@@ -5,5 +5,6 @@ local later = Config.later
 
 later(function()
   require("huey.buffer").setup()
+  require("huey.jj").setup()
   require("workspace").setup({})
 end)
