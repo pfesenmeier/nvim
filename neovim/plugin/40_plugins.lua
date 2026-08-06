@@ -54,38 +54,38 @@ now_if_args(function()
     'lua',
     'vimdoc',
     'markdown',
-    "c_sharp",
-    "javascript",
+    'c_sharp',
+    'javascript',
     -- "java",
-    "lua",
-    "glimmer",
-    "rust",
-    "diff",
-    "python",
+    'lua',
+    'glimmer',
+    'rust',
+    'diff',
+    'python',
     -- "c",
     -- "jq",
-    "json5",
-    "json",
-    "hurl",
-    "markdown",
-    "markdown_inline",
-    "toml",
-    "typescript",
-    "terraform",
-    "hcl",
-    "html",
-    "regex",
-    "prisma",
-    "sql",
-    "yaml",
-    "gitignore",
-    "gitattributes",
-    "todotxt",
-    "tsx",
-    "vim",
-    "vimdoc",
-    "vue",
-    "nu"
+    'json5',
+    'json',
+    'hurl',
+    'markdown',
+    'markdown_inline',
+    'toml',
+    'typescript',
+    'terraform',
+    'hcl',
+    'html',
+    'regex',
+    'prisma',
+    'sql',
+    'yaml',
+    'gitignore',
+    'gitattributes',
+    'todotxt',
+    'tsx',
+    'vim',
+    'vimdoc',
+    'vue',
+    'nu',
     -- Add here more languages with which you want to use tree-sitter
     -- To see available languages:
     -- - Execute `:=require('nvim-treesitter').get_available()`
@@ -137,19 +137,19 @@ now_if_args(function()
     'lua_ls',
     'nushell',
     -- enabled via vscode-langservers-extracted
-    "html",
+    'html',
     -- "cssls",
-    "jsonls",
+    'jsonls',
     -- "eslint",
 
     -- "prismals",
     -- "tailwindcss",
-    "lua_ls",
-    "vtsls",
-    "vue_ls",
-    "marksman",
-    "terraformls",
-    "roslyn_ls"
+    'lua_ls',
+    'vtsls',
+    'vue_ls',
+    'marksman',
+    'terraformls',
+    'roslyn_ls',
   })
 end)
 
@@ -210,14 +210,14 @@ later(function() add({ 'https://github.com/rafamadriz/friendly-snippets' }) end)
 -- enabled in 'plugin/30_mini.lua' or other suggested 'mini.hues' based ones.
 -- Config.now(function()
 --  -- Install only those that you need
-  add({
-    'https://github.com/sainnhe/everforest',
---    'https://github.com/Shatur/neovim-ayu',
---  'https://github.com/ellisonleao/gruvbox.nvim',
-  })
-  vim.o.termguicolors = true
-  vim.g.everforest_background = 'hard'
-  vim.cmd('color everforest')
+add({
+  'https://github.com/sainnhe/everforest',
+  --    'https://github.com/Shatur/neovim-ayu',
+  --  'https://github.com/ellisonleao/gruvbox.nvim',
+})
+vim.o.termguicolors = true
+vim.g.everforest_background = 'hard'
+vim.cmd('color everforest')
 -- end)
 Config.now(function()
   -- default highlight group for nvim-dap is a bright blue
@@ -225,11 +225,11 @@ Config.now(function()
 end)
 
 -- Dap
-later(function ()
+later(function()
   add({
-        'https://codeberg.org/mfussenegger/nvim-dap',
-        'https://github.com/igorlfs/nvim-dap-view',
-        'https://github.com/jbyuki/one-small-step-for-vimkind', -- lua debugger
+    'https://codeberg.org/mfussenegger/nvim-dap',
+    'https://github.com/igorlfs/nvim-dap-view',
+    'https://github.com/jbyuki/one-small-step-for-vimkind', -- lua debugger
   })
 
   require('dap-view').setup()
@@ -250,9 +250,11 @@ later(function ()
 end)
 
 -- Db
-later(function()
-  add({
-    'https://github.com/tpope/vim-dadbod',
-    'https://github.com/kristijanhusak/vim-dadbod-completion'
-  })
-end)
+later(
+  function()
+    add({
+      'https://github.com/tpope/vim-dadbod',
+      'https://github.com/kristijanhusak/vim-dadbod-completion',
+    })
+  end
+)

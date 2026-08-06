@@ -6,32 +6,30 @@ local M = {}
 
 local state = {
   win = -1,
-  current = nil,    -- name of terminal currently visible
-  last = nil,       -- name of most-recently-shown terminal (for open_last)
-  terms = {},       -- name -> { buf, cmd }
-  order = {},       -- ordered list of names (for M.cycle and statusline strip)
-  status = {},      -- name -> icon char (absent = no icon)
+  current = nil, -- name of terminal currently visible
+  last = nil, -- name of most-recently-shown terminal (for open_last)
+  terms = {}, -- name -> { buf, cmd }
+  order = {}, -- ordered list of names (for M.cycle and statusline strip)
+  status = {}, -- name -> icon char (absent = no icon)
 }
 
-local status_icons = { working = "⏳", ["needs-input"] = "🔔" }
+local status_icons = { working = '⏳', ['needs-input'] = '🔔' }
 
 function M.set_status(name, s)
   state.status[name] = status_icons[s]
-  vim.api.nvim_exec_autocmds("User", { pattern = "FloatTermStatusChanged" })
-  vim.cmd("redrawstatus")
+  vim.api.nvim_exec_autocmds('User', { pattern = 'FloatTermStatusChanged' })
+  vim.cmd('redrawstatus')
 end
 
-function M.get_status(name)
-  return state.status[name]
-end
+function M.get_status(name) return state.status[name] end
 
 local defaults = {
   terminals = {},
-  keymap_prefix = "<leader>t",
+  keymap_prefix = '<leader>t',
   hide_key = [[<C-\><C-\>]],
   last_key = [[<C-\>]],
-  resume_key = "r",  -- under keymap_prefix; <leader>tr reopens last terminal
-  window = { width = 0.95, height = 0.9, border = "rounded" },
+  resume_key = 'r', -- under keymap_prefix; <leader>tr reopens last terminal
+  window = { width = 0.95, height = 0.9, border = 'rounded' },
 }
 
 local opts = defaults
@@ -43,7 +41,7 @@ local function geometry()
   local w = math.floor(vim.o.columns * opts.window.width)
   local h = math.floor(usable * opts.window.height)
   return {
-    relative = "editor",
+    relative = 'editor',
     row = math.floor((usable - h) / 2),
     col = math.floor((vim.o.columns - w) / 2),
     width = w,
@@ -54,7 +52,7 @@ end
 
 local function is_normal_mode(mode)
   -- "n" = normal; "nt" = terminal-normal (after <C-\><C-n>).
-  return mode == "n" or mode == "nt"
+  return mode == 'n' or mode == 'nt'
 end
 
 local function hide_internal()
@@ -74,9 +72,7 @@ local function hide_internal()
   state.current = nil
 end
 
-function M.hide()
-  hide_internal()
-end
+function M.hide() hide_internal() end
 
 function M.open(name)
   local cfg = opts.terminals[name]
@@ -89,9 +85,7 @@ function M.open(name)
   end
 
   -- Only one float at a time.
-  if vim.api.nvim_win_is_valid(state.win) then
-    hide_internal()
-  end
+  if vim.api.nvim_win_is_valid(state.win) then hide_internal() end
 
   local t = state.terms[name]
 
@@ -104,36 +98,36 @@ function M.open(name)
     state.win = vim.api.nvim_open_win(placeholder, true, geometry())
 
     if cfg.cmd then
-      vim.cmd("terminal " .. cfg.cmd)
+      vim.cmd('terminal ' .. cfg.cmd)
     else
-      vim.cmd("terminal")
+      vim.cmd('terminal')
     end
 
     local term_buf = vim.api.nvim_win_get_buf(state.win)
     vim.bo[term_buf].buflisted = false
-    vim.bo[term_buf].bufhidden = "hide"
+    vim.bo[term_buf].bufhidden = 'hide'
     state.terms[name] = { buf = term_buf, cmd = cfg.cmd }
 
-    vim.keymap.set({ "t", "n" }, opts.hide_key, function() M.hide() end, {
+    vim.keymap.set({ 't', 'n' }, opts.hide_key, function() M.hide() end, {
       buffer = term_buf,
-      desc = "Float: hide",
+      desc = 'Float: hide',
     })
 
-    vim.keymap.set({ "t", "n" }, "<M-h>", function() M.cycle(-1) end, {
+    vim.keymap.set({ 't', 'n' }, '<M-h>', function() M.cycle(-1) end, {
       buffer = term_buf,
-      desc = "Float: cycle prev",
+      desc = 'Float: cycle prev',
     })
-    vim.keymap.set({ "t", "n" }, "<M-l>", function() M.cycle(1) end, {
+    vim.keymap.set({ 't', 'n' }, '<M-l>', function() M.cycle(1) end, {
       buffer = term_buf,
-      desc = "Float: cycle next",
+      desc = 'Float: cycle next',
     })
-    vim.keymap.set({ "t", "n" }, "<M-Left>", function() M.cycle(-1) end, {
+    vim.keymap.set({ 't', 'n' }, '<M-Left>', function() M.cycle(-1) end, {
       buffer = term_buf,
-      desc = "Float: cycle prev",
+      desc = 'Float: cycle prev',
     })
-    vim.keymap.set({ "t", "n" }, "<M-Right>", function() M.cycle(1) end, {
+    vim.keymap.set({ 't', 'n' }, '<M-Right>', function() M.cycle(1) end, {
       buffer = term_buf,
-      desc = "Float: cycle next",
+      desc = 'Float: cycle next',
     })
 
     if vim.api.nvim_buf_is_valid(placeholder) and placeholder ~= term_buf then
@@ -150,14 +144,12 @@ function M.open(name)
       vim.api.nvim_win_call(state.win, function() vim.fn.winrestview(saved.view) end)
     end
   else
-    vim.cmd("startinsert")
+    vim.cmd('startinsert')
   end
 end
 
 function M.open_last()
-  if state.last then
-    M.open(state.last)
-  end
+  if state.last then M.open(state.last) end
 end
 
 function M.cycle(direction)
@@ -165,7 +157,10 @@ function M.cycle(direction)
   local idx = 1
   if state.current then
     for i, name in ipairs(state.order) do
-      if name == state.current then idx = i; break end
+      if name == state.current then
+        idx = i
+        break
+      end
     end
   end
   local n = #state.order
@@ -176,7 +171,7 @@ end
 local function deep_merge(default, override)
   local result = vim.deepcopy(default)
   for k, v in pairs(override or {}) do
-    if type(v) == "table" and type(result[k]) == "table" then
+    if type(v) == 'table' and type(result[k]) == 'table' then
       result[k] = deep_merge(result[k], v)
     else
       result[k] = v
@@ -192,25 +187,31 @@ function M.setup(user_opts)
 
   for name, cfg in pairs(opts.terminals) do
     if cfg.key then
-      vim.keymap.set("n", opts.keymap_prefix .. cfg.key, function()
-        M.open(name)
-      end, { desc = "Float: " .. name })
+      vim.keymap.set(
+        'n',
+        opts.keymap_prefix .. cfg.key,
+        function() M.open(name) end,
+        { desc = 'Float: ' .. name }
+      )
     end
   end
 
-  vim.keymap.set({ "n", "i" }, opts.last_key, function() M.open_last() end, {
-    desc = "Float: reopen last",
+  vim.keymap.set({ 'n', 'i' }, opts.last_key, function() M.open_last() end, {
+    desc = 'Float: reopen last',
   })
 
   if opts.resume_key then
-    vim.keymap.set("n", opts.keymap_prefix .. opts.resume_key, function()
-      M.open_last()
-    end, { desc = "Float: resume last" })
+    vim.keymap.set(
+      'n',
+      opts.keymap_prefix .. opts.resume_key,
+      function() M.open_last() end,
+      { desc = 'Float: resume last' }
+    )
   end
 
-  local group = vim.api.nvim_create_augroup("FloatTerm", { clear = true })
+  local group = vim.api.nvim_create_augroup('FloatTerm', { clear = true })
 
-  vim.api.nvim_create_autocmd("VimResized", {
+  vim.api.nvim_create_autocmd('VimResized', {
     group = group,
     callback = function()
       if vim.api.nvim_win_is_valid(state.win) then
@@ -222,23 +223,23 @@ function M.setup(user_opts)
   -- mini.clue integration: push explicit clue entries so the popup shows the
   -- terminal name (mini.clue would otherwise just use the keymap desc, which
   -- works too — this is belt-and-suspenders).
-  local ok, miniclue = pcall(require, "mini.clue")
+  local ok, miniclue = pcall(require, 'mini.clue')
   if ok and miniclue.config and miniclue.config.clues then
-    local clue_prefix = opts.keymap_prefix:gsub("<[Ll]eader>", "<Leader>")
+    local clue_prefix = opts.keymap_prefix:gsub('<[Ll]eader>', '<Leader>')
     for name, cfg in pairs(opts.terminals) do
       if cfg.key then
         table.insert(miniclue.config.clues, {
-          mode = "n",
+          mode = 'n',
           keys = clue_prefix .. cfg.key,
-          desc = "Float: " .. name,
+          desc = 'Float: ' .. name,
         })
       end
     end
     if opts.resume_key then
       table.insert(miniclue.config.clues, {
-        mode = "n",
+        mode = 'n',
         keys = clue_prefix .. opts.resume_key,
-        desc = "Float: resume last",
+        desc = 'Float: resume last',
       })
     end
   end

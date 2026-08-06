@@ -64,9 +64,7 @@ end
 
 Helpers.is_ci = function() return os.getenv('CI') ~= nil end
 
-Helpers.get_time_const = function(delay)
-  return (Helpers.is_ci() and 2 or 1) * delay
-end
+Helpers.get_time_const = function(delay) return (Helpers.is_ci() and 2 or 1) * delay end
 
 Helpers.skip_if_no_jj = function()
   if vim.fn.executable('jj') == 0 then MiniTest.skip('`jj` executable not found') end

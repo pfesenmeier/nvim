@@ -1,3 +1,3 @@
 return {
-    root_markers = { '.git' },
-  }
+  root_markers = { '.git' },
+}

@@ -103,7 +103,8 @@ Config.on_filetype = function(ft, f) misc.safely('filetype:' .. ft, f) end
 -- - `:h nvim_create_autocmd()`
 local gr = vim.api.nvim_create_augroup('custom-config', {})
 Config.new_autocmd = function(event, pattern, callback, desc, once)
-  local opts = { group = gr, pattern = pattern, callback = callback, desc = desc, once = once }
+  local opts =
+    { group = gr, pattern = pattern, callback = callback, desc = desc, once = once }
   vim.api.nvim_create_autocmd(event, opts)
 end
 
@@ -125,15 +126,15 @@ require('vim._core.ui2').enable()
 
 local sysname = vim.uv.os_uname().sysname:lower()
 Config.env = {
-  islinux = string.match(sysname, "linux") ~= nil,
-  ismacos = string.match(sysname, "darwin") ~= nil,
+  islinux = string.match(sysname, 'linux') ~= nil,
+  ismacos = string.match(sysname, 'darwin') ~= nil,
   is_wsl_linux = vim.env.WSL_DISTRO_NAME ~= nil,
-  iswindows = string.match(sysname, "windows") ~= nil,
+  iswindows = string.match(sysname, 'windows') ~= nil,
   -- see roslynator.nu
   roslynator_dir = vim.env.ROSLYNATOR_DIR,
   home = vim.uv.os_homedir(),
   -- see roslyn_lsp.nu
   roslyn_lsp = vim.env.ROSLYN_LSP,
-  node = "v24.13.0",
-  binDir = vim.env.binDir
+  node = 'v24.13.0',
+  binDir = vim.env.binDir,
 }

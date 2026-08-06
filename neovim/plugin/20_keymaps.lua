@@ -291,17 +291,28 @@ vim.keymap.set('c', '<Esc>b', '<S-Left>')
 vim.keymap.set('c', '<Esc>f', '<S-Right>')
 
 -- dap
-nmap_leader('dc', "<Cmd>DapContinue<CR>", "Continue")
-nmap_leader('do', "<Cmd>DapStepOver<CR>", "Step Over")
-nmap_leader('di', "<Cmd>DapStepInto<CR>", "Step Into")
-nmap_leader('dO', "<Cmd>DapStepOut<CR>", "Step Out")
-nmap_leader('db', "<Cmd>DapToggleBreakpoint<CR>", "Toggle Breakpoint")
-nmap_leader('dB', "<Cmd>DapClearBreakpoints<CR>", "Clear Breakpoints")
-nmap_leader('dl', "<Cmd>lua require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>",
-  "Set Log Point")
-nmap_leader('dL', "<Cmd>lua require('dap').run_last()<CR>", "Run Last")
-nmap_leader('dr', "<Cmd>DapToggleRepl<CR>", "Toggle Repl")
-nmap_leader('dh', "<Cmd>lua require('dap.ui.widgets').hover()<CR>", "Hover")
-nmap_leader('dp', "<Cmd>lua require('dap.ui.widgets').preview()<CR>", "Preview")
-nmap_leader('df', "<Cmd>lua require('dap.ui.widgets').centered_float(require('dap.ui.widgets').frames)<CR>", "Frames")
-nmap_leader('ds', "<Cmd>lua require('dap.ui.widgets').centered_float(require('dap.ui.widgets').scopes)<CR>", "Scopes")
+nmap_leader('dc', '<Cmd>DapContinue<CR>', 'Continue')
+nmap_leader('do', '<Cmd>DapStepOver<CR>', 'Step Over')
+nmap_leader('di', '<Cmd>DapStepInto<CR>', 'Step Into')
+nmap_leader('dO', '<Cmd>DapStepOut<CR>', 'Step Out')
+nmap_leader('db', '<Cmd>DapToggleBreakpoint<CR>', 'Toggle Breakpoint')
+nmap_leader('dB', '<Cmd>DapClearBreakpoints<CR>', 'Clear Breakpoints')
+nmap_leader(
+  'dl',
+  "<Cmd>lua require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>",
+  'Set Log Point'
+)
+nmap_leader('dL', "<Cmd>lua require('dap').run_last()<CR>", 'Run Last')
+nmap_leader('dr', '<Cmd>DapToggleRepl<CR>', 'Toggle Repl')
+nmap_leader('dh', "<Cmd>lua require('dap.ui.widgets').hover()<CR>", 'Hover')
+nmap_leader('dp', "<Cmd>lua require('dap.ui.widgets').preview()<CR>", 'Preview')
+nmap_leader(
+  'df',
+  "<Cmd>lua require('dap.ui.widgets').centered_float(require('dap.ui.widgets').frames)<CR>",
+  'Frames'
+)
+nmap_leader(
+  'ds',
+  "<Cmd>lua require('dap.ui.widgets').centered_float(require('dap.ui.widgets').scopes)<CR>",
+  'Scopes'
+)

@@ -65,7 +65,12 @@ now(function()
     },
   })
 end)
-vim.keymap.set('n', 'gY', '<Cmd>let @+ = expand("%")', { desc = 'Copy path to system clipboard' })
+vim.keymap.set(
+  'n',
+  'gY',
+  '<Cmd>let @+ = expand("%")',
+  { desc = 'Copy path to system clipboard' }
+)
 
 -- Icon provider. Usually no need to use manually. It is used by plugins like
 -- 'mini.pick', 'mini.files', 'mini.statusline', and others.
@@ -144,43 +149,53 @@ now(function()
     content = {
       active = function()
         local mode, mode_hl = MiniStatusline.section_mode({ trunc_width = 120 })
-        local diff          = MiniStatusline.section_diff({ trunc_width = 75 })
-        local diagnostics   = MiniStatusline.section_diagnostics({ trunc_width = 75 })
-        local lsp           = MiniStatusline.section_lsp({ trunc_width = 75 })
-        local filename      = MiniStatusline.section_filename({ trunc_width = 140 })
+        local diff = MiniStatusline.section_diff({ trunc_width = 75 })
+        local diagnostics = MiniStatusline.section_diagnostics({ trunc_width = 75 })
+        local lsp = MiniStatusline.section_lsp({ trunc_width = 75 })
+        local filename = MiniStatusline.section_filename({ trunc_width = 140 })
         if vim.bo.buftype == 'quickfix' then
-          local q    = vim.fn.getqflist({ title = 1, idx = 0, size = 0, nr = 0 })
+          local q = vim.fn.getqflist({ title = 1, idx = 0, size = 0, nr = 0 })
           local last = vim.fn.getqflist({ nr = '$' }).nr
-          filename   = ('[QF #%d/%d %s — %d/%d]'):format(
-            q.nr, last,
+          filename = ('[QF #%d/%d %s — %d/%d]'):format(
+            q.nr,
+            last,
             q.title ~= '' and q.title or '(no title)',
-            q.idx, q.size
+            q.idx,
+            q.size
           )
         end
-        local fileinfo  = MiniStatusline.section_fileinfo({ trunc_width = 120 })
-        local location  = MiniStatusline.section_location({ trunc_width = 75 })
-        local search    = MiniStatusline.section_searchcount({ trunc_width = 75 })
+        local fileinfo = MiniStatusline.section_fileinfo({ trunc_width = 120 })
+        local location = MiniStatusline.section_location({ trunc_width = 75 })
+        local search = MiniStatusline.section_searchcount({ trunc_width = 75 })
 
         local workspace = require('workspace').current_name()
         return MiniStatusline.combine_groups({
-          { hl = mode_hl,                 strings = { mode } },
-          { hl = 'MiniStatuslineDevinfo', strings = { workspace, diff, diagnostics, lsp } },
+          { hl = mode_hl, strings = { mode } },
+          {
+            hl = 'MiniStatuslineDevinfo',
+            strings = { workspace, diff, diagnostics, lsp },
+          },
           '%<',
           { hl = 'MiniStatuslineFilename', strings = { filename } },
           '%=',
           { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
-          { hl = mode_hl,                  strings = { search, location } },
+          { hl = mode_hl, strings = { search, location } },
         })
       end,
     },
   })
 
   local function apply_floatterm_hls()
-    vim.api.nvim_set_hl(0, 'FloatTermSlotShown', { link = 'MiniStatuslineModeNormal' })
+    vim.api.nvim_set_hl(
+      0,
+      'FloatTermSlotShown',
+      { link = 'MiniStatuslineModeNormal' }
+    )
     vim.api.nvim_set_hl(0, 'FloatTermSlotHidden', { link = 'Comment' })
     -- "Inverted" pill: swap fg/bg of the shown pill. Resolved at runtime so
     -- it stays in sync if the colorscheme changes.
-    local shown = vim.api.nvim_get_hl(0, { name = 'MiniStatuslineModeNormal', link = false })
+    local shown =
+      vim.api.nvim_get_hl(0, { name = 'MiniStatuslineModeNormal', link = false })
     vim.api.nvim_set_hl(0, 'FloatTermSlotLast', {
       fg = shown.bg,
       bg = shown.fg,
@@ -200,7 +215,7 @@ now(function()
       local icon = HueyTerm.get_icon(buf_id)
       icon = icon and icon .. ' ' or ''
       return MiniTabline.default_format(buf_id, label) .. icon
-    end
+    end,
   })
 end)
 
@@ -546,7 +561,9 @@ later(function()
   local diff = require('mini.diff')
   -- Reference is the file at `@-`, so hunks are the changes made by `@`. The jj
   -- source's `attach` returns `false` outside a jj workspace, falling through to Git.
-  diff.setup({ source = { require('huey.jj').gen_diff_source(), diff.gen_source.git() } })
+  diff.setup({
+    source = { require('huey.jj').gen_diff_source(), diff.gen_source.git() },
+  })
 end)
 
 -- Git integration for more straightforward Git actions based on Neovim's state.
@@ -668,9 +685,9 @@ later(function()
   -- Map built-in navigation characters to force map refresh
   for _, key in ipairs({ 'n', 'N', '*', '#' }) do
     local rhs = key
-        -- Also open enough folds when jumping to the next match
-        .. 'zv'
-        .. '<Cmd>lua MiniMap.refresh({}, { lines = false, scrollbar = false })<CR>'
+      -- Also open enough folds when jumping to the next match
+      .. 'zv'
+      .. '<Cmd>lua MiniMap.refresh({}, { lines = false, scrollbar = false })<CR>'
     vim.keymap.set('n', key, rhs)
   end
 end)
@@ -756,11 +773,13 @@ end)
 -- - `:h MiniPick.builtin` and `:h MiniExtra.pickers` - available pickers;
 --   Execute one either with Lua function, `:Pick <picker-name>` command, or
 --   one of `<Leader>f` mappings defined in 'plugin/20_keymaps.lua'
-later(function()
-  require('mini.pick').setup({
-    mappings = { choose_marked = '<C-y>' },
-  })
-end)
+later(
+  function()
+    require('mini.pick').setup({
+      mappings = { choose_marked = '<C-y>' },
+    })
+  end
+)
 
 -- Manage and expand snippets (templates for a frequently used text).
 -- Typical workflow is to type snippet's (configurable) prefix and expand it

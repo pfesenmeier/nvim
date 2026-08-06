@@ -202,13 +202,17 @@ H.hunks_applied_to_ref = function(ref_lines, buf_lines, hunks)
   for _, h in ipairs(hunks) do
     -- "add" hunks (`ref_count == 0`) sit *after* their reference line
     local copy_until = h.ref_start + (h.ref_count == 0 and 0 or -1)
-    for i = ref_i, copy_until do table.insert(res, ref_lines[i]) end
+    for i = ref_i, copy_until do
+      table.insert(res, ref_lines[i])
+    end
     for i = h.buf_start, h.buf_start + h.buf_count - 1 do
       table.insert(res, buf_lines[i])
     end
     ref_i = copy_until + h.ref_count + 1
   end
-  for i = ref_i, #ref_lines do table.insert(res, ref_lines[i]) end
+  for i = ref_i, #ref_lines do
+    table.insert(res, ref_lines[i])
+  end
   return res
 end
 

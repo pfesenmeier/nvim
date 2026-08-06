@@ -33,14 +33,10 @@ local bufstatuses = {}
 H.parse_progress = function(sequence)
   local state, value = sequence:match('^\027%]9;4;(%d+);?(%d*)$')
 
-  if not state then
-    return nil
-  end
+  if not state then return nil end
 
   state = tonumber(state)
-  if state < 0 or state > 4 then
-    return nil
-  end
+  if state < 0 or state > 4 then return nil end
 
   return {
     state = state,
@@ -50,33 +46,31 @@ end
 
 --- Writes a raw OSC sequence straight to the TUI host terminal.
 --- @param sequence string
-H.forward_raw = function(sequence)
-  vim.api.nvim_ui_send(sequence)
-end
+H.forward_raw = function(sequence) vim.api.nvim_ui_send(sequence) end
 --- Emits progress as Nvim's internal |Progress| event via nvim_echo,
 --- for anything (statusline, other autocmds) hooking that event.
 --- @param progress Progress
 --- @param title    string?
 --- @param source   string?
 H.echo_progress = function(progress, title, source)
-    local opts = { kind = 'progress', title = title, source = source }
+  local opts = { kind = 'progress', title = title, source = source }
 
-    if progress.state == 1 then
-      opts.percent = progress.value
-      opts.status = progress.value == 100 and 'success' or 'running'
-    elseif progress.state == 2 then
-      opts.status = 'failed'
-      opts.percent = progress.value
-    elseif progress.state == 3 then
-      opts.status = 'running' -- percent omitted => indeterminate (OSC 9;4;3)
-    else
-      -- states 0, 4
-      -- no distinct "paused" status; closest is running w/ no percent, or 'cancel'
-      opts.status = 'cancel'
-      opts.percent = progress.value
-    end
+  if progress.state == 1 then
+    opts.percent = progress.value
+    opts.status = progress.value == 100 and 'success' or 'running'
+  elseif progress.state == 2 then
+    opts.status = 'failed'
+    opts.percent = progress.value
+  elseif progress.state == 3 then
+    opts.status = 'running' -- percent omitted => indeterminate (OSC 9;4;3)
+  else
+    -- states 0, 4
+    -- no distinct "paused" status; closest is running w/ no percent, or 'cancel'
+    opts.status = 'cancel'
+    opts.percent = progress.value
+  end
 
-    vim.api.nvim_echo({ { title or '' } }, false, opts)
+  vim.api.nvim_echo({ { title or '' } }, false, opts)
 end
 
 --- @param progress Progress
@@ -97,22 +91,21 @@ H.get_icon = function(progress)
   if state == 4 then return '⏸' end -- U+23F8 PAUSE — paused
 end
 
-
 ---@param buf number
 ---@param progress Progress
 H.notify = function(buf, progress)
-  local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t")
+  local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ':t')
 
   ---@type string, vim.log.levels
   local msg, level
 
   if progress.state == 1 and progress.value == 100 then
-    msg, level = " is done.", vim.log.levels.INFO
+    msg, level = ' is done.', vim.log.levels.INFO
   elseif progress.state == 2 then
-    msg, level = " has errored.", vim.log.levels.ERROR
+    msg, level = ' has errored.', vim.log.levels.ERROR
     -- skip level 3, which claude likes to emit
   elseif progress.state == 4 then
-    msg, level = " is waiting.", vim.log.levels.WARN
+    msg, level = ' is waiting.', vim.log.levels.WARN
   end
 
   if msg then
@@ -122,7 +115,6 @@ H.notify = function(buf, progress)
 
   H.echo_progress(progress, msg, name)
 end
-
 
 ---@param buf number
 ---@return string|nil
@@ -135,11 +127,11 @@ HueyTerm.get_icon = function(buf)
 end
 
 H.create_autocmds = function()
-  local gr = vim.api.nvim_create_augroup("HueyTerm", {})
+  local gr = vim.api.nvim_create_augroup('HueyTerm', {})
 
-  vim.api.nvim_create_autocmd({ "TermRequest" }, {
+  vim.api.nvim_create_autocmd({ 'TermRequest' }, {
     group = gr,
-    desc = "Update tabline when progress event receieved",
+    desc = 'Update tabline when progress event receieved',
     callback = function(ev)
       local progress = H.parse_progress(ev.data.sequence)
       local buf = ev.buf
@@ -155,14 +147,14 @@ H.create_autocmds = function()
 
       H.notify(buf, progress)
       H.forward_raw(ev.data.sequence)
-    end
+    end,
   })
 
-  vim.api.nvim_create_autocmd({ "BufEnter" }, {
+  vim.api.nvim_create_autocmd({ 'BufEnter' }, {
     group = gr,
     desc = "Removes terminal ('done') statuses when enter a buffer",
     callback = function(ev)
-      if (vim.bo[ev.buf].buftype ~= 'terminal') then return end
+      if vim.bo[ev.buf].buftype ~= 'terminal' then return end
       local progress = bufstatuses[ev.buf]
       if not progress then return end
 
@@ -170,7 +162,7 @@ H.create_autocmds = function()
       if progress.state ~= 1 or progress.value == 100 then
         bufstatuses[ev.buf] = nil
       end
-    end
+    end,
   })
 
   -- :h terminal-osc7
@@ -187,11 +179,9 @@ H.create_autocmds = function()
           return
         end
         vim.b[ev.buf].osc7_dir = dir
-        if vim.api.nvim_get_current_buf() == ev.buf then
-          vim.cmd.lcd(dir)
-        end
+        if vim.api.nvim_get_current_buf() == ev.buf then vim.cmd.lcd(dir) end
       end
-    end
+    end,
   })
 end
 

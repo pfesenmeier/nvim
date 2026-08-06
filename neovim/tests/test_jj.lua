@@ -225,7 +225,14 @@ T['pick_hunks()']['builds the diff command for `@`'] = function()
   child.lua('_G.pick_hunks({})')
 
   eq(child.lua_get('_G.captured.cli.command'), {
-    'jj', '--no-pager', '--color=never', 'diff', '--git', '--context=3', '-r', '@',
+    'jj',
+    '--no-pager',
+    '--color=never',
+    'diff',
+    '--git',
+    '--context=3',
+    '-r',
+    '@',
   })
   eq(child.lua_get('_G.captured.opts.source.cwd'), root)
   eq(child.lua_get('_G.captured.opts.source.name'), 'jj hunks (@, all)')

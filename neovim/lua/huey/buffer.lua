@@ -10,7 +10,9 @@ HueyBuffer.delete_buf_swaps = function()
   local removed = {}
   for dir in vim.gsplit(vim.o.directory, ',', { plain = true }) do
     dir = vim.fn.expand(dir):gsub('/+$', '')
-    for _, path in ipairs(vim.fn.glob(dir .. '/' .. mangled .. '.s[a-w][a-z]', false, true)) do
+    for _, path in
+      ipairs(vim.fn.glob(dir .. '/' .. mangled .. '.s[a-w][a-z]', false, true))
+    do
       if vim.fn.delete(path) == 0 then table.insert(removed, path) end
     end
   end
@@ -25,15 +27,13 @@ end
 -- custom with ft
 -- nice for setting up scratch sql buffers
 HueyBuffer.new_scratch_buffer_with_ft = function()
-  local ft = ""
+  local ft = ''
   local opts = { prompt = 'filetype: ', scope = 'buffer' }
 
-  vim.ui.input(opts, function(input)
-    ft = input
-  end)
+  vim.ui.input(opts, function(input) ft = input end)
 
   if not (vim.tbl_contains(vim.fn.getcompletion(ft, 'filetype'), ft)) then
-    vim.notify("unknown ft", vim.log.levels.ERROR)
+    vim.notify('unknown ft', vim.log.levels.ERROR)
   end
 
   HueyBuffer.new_scratch_buffer()
@@ -41,8 +41,6 @@ HueyBuffer.new_scratch_buffer_with_ft = function()
   vim.bo.filetype = ft
 end
 
-HueyBuffer.setup = function()
-  _G.HueyBuffer = HueyBuffer
-end
+HueyBuffer.setup = function() _G.HueyBuffer = HueyBuffer end
 
 return HueyBuffer
