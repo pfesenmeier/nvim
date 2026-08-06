@@ -14,20 +14,33 @@ require("workspace").setup({
     { name = "notes",  path = vim.fn.expand("~/notes") },
   },
   -- server_dir = vim.fn.stdpath("run") .. "/workspaces",  -- default
-  -- home_name  = "home",                                  -- pinned entry
 })
 ```
 
+The list also comes from `$WORKSPACES` (a JSON array of the same shape) when
+`workspaces` is omitted, which is how it is populated in practice.
+
 ## Surface
 
-- `<leader>fw` — pick a workspace (MiniPick). `home` is always pinned first
-  and points at the TUI's original server (`v:servername` captured at setup).
-  Confirming spawns the server if needed, then `:connect`s the current UI.
+- `<leader>fw` — pick a workspace (MiniPick). Confirming spawns the server if
+  needed, then `:connect`s the current UI.
+- `[w` / `]w` — connect to the previous / next **running** workspace, skipping
+  stopped ones; `[W` / `]W` jump to the first / last running one. Counts and
+  wrap-around work as in 'mini.bracketed', whose `MiniBracketed.advance()` this
+  drives. Note 'mini.bracketed' has no way to register a custom target, so the
+  mappings live in `plugin/20_keymaps.lua` rather than in its config; its own
+  `window` target was moved to `[s`/`]s` to free `w`.
 - `:WorkspaceConnect <name>` — same flow as picker confirm.
 - `:WorkspaceStop <name>` — RPC-quit the workspace's server and clean up the
-  socket. Refuses to stop `home`.
+  socket.
 
 `:detach` (built-in) drops the UI off a workspace without stopping it.
+
+There is no `home` entry. The TUI's own server is not registered in
+`server_dir`, so it is not reachable through this module: connecting to the
+workspace whose path matches the TUI's startup directory spawns a *separate*
+headless server for it and leaves the TUI's original session idle in the
+background.
 
 ## Nice to Have
 

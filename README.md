@@ -5,7 +5,8 @@
 - [x] jj pickers
 - [x] jj bracketed
 - [ ] jj diff? (color line numbers)
-- [ ] workspace bracketed
+- [x] workspace bracketed
+- [ ] clickable links (Claude)
 
 
 ## Niceties

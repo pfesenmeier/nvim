@@ -431,7 +431,9 @@ later(function() require('mini.align').setup() end)
 --
 -- See also:
 -- - `:h MiniBracketed` - overall mapping design and list of targets
-later(function() require('mini.bracketed').setup() end)
+-- `window` moves off `w` to `s` (split); `[w`/`]w` navigate workspaces instead
+-- (see 'plugin/20_keymaps.lua'). Vim's `[s`/`]s` spell motions move to `[e`/`]e`.
+later(function() require('mini.bracketed').setup({ window = { suffix = 's' } }) end)
 
 -- Remove buffers. Opened files occupy space in tabline and buffer picker.
 -- When not needed, they can be removed. Example usage:

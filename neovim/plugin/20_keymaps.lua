@@ -18,6 +18,28 @@ end
 -- Usage: `yiw` to yank a word and `]p` to put it on the next line.
 nmap('[p', '<Cmd>exe "iput! " . v:register<CR>', 'Paste Above')
 nmap(']p', '<Cmd>ee "iput "  . v:register<CR>', 'Paste Below')
+
+-- Workspace navigation, in the style of 'mini.bracketed' targets. That plugin
+-- has no way to register a custom target, so these are mapped by hand; the
+-- module drives `MiniBracketed.advance()` underneath. See 'lua/workspace'.
+local ws_nav = function(direction)
+  return ("<Cmd>lua require('workspace').bracketed('%s')<CR>"):format(direction)
+end
+nmap('[W', ws_nav('first'), 'Workspace first')
+nmap(']W', ws_nav('last'), 'Workspace last')
+nmap('[w', ws_nav('backward'), 'Workspace backward')
+nmap(']w', ws_nav('forward'), 'Workspace forward')
+
+-- Spell motions, displaced from `[s`/`]s` by 'mini.bracketed's `window` target.
+-- Non-recursive on purpose: the RHS must reach the built-in, not that mapping.
+local map_spell = function(lhs, rhs, desc)
+  vim.keymap.set({ 'n', 'x', 'o' }, lhs, rhs, { desc = desc })
+end
+map_spell('[E', '[S', 'Spell bad backward')
+map_spell(']E', ']S', 'Spell bad forward')
+map_spell('[e', '[s', 'Spell backward')
+map_spell(']e', ']s', 'Spell forward')
+
 -- Many general mappings are created by 'mini.basics'. See 'plugin/30_mini.lua'
 
 -- stylua: ignore start

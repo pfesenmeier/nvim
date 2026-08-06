@@ -20,11 +20,9 @@ end
 local defaults = {
   workspaces = {}, -- list of { name = string, path = string }
   server_dir = default_server_dir(),
-  home_name = 'home',
 }
 
 local opts = defaults
-local home_addr = nil
 
 local function sock_for(name) return opts.server_dir .. '/' .. name .. '.sock' end
 
@@ -57,15 +55,9 @@ local function bot_status_remote(sock)
   if got and icon ~= vim.NIL then return icon end
 end
 
-function M.bot_status(name)
-  if name == opts.home_name then return require('floatterm').get_status('claude') end
-  return bot_status_remote(sock_for(name))
-end
+function M.bot_status(name) return bot_status_remote(sock_for(name)) end
 
-function M.status(name)
-  if name == opts.home_name then return 'running' end
-  return probe(sock_for(name)) and 'running' or 'stopped'
-end
+function M.status(name) return probe(sock_for(name)) and 'running' or 'stopped' end
 
 local function spawn(ws)
   local sock = sock_for(ws.name)
@@ -88,33 +80,17 @@ local function spawn(ws)
 end
 
 function M.connect(name)
-  local addr
-  if name == opts.home_name then
-    if not home_addr or home_addr == '' then
-      vim.notify(
-        'workspace: no home address captured at setup',
-        vim.log.levels.ERROR
-      )
-      return
-    end
-    addr = home_addr
-  else
-    local ws = find_ws(name)
-    if not ws then
-      vim.notify(("workspace: unknown name '%s'"):format(name), vim.log.levels.ERROR)
-      return
-    end
-    addr = sock_for(name)
-    if not probe(addr) and not spawn(ws) then return end
+  local ws = find_ws(name)
+  if not ws then
+    vim.notify(("workspace: unknown name '%s'"):format(name), vim.log.levels.ERROR)
+    return
   end
+  local addr = sock_for(name)
+  if not probe(addr) and not spawn(ws) then return end
   vim.cmd('connect ' .. vim.fn.fnameescape(addr))
 end
 
 function M.stop(name)
-  if name == opts.home_name then
-    vim.notify('workspace: refusing to stop home server', vim.log.levels.WARN)
-    return
-  end
   local sock = sock_for(name)
   if not probe(sock) then
     vim.notify(('workspace: %s is not running'):format(name), vim.log.levels.WARN)
@@ -134,12 +110,7 @@ function M.pick()
     local bot = M.bot_status(name) or '  '
     return ('%s %s  %-20s  %s'):format(glyph(status), bot, name, trailing)
   end
-  local items = {
-    {
-      name = opts.home_name,
-      text = row('running', opts.home_name, home_addr or '?'),
-    },
-  }
+  local items = {}
   for _, ws in ipairs(opts.workspaces) do
     items[#items + 1] = {
       name = ws.name,
@@ -166,6 +137,15 @@ function M.current_name()
   return vim.fn.fnamemodify(cwd, ':t')
 end
 
+--- Position of the cwd's workspace in `M.names()`, or nil when cwd is not one.
+--- @return number?
+function M.current_index()
+  local cwd = vim.fn.resolve(vim.fn.getcwd())
+  for i, ws in ipairs(opts.workspaces) do
+    if vim.fn.resolve(vim.fn.expand(ws.path)) == cwd then return i end
+  end
+end
+
 function M.starter_items()
   local items = {}
   for _, ws in ipairs(opts.workspaces) do
@@ -179,12 +159,47 @@ function M.starter_items()
   return items
 end
 
-local function names()
-  local out = { opts.home_name }
+--- Configured workspace names, in configuration order.
+--- @return string[]
+function M.names()
+  local out = {}
   for _, ws in ipairs(opts.workspaces) do
     out[#out + 1] = ws.name
   end
   return out
+end
+
+--- Connect to the next/previous *running* workspace, skipping stopped ones.
+--- Shaped after `MiniBracketed.window()`; bound to `[w` / `]w` / `[W` / `]W`.
+--- @param direction string 'first' | 'backward' | 'forward' | 'last'
+--- @param o table? { n_times = v:count1, wrap = true }
+function M.bracketed(direction, o)
+  o = vim.tbl_deep_extend('force', { n_times = vim.v.count1, wrap = true }, o or {})
+
+  local all = M.names()
+  local iterator = {
+    next = function(i)
+      for j = i + 1, #all do
+        if M.status(all[j]) == 'running' then return j end
+      end
+    end,
+    prev = function(i)
+      for j = i - 1, 1, -1 do
+        if M.status(all[j]) == 'running' then return j end
+      end
+    end,
+    -- The origin need not be running: the TUI can sit in a workspace directory
+    -- whose server was never spawned. 0 (== `start_edge`) when cwd is no
+    -- workspace at all, so `]w` lands on the first running one and `[w` wraps.
+    state = M.current_index() or 0,
+    start_edge = 0,
+    end_edge = #all + 1,
+  }
+
+  local res = require('mini.bracketed').advance(iterator, direction, o)
+  if res == iterator.state then return end
+
+  M.connect(all[res])
 end
 
 local function workspaces_from_env()
@@ -203,21 +218,20 @@ function M.setup(user)
   if not user.workspaces then user.workspaces = workspaces_from_env() end
   opts = vim.tbl_deep_extend('force', defaults, user)
   vim.fn.mkdir(opts.server_dir, 'p')
-  home_addr = vim.v.servername
 
   vim.api.nvim_create_user_command(
     'WorkspaceConnect',
     function(o) M.connect(o.args) end,
     {
       nargs = 1,
-      complete = function() return names() end,
+      complete = function() return M.names() end,
       desc = "Connect UI to a workspace's nvim server (spawn if needed)",
     }
   )
 
   vim.api.nvim_create_user_command('WorkspaceStop', function(o) M.stop(o.args) end, {
     nargs = 1,
-    complete = function() return names() end,
+    complete = function() return M.names() end,
     desc = "Stop a workspace's nvim server",
   })
 end
