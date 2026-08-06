@@ -1,8 +1,9 @@
--- module for picking diff hunks out of a jj revision
+-- module for working with jj diff hunks: a 'mini.pick' picker and a 'mini.diff'
+-- source
 --
 -- jj has no index, so the git staged/unstaged split maps onto revisions instead:
--- `@` (working copy commit) stands in for unstaged, `@-` for staged. Falls back to
--- `MiniExtra.pickers.git_hunks` when there is no jj workspace.
+-- `@` (working copy commit) stands in for unstaged, `@-` for staged. Both entry
+-- points fall back to their git equivalent when there is no jj workspace.
 local HueyJj = {}
 local H = {}
 
@@ -22,6 +23,11 @@ H.workspace_root = function(dir)
   if out.code ~= 0 then return nil end
   return vim.trim(out.stdout)
 end
+
+--- Workspace-relative path as a jj fileset. See `jj help -k filesets`.
+--- @param relpath string
+--- @return string
+H.fileset = function(relpath) return ('root-file:"%s"'):format(relpath) end
 
 --- @param text string
 --- @param width number
@@ -151,7 +157,7 @@ HueyJj.pick_hunks = function(local_opts, opts)
       vim.notify(msg, vim.log.levels.WARN)
       return
     end
-    vim.list_extend(command, { '--', ('root-file:"%s"'):format(relpath) })
+    vim.list_extend(command, { '--', H.fileset(relpath) })
   end
 
   local default_source = {
@@ -166,6 +172,167 @@ HueyJj.pick_hunks = function(local_opts, opts)
 
   local cli_opts = { command = command, postprocess = H.difflines_to_hunkitems }
   return MiniPick.builtin.cli(cli_opts, opts)
+end
+
+--- Directory holding the operation log head, which jj rewrites on every
+--- operation. Watching it is the jj analogue of watching '.git/index'.
+--- @param root string
+--- @return string?
+H.op_heads_dir = function(root)
+  local repo = root .. '/.jj/repo'
+  local stat = vim.uv.fs_stat(repo)
+  if stat == nil then return nil end
+  -- secondary workspaces store the repo path in '.jj/repo' instead of a directory
+  if stat.type == 'file' then repo = vim.trim(vim.fn.readfile(repo)[1] or '') end
+  if repo == '' then return nil end
+  return repo .. '/op_heads/heads'
+end
+
+--- Reference text with only `hunks` applied, i.e. what the reference becomes
+--- once those hunks are squashed into it.
+--- @param ref_lines string[]
+--- @param buf_lines string[]
+--- @param hunks table[] per `:h MiniDiff-hunk-specification`
+--- @return string[]
+H.hunks_applied_to_ref = function(ref_lines, buf_lines, hunks)
+  hunks = vim.deepcopy(hunks)
+  table.sort(hunks, function(a, b) return a.ref_start < b.ref_start end)
+
+  local res, ref_i = {}, 1
+  for _, h in ipairs(hunks) do
+    -- "add" hunks (`ref_count == 0`) sit *after* their reference line
+    local copy_until = h.ref_start + (h.ref_count == 0 and 0 or -1)
+    for i = ref_i, copy_until do table.insert(res, ref_lines[i]) end
+    for i = h.buf_start, h.buf_start + h.buf_count - 1 do
+      table.insert(res, buf_lines[i])
+    end
+    ref_i = copy_until + h.ref_count + 1
+  end
+  for i = ref_i, #ref_lines do table.insert(res, ref_lines[i]) end
+  return res
+end
+
+--- Generates a 'mini.diff' source using file content at `revset` as reference,
+--- so hunks are the changes made by the revision below it. Applying hunks
+--- squashes them into `revset`.
+--- @param revset string? default '@-'
+--- @return table source per `:h MiniDiff-source-specification`
+HueyJj.gen_diff_source = function(revset)
+  revset = revset or '@-'
+  local cache = {}
+
+  local set_ref_text = vim.schedule_wrap(function(buf_id)
+    local buf_cache = cache[buf_id]
+    if buf_cache == nil or not vim.api.nvim_buf_is_valid(buf_id) then return end
+
+    -- `--ignore-working-copy` keeps this read from recording an operation, which
+    -- would trip the watcher below and loop forever
+    local command = {
+      'jj',
+      '--ignore-working-copy',
+      '--no-pager',
+      '--color=never',
+      'file',
+      'show',
+      '-r',
+      revset,
+      '--',
+      H.fileset(buf_cache.rel_path),
+    }
+    local on_exit = vim.schedule_wrap(function(out)
+      local valid = cache[buf_id] ~= nil and vim.api.nvim_buf_is_valid(buf_id)
+      if not valid then return end
+      -- absent at `revset` means a new file; unset so it shows no hunks at all,
+      -- which is what the git source does for untracked files
+      local text = out.code == 0 and out.stdout or {}
+      pcall(MiniDiff.set_ref_text, buf_id, text)
+    end)
+    vim.system(command, { cwd = buf_cache.root, text = true }, on_exit)
+  end)
+
+  local watch = function(buf_id)
+    local dir = H.op_heads_dir(cache[buf_id].root)
+    if dir == nil then return end
+
+    local fs_event, timer = vim.uv.new_fs_event(), vim.uv.new_timer()
+    cache[buf_id].fs_event, cache[buf_id].timer = fs_event, timer
+    fs_event:start(dir, { recursive = false }, function()
+      -- debounce: one jj operation can touch the directory several times
+      timer:stop()
+      timer:start(50, 0, function() set_ref_text(buf_id) end)
+    end)
+  end
+
+  local attach = function(buf_id)
+    if cache[buf_id] ~= nil then return false end
+
+    -- resolve symlinks so the workspace is found from the file's real location
+    local path = vim.uv.fs_realpath(vim.api.nvim_buf_get_name(buf_id))
+    if path == nil then return false end
+    local root = H.workspace_root(vim.fs.dirname(path))
+    if root == nil then return false end
+    local rel_path = vim.fs.relpath(root, path)
+    if rel_path == nil then return false end
+
+    cache[buf_id] = { root = root, rel_path = rel_path }
+    watch(buf_id)
+    set_ref_text(buf_id)
+  end
+
+  local detach = function(buf_id)
+    local buf_cache = cache[buf_id]
+    cache[buf_id] = nil
+    if buf_cache == nil then return end
+    if buf_cache.timer ~= nil then buf_cache.timer:close() end
+    if buf_cache.fs_event ~= nil then buf_cache.fs_event:close() end
+  end
+
+  local apply_hunks = function(buf_id, hunks)
+    local buf_cache = cache[buf_id]
+    local buf_data = MiniDiff.get_buf_data(buf_id)
+    if buf_cache == nil or buf_data == nil then return end
+    if buf_data.ref_text == nil then return end
+
+    local ref_lines = vim.split(buf_data.ref_text, '\n')
+    -- `ref_text` always ends in '\n', so drop the empty element it splits into
+    if ref_lines[#ref_lines] == '' then table.remove(ref_lines) end
+    local buf_lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
+    local new_lines = H.hunks_applied_to_ref(ref_lines, buf_lines, hunks)
+
+    -- `jj squash` moves whole files, so the partially-applied content has to be
+    -- on disk for the duration of the call and is restored right after
+    local path = buf_cache.root .. '/' .. buf_cache.rel_path
+    local on_disk = vim.fn.filereadable(path) == 1
+    local disk_lines = on_disk and vim.fn.readfile(path, 'b') or nil
+    vim.fn.writefile(new_lines, path)
+
+    local command = {
+      'jj',
+      '--no-pager',
+      '--color=never',
+      'squash',
+      -- keep `@` alive; jj otherwise abandons a source revision it empties
+      '--keep-emptied',
+      -- take the destination description rather than prompting to merge the two
+      '--use-destination-message',
+      '--into',
+      revset,
+      '--',
+      H.fileset(buf_cache.rel_path),
+    }
+    local out = vim.system(command, { cwd = buf_cache.root, text = true }):wait()
+
+    if disk_lines ~= nil then
+      pcall(vim.fn.writefile, disk_lines, path, 'b')
+    else
+      pcall(vim.fn.delete, path)
+    end
+    vim.schedule(function() vim.cmd('silent! checktime ' .. buf_id) end)
+
+    if out.code ~= 0 then vim.notify(vim.trim(out.stderr), vim.log.levels.ERROR) end
+  end
+
+  return { name = 'jj', attach = attach, detach = detach, apply_hunks = apply_hunks }
 end
 
 HueyJj.setup = function()

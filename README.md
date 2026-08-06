@@ -2,8 +2,8 @@
 
 ## TODO
 
-- [ ] jj pickers
-- [ ] jj bracketed
+- [x] jj pickers
+- [x] jj bracketed
 - [ ] jj diff? (color line numbers)
 - [ ] workspace bracketed
 
