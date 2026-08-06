@@ -191,6 +191,120 @@ T['H.op_heads_dir()']['returns nil without `.jj`'] = function()
   eq(H.op_heads_dir(new_plain_dir()), nil)
 end
 
+T['H.parse_subcommand()'] = new_set()
+
+T['H.parse_subcommand()']['finds a bare subcommand'] = function()
+  eq(H.parse_subcommand({ 'status' }), 'status')
+end
+
+T['H.parse_subcommand()']['skips boolean global flags'] = function()
+  eq(H.parse_subcommand({ '--quiet', '--ignore-working-copy', 'log' }), 'log')
+end
+
+T['H.parse_subcommand()']['skips a global flag with a separate value'] = function()
+  eq(H.parse_subcommand({ '-R', '/tmp/x', 'log' }), 'log')
+end
+
+T['H.parse_subcommand()']['skips a global flag with an inline value'] = function()
+  eq(H.parse_subcommand({ '--color=never', 'log' }), 'log')
+end
+
+T['H.parse_subcommand()']['resolves jj default aliases'] = new_set({
+  parametrize = {
+    { 'b', 'bookmark' },
+    { 'ci', 'commit' },
+    { 'desc', 'describe' },
+    { 'op', 'operation' },
+    { 'st', 'status' },
+  },
+}, {
+  test = function(alias, want) eq(H.parse_subcommand({ alias }), want) end,
+})
+
+T['H.parse_subcommand()']['joins a container with its second word'] = function()
+  eq(H.parse_subcommand({ 'op', 'log' }), 'operation log')
+  eq(H.parse_subcommand({ 'file', 'show', 'f.txt' }), 'file show')
+end
+
+T['H.parse_subcommand()']['leaves a container alone before a flag'] = function()
+  eq(H.parse_subcommand({ 'op', '--help' }), 'operation')
+end
+
+T['H.parse_subcommand()']['returns nil without a subcommand'] = new_set({
+  parametrize = { { { '--help' } }, { { '--', 'f.txt' } }, { {} } },
+}, {
+  test = function(args) eq(H.parse_subcommand(args), nil) end,
+})
+
+T['H.global_prefix()'] = new_set()
+
+T['H.global_prefix()']['injects both flags by default'] = function()
+  eq(H.global_prefix({ 'log' }), { '--no-pager', '--color=never' })
+end
+
+-- jj rejects a repeated `--color`/`--no-pager` outright, so a duplicate here
+-- would make the whole command fail
+T['H.global_prefix()']['omits a flag the user supplied'] = new_set({
+  parametrize = {
+    { { '--no-pager', 'log' }, { '--color=never' } },
+    { { '--color=always', 'log' }, { '--no-pager' } },
+    { { '--color', 'always', 'log' }, { '--no-pager' } },
+    { { '--no-pager', '--color=always', 'log' }, {} },
+  },
+}, {
+  test = function(args, want) eq(H.global_prefix(args), want) end,
+})
+
+T['H.complete_words()'] = new_set()
+
+T['H.complete_words()']['splits the arguments'] = function()
+  eq(H.complete_words('Jj log -r @', 11), { 'log', '-r', '@' })
+end
+
+-- jj's completion engine needs the word being completed as its own argument
+T['H.complete_words()']['appends an empty word after a trailing space'] = function()
+  eq(H.complete_words('Jj log ', 7), { 'log', '' })
+end
+
+T['H.complete_words()']['unescapes backslashed spaces'] = function()
+  eq(H.complete_words([[Jj file show a\ b]], 18), { 'file', 'show', 'a b' })
+end
+
+T['H.complete_words()']['stops at the cursor'] = function()
+  eq(H.complete_words('Jj log -r @', 6), { 'log' })
+end
+
+T['H.complete_words()']['ignores the bang and command modifiers'] = function()
+  eq(H.complete_words('Jj! new', 7), { 'new' })
+  eq(H.complete_words('vertical Jj log', 15), { 'log' })
+end
+
+T['H.split_filetype()'] = new_set()
+
+--- The `file show` branch reads the buffer name, so give it a real buffer.
+local split_filetype = function(name, lines, subcommand)
+  local buf_id = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_name(buf_id, name)
+  local res = H.split_filetype(buf_id, lines, subcommand)
+  vim.api.nvim_buf_delete(buf_id, { force = true })
+  return res
+end
+
+T['H.split_filetype()']['detects a git-format diff from content'] = function()
+  -- `jj diff` only emits this with `--git`; its default is color-words
+  local lines = { 'diff --git a/f.txt b/f.txt' }
+  eq(split_filetype('jj://1/jj diff --git', lines, 'diff'), 'diff')
+end
+
+T['H.split_filetype()']['detects file content from the buffer name'] = function()
+  eq(split_filetype('jj://1/jj file show a.lua', { 'return 1' }, 'file show'), 'lua')
+end
+
+T['H.split_filetype()']['leaves log output unset'] = function()
+  local lines = { '@  qrxzytsk you@example.com', '│  base' }
+  eq(split_filetype('jj://1/jj log', lines, 'log'), nil)
+end
+
 -- Integration tests =========================================================
 
 local child_set = function()
@@ -453,6 +567,325 @@ T['gen_diff_source()']['apply_hunks leaves an unsaved buffer alone'] = function(
   eq(vim.fn.readfile(root .. '/f.txt'), base_lines)
   eq(child.bo.modified, true)
   eq(child.get_lines()[1], 'ONE')
+end
+
+T[':Jj'] = child_set()
+
+--- Stubs the async `vim.system` path. `:wait()` calls -- `jj root` and the
+--- completion engine -- fall through to the real thing.
+local mock_jj = function()
+  child.lua([[
+    _G.spawns, _G.notified, _G.stub = {}, {}, {}
+    local system_orig = vim.system
+    vim.system = function(cmd, opts, cb)
+      if cb == nil then return system_orig(cmd, opts) end
+      table.insert(_G.spawns, { cmd = cmd, opts = opts })
+      if _G.stub.hang then return { kill = function() end } end
+      local out = vim.tbl_extend('force', { code = 0, stdout = '', stderr = '' }, _G.stub)
+      vim.schedule(function() cb(out) end)
+      return { kill = function() end }
+    end
+    vim.notify = function(msg, level) table.insert(_G.notified, { msg = msg, level = level }) end
+    require('huey.jj').setup()
+  ]])
+end
+
+--- @param stub table? fields of the faked `vim.system` result
+local set_stub = function(stub) child.lua('_G.stub = ...', { stub or {} }) end
+
+--- Number of spawned arguments matching `pattern`.
+local n_matching = function(pattern)
+  local cmd = child.lua_get('_G.spawns[1].cmd')
+  return #vim.tbl_filter(function(x) return x:find(pattern) ~= nil end, cmd)
+end
+
+--- One field of the `:Jj` definition; the whole entry holds the Lua `complete`
+--- callback, which does not survive the RPC round trip.
+local command_field = function(name)
+  return child.lua_get('vim.api.nvim_get_commands({}).Jj.' .. name)
+end
+
+T[':Jj']['is registered by setup()'] = function()
+  mock_jj()
+  eq(command_field('bang'), true)
+  eq(command_field('nargs'), '+')
+  expect.match(command_field('definition'), 'jj command')
+end
+
+T[':Jj']['prepends jj global flags'] = function()
+  mock_jj()
+  child.cmd('Jj status')
+  local cmd = child.lua_get('_G.spawns[1].cmd')
+  eq(cmd[1], 'jj')
+  expect.contains(cmd, '--no-pager')
+  expect.contains(cmd, '--color=never')
+  expect.contains(cmd, 'status')
+end
+
+-- jj errors out on a repeated `--color`, so the injection has to stand down
+T[':Jj']['does not duplicate a user-supplied global flag'] = function()
+  mock_jj()
+  child.cmd('Jj --color=always status')
+  eq(n_matching('^%-%-color'), 1)
+  eq(n_matching('^%-%-no%-pager'), 1)
+end
+
+T[':Jj']['runs in the workspace root'] = function()
+  helpers.skip_if_no_jj()
+  local root = new_jj_repo({ ['sub/f.txt'] = { 'x' } })
+  mock_jj()
+  child.fn.chdir(root .. '/sub')
+  child.cmd('Jj status')
+
+  eq(child.lua_get('_G.spawns[1].opts.cwd'), root)
+end
+
+T[':Jj']['falls back to cwd outside a workspace'] = function()
+  local dir = new_plain_dir()
+  mock_jj()
+  child.fn.chdir(dir)
+  child.cmd('Jj status')
+
+  eq(child.lua_get('_G.spawns[1].opts.cwd'), dir)
+end
+
+-- jj reports the new working copy on stderr after every mutation, so unlike
+-- 'mini.git' a non-empty stderr with exit 0 is informational, not a warning
+T[':Jj']['notifies stderr at INFO on success'] = function()
+  mock_jj()
+  set_stub({ stderr = 'Working copy  (@) now at: abc\n' })
+  child.cmd('Jj new')
+
+  eq(#child.lua_get('_G.notified'), 1)
+  eq(child.lua_get('_G.notified[1].msg'), 'Working copy  (@) now at: abc')
+  eq(child.lua_get('_G.notified[1].level'), child.lua_get('vim.log.levels.INFO'))
+end
+
+T[':Jj']['notifies at ERROR on failure'] = function()
+  mock_jj()
+  set_stub({ code = 1, stderr = "Error: Revision `nope` doesn't exist" })
+  child.cmd('Jj log -r nope')
+
+  eq(child.lua_get('_G.notified[1].level'), child.lua_get('vim.log.levels.ERROR'))
+  expect.match(child.lua_get('_G.notified[1].msg'), 'Revision `nope`')
+end
+
+T[':Jj']['appends stdout to an error notification'] = function()
+  mock_jj()
+  set_stub({ code = 1, stderr = 'boom', stdout = 'partial' })
+  child.cmd('Jj status')
+
+  eq(child.lua_get('_G.notified[1].msg'), 'boom\npartial')
+end
+
+T[':Jj']['notifies stdout for a non-info subcommand'] = function()
+  mock_jj()
+  set_stub({ stdout = '/tmp/repo' })
+  child.cmd('Jj root')
+
+  eq(child.lua_get('_G.notified[1].msg'), '/tmp/repo')
+  eq(#child.lua_get('vim.api.nvim_list_wins()'), 1)
+end
+
+T[':Jj']['shows stdout in a split'] = new_set({
+  parametrize = {
+    { 'Jj status', 'jj status' },
+    -- two-word subcommand: `operation log` has to resolve through the alias
+    { 'Jj op log', 'jj op log' },
+    -- forced by a modifier despite `new` not being an info subcommand
+    { 'vertical Jj new', 'jj new' },
+  },
+}, {
+  test = function(cmd, want_name)
+    mock_jj()
+    set_stub({ stdout = 'line one\nline two' })
+    child.cmd(cmd)
+
+    eq(#child.lua_get('vim.api.nvim_list_wins()'), 2)
+    local pattern = '^jj://%d+/' .. vim.pesc(want_name) .. '$'
+    expect.match(child.api.nvim_buf_get_name(0), pattern)
+    eq(child.get_lines(), { 'line one', 'line two' })
+    eq(#child.lua_get('_G.notified'), 0)
+  end,
+})
+
+T[':Jj']['honors `:silent`'] = function()
+  mock_jj()
+  set_stub({ stdout = 'out', stderr = 'err' })
+  child.cmd('silent Jj status')
+
+  eq(#child.lua_get('vim.api.nvim_list_wins()'), 1)
+  eq(#child.lua_get('_G.notified'), 0)
+end
+
+T[':Jj']['types git-format output as a diff'] = function()
+  mock_jj()
+  set_stub({ stdout = 'diff --git a/f b/f\n@@ -1 +1 @@' })
+  child.cmd('Jj diff --git')
+
+  eq(child.bo.filetype, 'diff')
+end
+
+T[':Jj']['leaves untyped output unfolded'] = function()
+  mock_jj()
+  set_stub({ stdout = '@  qrxzytsk\n│  base' })
+  child.cmd('Jj log')
+
+  eq(child.bo.filetype, '')
+  eq(child.wo.foldlevel, 999)
+end
+
+T[':Jj']['closing the split wipes its buffer'] = function()
+  mock_jj()
+  set_stub({ stdout = 'out' })
+  child.cmd('Jj status')
+  local buf_id = child.api.nvim_get_current_buf()
+
+  child.cmd('close')
+  eq(child.wait_for('not vim.api.nvim_buf_is_valid(' .. buf_id .. ')'), true)
+end
+
+-- jj's diff editor is a directory-pair TUI; `vim.system` gives it no pty
+T[':Jj']['runs diff-editor subcommands in a terminal'] = new_set({
+  parametrize = { { 'split' }, { 'diffedit' }, { 'resolve' }, { 'squash -i' } },
+}, {
+  test = function(args)
+    mock_jj()
+    child.cmd('Jj ' .. args)
+
+    eq(#child.lua_get('_G.spawns'), 0)
+    eq(child.bo.buftype, 'terminal')
+    -- arguments reach the shell quoted, so match loosely
+    local pattern = 'jj .*' .. vim.pesc(args:match('^%S+'))
+    expect.match(child.api.nvim_buf_get_name(0), pattern)
+  end,
+})
+
+T[':Jj']['waits for the job unless banged'] = new_set({
+  parametrize = { { 'Jj status', true }, { 'Jj! status', false } },
+}, {
+  test = function(cmd, should_wait)
+    mock_jj()
+    child.lua('require("huey.jj").H.timeout = ...', { helpers.get_time_const(400) })
+    child.lua('_G.stub = { hang = true }')
+
+    local start = vim.uv.hrtime()
+    child.cmd(cmd)
+    local elapsed_ms = (vim.uv.hrtime() - start) / 1e6
+    eq(elapsed_ms > helpers.get_time_const(200), should_wait)
+  end,
+})
+
+T[':Jj']['reloads changed buffers afterwards'] = function()
+  local dir = new_plain_dir()
+  vim.fn.writefile({ 'before' }, dir .. '/f.txt')
+  mock_jj()
+  child.o.autoread = true
+  child.cmd('edit ' .. dir .. '/f.txt')
+  eq(child.get_lines(), { 'before' })
+
+  vim.fn.writefile({ 'after' }, dir .. '/f.txt')
+  child.cmd('Jj new')
+
+  eq(child.get_lines(), { 'after' })
+end
+
+T[':Jj completion'] = child_set()
+
+local complete = function(cmdline) return child.fn.getcompletion(cmdline, 'cmdline') end
+
+local setup_completion = function()
+  helpers.skip_if_no_jj()
+  local root = new_jj_repo({ ['f.txt'] = { 'x' } })
+  child.lua('require("huey.jj").setup()')
+  child.fn.chdir(root)
+  return root
+end
+
+T[':Jj completion']['completes subcommands'] = function()
+  setup_completion()
+  expect.contains(complete('Jj '), 'status')
+  expect.contains(complete('Jj de'), 'describe')
+end
+
+T[':Jj completion']['completes a two-word subcommand'] = function()
+  setup_completion()
+  expect.contains(complete('Jj op '), 'log')
+end
+
+T[':Jj completion']['completes revsets'] = function()
+  local root = setup_completion()
+  helpers.jj(root, 'bookmark', 'create', 'feature', '-r', '@-')
+  expect.contains(complete('Jj log -r '), 'feature')
+end
+
+T[':Jj completion']['completes paths'] = function()
+  setup_completion()
+  expect.contains(complete('Jj file show '), 'f.txt')
+end
+
+T[':Jj completion']['falls back to a static list'] = function()
+  setup_completion()
+  child.lua([[
+    local failed = { wait = function() return { code = 1 } end }
+    vim.system = function() return failed end
+  ]])
+  expect.contains(complete('Jj st'), 'status')
+end
+
+-- holding <Tab> must not churn `gen_diff_source()`'s reference text
+T[':Jj completion']['does not snapshot the working copy'] = function()
+  local root = setup_completion()
+  local op_head = function()
+    return helpers.jj(root, 'op', 'log', '--no-graph', '-n', '1', '-T', 'id.short()')
+  end
+  local before = op_head()
+
+  complete('Jj ')
+  complete('Jj log -r ')
+  complete('Jj file show ')
+
+  eq(op_head(), before)
+end
+
+T[':Jj describe'] = child_set()
+
+T[':Jj describe']['passes `ui.editor` as a TOML array'] = function()
+  mock_jj()
+  child.cmd('Jj describe')
+
+  local cmd = child.lua_get('_G.spawns[1].cmd')
+  local i = vim.fn.index(cmd, '--config') + 1
+  expect.match(cmd[i + 1], '^ui%.editor=%[')
+end
+
+-- the full bridge: jj spawns a headless Nvim, which RPCs back here to open the
+-- description; closing the split is what lets jj finish
+T[':Jj describe']['edits the description in a split'] = function()
+  helpers.skip_if_no_jj()
+  local root = new_jj_repo({ ['f.txt'] = { 'x' } })
+  child.lua([[
+    _G.notified = {}
+    vim.notify = function(msg) table.insert(_G.notified, msg) end
+    require('huey.jj').setup()
+  ]])
+  child.fn.chdir(root)
+
+  -- generous: this spawns a whole second Nvim, which then RPCs back
+  local timeout = helpers.get_time_const(15000)
+
+  child.cmd('Jj! describe')
+  eq(child.wait_for('#vim.api.nvim_list_wins() == 2', timeout), true)
+  expect.match(child.api.nvim_buf_get_name(0), '%.jjdescription$')
+
+  child.set_lines({ 'from the split' }, 0, 1)
+  child.cmd('write')
+  child.cmd('close')
+
+  eq(child.wait_for('#_G.notified > 0', timeout), true)
+  local desc = helpers.jj(root, 'log', '--no-graph', '-r', '@', '-T', 'description')
+  eq(desc, 'from the split\n')
+  expect.match(child.lua_get('_G.notified[1]'), 'Working copy')
 end
 
 return T

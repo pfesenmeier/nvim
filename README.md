@@ -4,9 +4,11 @@
 
 - [x] jj pickers
 - [x] jj bracketed
-- [ ] jj diff? (color line numbers)
+- [x] jj diff? (color line numbers)
 - [x] workspace bracketed
 - [ ] clickable links (Claude)
+- [ ] :Jj
+- [ ] close and go to next workspace
 
 
 ## Niceties

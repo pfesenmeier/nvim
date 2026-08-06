@@ -76,6 +76,7 @@ Config.leader_group_clues = {
   { mode = 'n', keys = '<Leader>e', desc = '+Explore/Edit' },
   { mode = 'n', keys = '<Leader>f', desc = '+Find' },
   { mode = 'n', keys = '<Leader>g', desc = '+Git' },
+  { mode = 'n', keys = '<Leader>j', desc = '+Jujutsu' },
   { mode = 'n', keys = '<Leader>l', desc = '+Language' },
   { mode = 'n', keys = '<Leader>m', desc = '+Map' },
   { mode = 'n', keys = '<Leader>o', desc = '+Other' },
@@ -211,6 +212,22 @@ nmap_leader('gD', '<Cmd>Git diff -- %<CR>', 'Diff buffer')
 nmap_leader('gl', '<Cmd>' .. git_log_cmd .. '<CR>', 'Log')
 nmap_leader('gL', '<Cmd>' .. git_log_buf_cmd .. '<CR>', 'Log buffer')
 nmap_leader('go', '<Cmd>lua MiniDiff.toggle_overlay()<CR>', 'Toggle overlay')
+
+-- j is for 'Jujutsu'. Mirrors the Git block above via `:Jj`; `@-` is the jj
+-- stand-in for the index, so `ja`/`jA` line up with `ga`/`gA`.
+nmap_leader('ja', '<Cmd>Jj diff -r @-<CR>', 'Parent diff')
+nmap_leader('jA', '<Cmd>Jj diff -r @- -- %<CR>', 'Parent diff buffer')
+nmap_leader('jc', '<Cmd>Jj describe<CR>', 'Describe')
+nmap_leader('jC', '<Cmd>Jj commit<CR>', 'Commit')
+nmap_leader('jd', '<Cmd>Jj diff<CR>', 'Diff')
+nmap_leader('jD', '<Cmd>Jj diff -- %<CR>', 'Diff buffer')
+nmap_leader('jj', '<Cmd>term jjui<CR>', 'jjui')
+nmap_leader('jl', '<Cmd>Jj log<CR>', 'Log')
+nmap_leader('jL', '<Cmd>Jj log -- %<CR>', 'Log buffer')
+nmap_leader('jn', '<Cmd>Jj new<CR>', 'New')
+nmap_leader('jo', '<Cmd>Jj op log<CR>', 'Operation log')
+nmap_leader('js', '<Cmd>Jj status<CR>', 'Status')
+nmap_leader('ju', '<Cmd>Jj undo<CR>', 'Undo')
 nmap_leader('gs', '<Cmd>lua MiniGit.show_at_cursor()<CR>', 'Show at cursor')
 
 xmap_leader('gs', '<Cmd>lua MiniGit.show_at_cursor()<CR>', 'Show at selection')
@@ -270,7 +287,6 @@ nmap_leader('sw', '<Cmd>lua MiniSessions.write()<CR>', 'Write current')
 nmap_leader('tT', '<Cmd>horizontal term<CR>', 'Terminal (horizontal)')
 nmap_leader('tt', '<Cmd>vertical term<CR>', 'Terminal (vertical)')
 nmap_leader('cc', '<Cmd>term claude<CR>', 'Claude code')
-nmap_leader('jj', '<Cmd>term jjui<CR>', 'jjui')
 
 vim.keymap.set('t', "<C-b>", "<C-\\><C-n>", { desc = 'Exit term mode' })
 -- allows these to move around on any buffer
