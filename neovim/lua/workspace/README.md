@@ -30,9 +30,15 @@ The list also comes from `$WORKSPACES` (a JSON array of the same shape) when
   drives. Note 'mini.bracketed' has no way to register a custom target, so the
   mappings live in `plugin/20_keymaps.lua` rather than in its config; its own
   `window` target was moved to `[s`/`]s` to free `w`.
+- `<leader>wq` / `:WorkspaceQuit` — stop **this** workspace's server and land on
+  the next running workspace (`]w` order, wrapping). One `:connect!`, whose bang
+  stops the server it detaches from; ordering rules out anything else, since the
+  mapping runs *inside* the server being closed. Quits outright when no other
+  workspace is running.
 - `:WorkspaceConnect <name>` — same flow as picker confirm.
 - `:WorkspaceStop <name>` — RPC-quit the workspace's server and clean up the
-  socket.
+  socket. Unlike `<leader>wq`, this can target a workspace other than the
+  current one, and leaves the UI where it is.
 
 `:detach` (built-in) drops the UI off a workspace without stopping it.
 

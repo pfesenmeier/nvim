@@ -83,6 +83,7 @@ Config.leader_group_clues = {
   { mode = 'n', keys = '<Leader>s', desc = '+Session' },
   { mode = 'n', keys = '<Leader>t', desc = '+Terminal' },
   { mode = 'n', keys = '<Leader>v', desc = '+Visits' },
+  { mode = 'n', keys = '<Leader>w', desc = '+Workspace' },
 
   { mode = 'x', keys = '<Leader>g', desc = '+Git' },
   { mode = 'x', keys = '<Leader>l', desc = '+Language' },
@@ -317,6 +318,10 @@ nmap_leader('vv', '<Cmd>lua MiniVisits.add_label("core")<CR>', 'Add "core" label
 nmap_leader('vV', '<Cmd>lua MiniVisits.remove_label("core")<CR>', 'Remove "core" label')
 nmap_leader('vl', '<Cmd>lua MiniVisits.add_label()<CR>', 'Add label')
 nmap_leader('vL', '<Cmd>lua MiniVisits.remove_label()<CR>', 'Remove label')
+
+-- w is for 'Workspace'. See 'lua/workspace'; `[w`/`]w` navigate between them.
+-- `wq` stops this workspace's server and lands on the next running one.
+nmap_leader('wq', '<Cmd>lua require("workspace").quit()<CR>', 'Quit server')
 -- stylua: ignore end
 
 -- command line motions from :h cmdline.txt

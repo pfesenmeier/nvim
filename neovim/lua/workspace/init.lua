@@ -79,7 +79,9 @@ local function spawn(ws)
   return true
 end
 
-function M.connect(name)
+--- @param name string
+--- @param stop_current boolean? use `:connect!`, stopping the server left behind
+function M.connect(name, stop_current)
   local ws = find_ws(name)
   if not ws then
     vim.notify(("workspace: unknown name '%s'"):format(name), vim.log.levels.ERROR)
@@ -87,7 +89,7 @@ function M.connect(name)
   end
   local addr = sock_for(name)
   if not probe(addr) and not spawn(ws) then return end
-  vim.cmd('connect ' .. vim.fn.fnameescape(addr))
+  vim.cmd((stop_current and 'connect! ' or 'connect ') .. vim.fn.fnameescape(addr))
 end
 
 function M.stop(name)
@@ -169,11 +171,12 @@ function M.names()
   return out
 end
 
---- Connect to the next/previous *running* workspace, skipping stopped ones.
---- Shaped after `MiniBracketed.window()`; bound to `[w` / `]w` / `[W` / `]W`.
+--- Name of the next/previous *running* workspace, skipping stopped ones, or nil
+--- when there is none to move to. Shaped after `MiniBracketed.window()`.
 --- @param direction string 'first' | 'backward' | 'forward' | 'last'
 --- @param o table? { n_times = v:count1, wrap = true }
-function M.bracketed(direction, o)
+--- @return string?
+local function advance(direction, o)
   o = vim.tbl_deep_extend('force', { n_times = vim.v.count1, wrap = true }, o or {})
 
   local all = M.names()
@@ -199,7 +202,27 @@ function M.bracketed(direction, o)
   local res = require('mini.bracketed').advance(iterator, direction, o)
   if res == iterator.state then return end
 
-  M.connect(all[res])
+  return all[res]
+end
+
+--- Connect to the next/previous *running* workspace; bound to `[w` / `]w` /
+--- `[W` / `]W`.
+--- @param direction string 'first' | 'backward' | 'forward' | 'last'
+--- @param o table? { n_times = v:count1, wrap = true }
+function M.bracketed(direction, o)
+  local name = advance(direction, o)
+  if name then M.connect(name) end
+end
+
+--- Close this workspace's server, moving the UI to the next running workspace
+--- when there is one: `:connect!` stops the server it detaches from. With no
+--- other workspace running there is nowhere to land, so just quit.
+function M.quit()
+  -- `n_times` is pinned to 1 on purpose: unlike `]w`, this closes a server, so
+  -- a stray count must not skip past workspaces.
+  local target = advance('forward', { n_times = 1 })
+  if not target then return vim.cmd('qa') end
+  M.connect(target, true)
 end
 
 local function workspaces_from_env()
@@ -233,6 +256,10 @@ function M.setup(user)
     nargs = 1,
     complete = function() return M.names() end,
     desc = "Stop a workspace's nvim server",
+  })
+
+  vim.api.nvim_create_user_command('WorkspaceQuit', M.quit, {
+    desc = "Stop this workspace's server, connecting the UI to the next running one",
   })
 end
 

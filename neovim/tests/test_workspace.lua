@@ -40,8 +40,12 @@ local setup_ws = function(running, cwd)
     _G.ws = require('workspace')
     _G.ws.setup({ workspaces = spec, server_dir = server_dir })
     _G.ws.status = function(name) return running[name] and 'running' or 'stopped' end
-    _G.connected = {}
-    _G.ws.connect = function(name) table.insert(_G.connected, name) end
+    _G.connected, _G.stop_current = {}, {}
+    _G.ws.connect = function(name, stop)
+      table.insert(_G.connected, name)
+      -- `or false`: a nil hole would truncate the list on the way out
+      table.insert(_G.stop_current, stop or false)
+    end
   ]],
     { spec, root .. '/servers', running }
   )
@@ -53,6 +57,14 @@ local bracketed = function(direction, o)
   child.lua('_G.ws.bracketed(...)', { direction, o or {} })
 end
 local connected = function() return child.lua_get('_G.connected') end
+local stop_current = function() return child.lua_get('_G.stop_current') end
+
+--- `M.quit()` falls back to `:qa`, which would take the child down with it.
+--- Record commands instead; only module code runs `vim.cmd` during a test.
+local stub_cmd = function()
+  child.lua('_G.cmds = {}; vim.cmd = function(c) table.insert(_G.cmds, c) end')
+end
+local cmds = function() return child.lua_get('_G.cmds') end
 
 local T = new_set({
   hooks = {
@@ -164,6 +176,54 @@ T['M.bracketed()']['steps off a stopped current workspace'] = function()
   setup_ws({ gamma = true }, 'alpha')
   bracketed('forward')
   eq(connected(), { 'gamma' })
+end
+
+T['M.quit()'] = new_set()
+
+T['M.quit()']['connects to the next running, stopping the current'] = function()
+  -- alpha(cur) beta[stopped] gamma delta[stopped]
+  setup_ws({ alpha = true, gamma = true }, 'alpha')
+  child.lua('_G.ws.quit()')
+  eq(connected(), { 'gamma' })
+  eq(stop_current(), { true })
+end
+
+T['M.quit()']['wraps to the first running'] = function()
+  setup_ws({ alpha = true, delta = true }, 'delta')
+  child.lua('_G.ws.quit()')
+  eq(connected(), { 'alpha' })
+  eq(stop_current(), { true })
+end
+
+T['M.quit()']['ignores a count'] = function()
+  setup_ws({ alpha = true, beta = true, gamma = true, delta = true }, 'alpha')
+  -- `<Space>` rather than `<Leader>`: 'scripts/minimal_init.lua' sets no mapleader
+  child.lua([[vim.keymap.set('n', '<Space>wq', '<Cmd>lua _G.ws.quit()<CR>')]])
+  child.type_keys('3 wq')
+  eq(connected(), { 'beta' })
+end
+
+T['M.quit()']['quits when it is the only running one'] = function()
+  setup_ws({ beta = true }, 'beta')
+  stub_cmd()
+  child.lua('_G.ws.quit()')
+  eq(cmds(), { 'qa' })
+  eq(connected(), {})
+end
+
+T['M.quit()']['quits when none are running'] = function()
+  setup_ws({}, 'beta')
+  stub_cmd()
+  child.lua('_G.ws.quit()')
+  eq(cmds(), { 'qa' })
+  eq(connected(), {})
+end
+
+T['M.quit()']['leaves a workspace whose server never started'] = function()
+  setup_ws({ gamma = true }, 'alpha')
+  child.lua('_G.ws.quit()')
+  eq(connected(), { 'gamma' })
+  eq(stop_current(), { true })
 end
 
 -- `alpha` (index 1) must be running here: it is the only arrangement where a

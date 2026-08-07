@@ -8,7 +8,7 @@
 - [x] workspace bracketed
 - [ ] clickable links (Claude)
 - [ ] :Jj
-- [ ] close and go to next workspace
+- [x] close and go to next workspace
 
 
 ## Niceties
