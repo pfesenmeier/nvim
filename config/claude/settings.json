@@ -123,5 +123,6 @@
   "autoUpdatesChannel": "stable",
   "tui": "fullscreen",
   "theme": "auto",
+  "viewMode": "default",
   "skipAutoPermissionPrompt": true
 }

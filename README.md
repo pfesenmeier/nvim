@@ -6,8 +6,8 @@
 - [x] jj bracketed
 - [x] jj diff? (color line numbers)
 - [x] workspace bracketed
-- [ ] clickable links (Claude)
-- [ ] :Jj
+- [x] clickable links (Claude)
+- [x] :Jj
 - [x] close and go to next workspace
 
 

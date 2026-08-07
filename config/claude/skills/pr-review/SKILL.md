@@ -49,12 +49,28 @@ If `$ARGUMENTS` is provided, weight that area more heavily in your analysis but 
 
 Produce a structured markdown review. Print the full review to the terminal and also write the same content to `~/Documents/pr-reviews/<YYYY-MM-DD>-<branch-or-change-id>.md` (creating the directory if needed). After the review, print the absolute path to the markdown file (e.g. `/home/<user>/Documents/pr-reviews/2026-05-26-my-branch.md`) with no other text on that line.
 
+### File references must be hyperlinks
+
+Every file you mention — in headings, issues, or prose — must be written as a markdown link to an **absolute** `file://` URL. Terminals render that as a clickable hyperlink; a bare path or a bare `file://` URL does not become one.
+
+```
+[neovim/lua/huey/term.lua](file:///home/pfes/nvim/neovim/lua/huey/term.lua)
+[term.lua:181](file:///home/pfes/nvim/neovim/lua/huey/term.lua#L181)
+[term.lua:12–20](file:///home/pfes/nvim/neovim/lua/huey/term.lua#L12-L20)
+```
+
+Rules:
+- Link text is short and repo-relative; the URL is always absolute.
+- Add an `#L<n>` fragment whenever you cite a line — editors that follow the link jump straight to it.
+- Percent-encode characters that are not URL-safe (space → `%20`).
+- **Exception:** the trailing JSON and markdown path lines stay plain absolute paths — they are read by tooling, not clicked.
+
 ---
 
 ### PR Review Summary
 
 **Branch commits:** [list commit descriptions]
-**Files changed:** [count and list]
+**Files changed:** [count, then each file as a hyperlink]
 **Focus area:** [if $ARGUMENTS provided, else "General"]
 
 ---
@@ -84,8 +100,8 @@ Group by severity. Omit empty sections.
 
 For each changed file, provide inline feedback with line references where relevant.
 
-**`path/to/file.ext`**
-- [observation with line reference if applicable]
+**[path/to/file.ext](file:///abs/path/to/file.ext)**
+- [observation, citing lines as [path/to/file.ext:42](file:///abs/path/to/file.ext#L42) where applicable]
 
 ---
 
@@ -101,7 +117,7 @@ For each changed file, provide inline feedback with line references where releva
 
 ---
 
-Use precise line references (e.g. `L42`, `L100–115`) when calling out specific code. Be direct and actionable. Skip generic advice that doesn't apply to the actual changes.
+Use precise line references when calling out specific code, always as hyperlinks (`[file.ext:42](file:///abs/path#L42)`, `[file.ext:100–115](file:///abs/path#L100-L115)`). Be direct and actionable. Skip generic advice that doesn't apply to the actual changes.
 
 ---
 
