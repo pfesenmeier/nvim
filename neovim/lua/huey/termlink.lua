@@ -412,13 +412,14 @@ HueyTermLink.open_at_mouse = function()
   -- Sampled before anything yields: the pointer can move, and the alternate
   -- screen is repainted continuously.
   local win, row, col = H.mouse_pos()
-  if not win then return end
+  local target = win and H.resolve(win, row, col)
 
-  local target = H.resolve(win, row, col)
   if not target then
-    -- Replay the click unmapped so it still focuses the window, places the
-    -- cursor and anchors a drag-selection. Silent by design: bound to a plain
-    -- click, a miss is the common case.
+    -- Replay the click unmapped. Every outcome that is not "open a link" has to
+    -- land here: the mapping is buffer-local to a terminal buffer but fires
+    -- wherever the pointer is, so returning early would swallow clicks on the
+    -- tabline and statusline (`H.mouse_pos` is nil there, winid == 0) as well
+    -- as ordinary clicks and drag-selection inside the terminal.
     local key = H.opts.mouse_key
     if key then vim.api.nvim_feedkeys(vim.keycode(key), 'n', false) end
     return

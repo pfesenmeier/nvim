@@ -356,6 +356,27 @@ T['terminal']['never anchors a link to unrelated text while scrolling'] = functi
   eq(bad, {})
 end
 
+T['terminal']['does not swallow tabline clicks'] = function()
+  -- The mapping is buffer-local to the terminal buffer but fires wherever the
+  -- pointer is. `getmousepos()` reports winid 0 on the tabline, so bailing out
+  -- there instead of replaying the click broke the bufferline entirely.
+  start_term('sleep 5')
+
+  child.lua([[
+    _G.tabline_clicks = 0
+    _G.OnTabClick = function() _G.tabline_clicks = _G.tabline_clicks + 1 end
+    vim.o.showtabline = 2
+    vim.o.tabline = '%@v:lua.OnTabClick@CLICKME%X'
+  ]])
+  child.lua('vim.wait(100)')
+
+  -- Row 0 is the tabline, above every window.
+  child.lua("vim.api.nvim_input_mouse('left', 'press', '', 0, 0, 2)")
+  child.lua('vim.wait(200)')
+
+  eq(child.lua_get('_G.tabline_clicks'), 1)
+end
+
 T['terminal']['maps the trigger keys and exports FORCE_HYPERLINK'] = function()
   start_term('sleep 5')
 
