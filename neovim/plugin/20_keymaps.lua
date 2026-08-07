@@ -102,14 +102,15 @@ local xmap_leader = function(suffix, rhs, desc)
 end
 
 -- b is for 'Buffer'. Common usage:
--- - `<Leader>bs` - create scratch (temporary) buffer
+-- - `<Leader>bs` - create scratch (temporary) buffer, prompting for a filetype
+-- - `<Leader>bS` - create scratch (temporary) buffer with no filetype
 -- - `<Leader>ba` - navigate to the alternative buffer
 -- - `<Leader>bw` - wipeout (fully delete) current buffer
 nmap_leader('ba', '<Cmd>b#<CR>', 'Alternate')
 nmap_leader('bd', '<Cmd>lua MiniBufremove.delete()<CR>', 'Delete')
 nmap_leader('bD', '<Cmd>lua MiniBufremove.delete(0, true)<CR>', 'Delete!')
-nmap_leader('bs', '<Cmd>lua HueyBuffer.new_scratch_buffer()<CR>', 'Scratch')
 nmap_leader('bs', '<Cmd>lua HueyBuffer.new_scratch_buffer_with_ft()<CR>', 'Scratch (ft)')
+nmap_leader('bS', '<Cmd>lua HueyBuffer.new_scratch_buffer()<CR>', 'Scratch')
 nmap_leader('bP', '<Cmd>lua HueyBuffer.delete_buf_swaps()<CR>', 'Swap files (delete)')
 nmap_leader('bw', '<Cmd>lua MiniBufremove.wipeout()<CR>', 'Wipeout')
 nmap_leader('bW', '<Cmd>lua MiniBufremove.wipeout(0, true)<CR>', 'Wipeout!')
