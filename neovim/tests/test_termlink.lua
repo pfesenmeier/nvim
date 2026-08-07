@@ -289,38 +289,21 @@ T['terminal']['a plain left click on a link opens it'] = function()
   eq(child.lua_get('vim.api.nvim_buf_get_name(0)'), path)
 end
 
-T['terminal']['ctrl+click opens from the release alone'] = function()
-  -- Windows Terminal does not forward the Ctrl+click *press* to Nvim, only the
-  -- drag and release, so binding the press alone leaves Ctrl+click dead there.
-  local path = new_temp_dir() .. '/ctrl.lua'
-  vim.fn.writefile({ 'one', 'two' }, path)
-
-  start_term(
-    ([[printf 'see \033]8;;file://%s\007ctrl.lua\033]8;;\007 tail\n'; sleep 5]]):format(
-      path
-    )
-  )
-  wait_for_links('see ctrl%.lua tail', 1)
-
-  -- Release only: no press is delivered first.
-  child.lua("vim.api.nvim_input_mouse('left', 'release', 'c', 0, 0, 6)")
-  child.lua('vim.wait(200)')
-
-  eq(child.lua_get('vim.api.nvim_buf_get_name(0)'), path)
-end
-
 T['terminal']['a plain left click off a link falls through'] = function()
   start_term(
     [[printf 'see \033]8;;file:///tmp/nope.lua\007nope.lua\033]8;;\007 tail\n'; sleep 5]]
   )
   wait_for_links('see nope%.lua tail', 1)
 
-  -- Column 1 is inside 'see', outside the link: the click must behave normally
-  -- rather than being swallowed, and must not open anything.
+  -- Column 1 is inside 'see', outside the link. The click must not open
+  -- anything, and must still be replayed unmapped -- otherwise ordinary
+  -- clicking and drag-selection would be swallowed inside terminal buffers.
   child.lua("vim.api.nvim_input_mouse('left', 'press', '', 0, 0, 1)")
   child.lua('vim.wait(200)')
 
   eq(child.lua_get('vim.api.nvim_get_current_buf()'), child.lua_get('_G.term_buf'))
+  -- The replayed click placed the cursor where it landed.
+  eq(child.lua_get('vim.api.nvim_win_get_cursor(_G.term_win)'), { 1, 1 })
 end
 
 T['terminal']['never anchors a link to unrelated text while scrolling'] = function()
@@ -377,7 +360,7 @@ T['terminal']['maps the trigger keys and exports FORCE_HYPERLINK'] = function()
   start_term('sleep 5')
 
   eq(child.lua_get('vim.env.FORCE_HYPERLINK'), '1')
-  eq(child.lua_get([[vim.fn.maparg('<C-LeftMouse>', 't', false, true).buffer]]), 1)
+  eq(child.lua_get([[vim.fn.maparg('<LeftMouse>', 't', false, true).buffer]]), 1)
   eq(child.lua_get([[vim.fn.maparg('gf', 'n', false, true).buffer]]), 1)
 end
 

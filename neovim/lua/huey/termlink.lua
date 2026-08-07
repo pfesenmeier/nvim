@@ -33,30 +33,25 @@ local H = {}
 --- @field lnum? integer from a `#L12` / `#12` fragment
 
 --- @class TermLinkOpts
---- @field mouse_keys? table<string, boolean> key => fall through when no link
+--- @field mouse_key? string|false    default '<LeftMouse>'
 --- @field mouse_modes? string[]      default { 't', 'n' }
 --- @field cursor_key? string|false   default 'gf'
 --- @field force_hyperlink? boolean   set $FORCE_HYPERLINK; default true
 --- @field notify? boolean            warn when a click hits no link; default true
 
 local defaults = {
-  -- Plain click is the primary binding. Because a link is an exact OSC 8 range
-  -- rather than a guess at what looks like a path, a click either lands inside
-  -- one or it does not -- there is nothing to false-positive on. A miss falls
-  -- through to the click's normal behaviour, which is what the boolean selects.
-  -- Ctrl+click is kept for terminals that reserve plain clicks, and needs both
-  -- halves bound. Windows Terminal claims the Ctrl+click gesture itself and
-  -- never forwards the press -- confirmed against raw mouse reporting, where a
-  -- single Ctrl+click emits nothing under '?1000h' and only a release under the
-  -- '?1002h' Nvim uses. Setting "experimental.detectURLs": false does not stop
-  -- it. Binding the press alone therefore leaves Ctrl+click silently dead
-  -- there. Whichever half arrives first opens the link; the other then finds no
-  -- link under the mouse and does nothing.
-  mouse_keys = {
-    ['<LeftMouse>'] = true,
-    ['<C-LeftMouse>'] = false,
-    ['<C-LeftRelease>'] = false,
-  },
+  -- A plain click is safe here: a link is an exact OSC 8 range, not a guess at
+  -- what looks like a path, so a click either lands inside one or it does not.
+  -- A miss is replayed unmapped, leaving ordinary clicking and drag-selection
+  -- untouched.
+  --
+  -- Ctrl+click is deliberately not bound. Windows Terminal claims that gesture
+  -- and never forwards the press -- with raw mouse reporting a single Ctrl+click
+  -- emits nothing under '?1000h' and only a release under the '?1002h' Nvim
+  -- uses, and "experimental.detectURLs": false does not stop it. Supporting it
+  -- meant also binding '<C-LeftRelease>', which is not worth carrying when a
+  -- plain click already works everywhere.
+  mouse_key = '<LeftMouse>',
   mouse_modes = { 't', 'n' },
   cursor_key = 'gf',
   force_hyperlink = true,
@@ -413,9 +408,7 @@ H.mouse_pos = function()
   return pos.winid, pos.line - 1, pos.column - 1
 end
 
---- @param fallback string? key replayed when the click hit no link, so an
---- ordinary click still focuses the window and places the cursor
-HueyTermLink.open_at_mouse = function(fallback)
+HueyTermLink.open_at_mouse = function()
   -- Sampled before anything yields: the pointer can move, and the alternate
   -- screen is repainted continuously.
   local win, row, col = H.mouse_pos()
@@ -423,8 +416,11 @@ HueyTermLink.open_at_mouse = function(fallback)
 
   local target = H.resolve(win, row, col)
   if not target then
-    -- Deliberately silent: bound to a plain click, a miss is the common case.
-    if fallback then vim.api.nvim_feedkeys(vim.keycode(fallback), 'n', false) end
+    -- Replay the click unmapped so it still focuses the window, places the
+    -- cursor and anchors a drag-selection. Silent by design: bound to a plain
+    -- click, a miss is the common case.
+    local key = H.opts.mouse_key
+    if key then vim.api.nvim_feedkeys(vim.keycode(key), 'n', false) end
     return
   end
 
@@ -451,13 +447,11 @@ H.on_term_open = function(buf)
     end,
   })
 
-  for key, fallthrough in pairs(opts.mouse_keys or {}) do
-    vim.keymap.set(
-      opts.mouse_modes,
-      key,
-      function() HueyTermLink.open_at_mouse(fallthrough and key or nil) end,
-      { buffer = buf, desc = 'Open link under mouse' }
-    )
+  if opts.mouse_key then
+    vim.keymap.set(opts.mouse_modes, opts.mouse_key, HueyTermLink.open_at_mouse, {
+      buffer = buf,
+      desc = 'Open link under mouse',
+    })
   end
 
   -- 'n' also covers Terminal-Normal mode (mode() == 'nt'); keymap modes do not
