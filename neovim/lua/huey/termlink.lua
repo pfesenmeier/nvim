@@ -76,6 +76,23 @@ H.queued = {}
 --- @type table<integer, boolean> buffers with a flush already scheduled
 H.flush_scheduled = {}
 
+--- Terminals seen to repaint, which forces same-URI deduping in `H.flush`. A
+--- sequential producer -- rg, ls, grep -- only ever appends at the frontier, so
+--- it stays absent and every link it emits is placed (rg's file heading and its
+--- match line share a URI yet both are real). A TUI redraws from the top, which
+--- `H.on_lines_change` catches. Sticky per buffer: once a terminal has
+--- repainted, later sequential output there keeps deduping (a lost click, never
+--- a wrong file), which in practice does not arise since TUIs get their own
+--- terminal.
+--- @type table<integer, boolean>
+H.repainting = {}
+
+--- Highest row the buffer has ever populated, per buffer. A write starting
+--- above row 0 while this is already past 0 is a top-of-screen redraw, not an
+--- append -- see `H.on_lines_change`.
+--- @type table<integer, integer>
+H.high_water = {}
+
 --- Splits an OSC 8 sequence into its params and URI.
 --- The grammar is `OSC 8 ; params ; URI`; params is empty in practice but is
 --- not guaranteed to be, and the URI may itself contain ';'.
@@ -148,14 +165,28 @@ H.forget = function(buf, id)
   if H.links[buf] then H.links[buf][id] = nil end
 end
 
---- Whether `row` currently holds at least `col` bytes.
---- @param buf integer
---- @param row integer
---- @param col integer
---- @return boolean
-H.addressable = function(buf, row, col)
-  local line = vim.api.nvim_buf_get_lines(buf, row, row + 1, false)[1]
-  return line ~= nil and #line >= col
+--- Byte offset (0-based) of screen-cell column `cell` in `line`, or nil if the
+--- line does not yet reach that many cells.
+---
+--- 'TermRequest' reports the cursor in terminal *cells*, but an extmark is
+--- placed by *byte*. The two agree only while every glyph left of the link is a
+--- single-byte, single-cell ASCII char -- which is why plain producers (Claude
+--- Code, rg, ls, eza) worked. Nushell wraps `ls` in a table whose `│` borders
+--- are one cell but three bytes, so each border left of a name shifts its byte
+--- offset two past its cell offset and the mark lands on the border instead.
+--- @param line string
+--- @param cell integer 0-based screen-cell column
+--- @return integer?
+H.cell_to_byte = function(line, cell)
+  local byte, width = 0, 0
+  while width < cell and byte < #line do
+    local b = line:byte(byte + 1)
+    local len = b < 0x80 and 1 or b < 0xe0 and 2 or b < 0xf0 and 3 or 4
+    width = width + vim.fn.strdisplaywidth(line:sub(byte + 1, byte + len))
+    byte = byte + len
+  end
+  if width < cell then return nil end
+  return byte
 end
 
 --- @param buf integer
@@ -177,27 +208,41 @@ end
 ---
 ---  * a frame is drawn top-down, so start rows never decrease within one; a row
 ---    lower than its predecessor means drawing restarted, i.e. a new frame.
----  * a repaint re-emits the same URI, so a URI appearing twice is the same
----    link seen across frames. Only its last position can match the buffer.
+---  * a repaint re-emits the same link at the same place, so a link appearing
+---    twice is one link seen across frames; only its last row matches the buffer.
+---
+--- What makes "the same link" is the catch. Keying on the URI alone folds away
+--- rg's file heading and its first match line, which legitimately share a URI
+--- yet sit in different columns and coexist. Keying on URI *and column span*
+--- keeps those two while still collapsing a scrolling redraw, whose columns are
+--- identical every frame. `uri_only` is the stronger fold, used once a terminal
+--- is known to repaint (`H.repainting`), where even a horizontally reflowed link
+--- must collapse.
 ---
 --- Anything ambiguous is dropped: a missing link costs a click, a link anchored
 --- to unrelated text opens the wrong file.
---- @param queue { uri: string, row: integer }[]
+--- @param queue { uri: string, row: integer, col: integer, end_col: integer }[]
+--- @param uri_only? boolean fold every same-URI link, ignoring its columns
 --- @return table[]
-H.latest_frame = function(queue)
+H.latest_frame = function(queue, uri_only)
   local first = 1
   for i = 2, #queue do
     if queue[i].row < queue[i - 1].row then first = i end
   end
 
+  local key = function(l)
+    if uri_only then return l.uri end
+    return l.uri .. '\0' .. tostring(l.col) .. '\0' .. tostring(l.end_col)
+  end
+
   local last_of = {}
   for i = first, #queue do
-    last_of[queue[i].uri] = i
+    last_of[key(queue[i])] = i
   end
 
   local out = {}
   for i = first, #queue do
-    if last_of[queue[i].uri] == i then table.insert(out, queue[i]) end
+    if last_of[key(queue[i])] == i then table.insert(out, queue[i]) end
   end
   return out
 end
@@ -215,11 +260,22 @@ H.flush = function(buf)
   if not queue then return end
   if not vim.api.nvim_buf_is_valid(buf) then return end
 
-  for _, link in ipairs(H.latest_frame(queue)) do
-    if
-      H.addressable(buf, link.row, link.col)
-      and H.addressable(buf, link.end_row, link.end_col)
-    then
+  -- Fold repeats down to the frame the buffer actually shows. A known repainter
+  -- folds by URI alone; otherwise by URI and column span, which keeps rg's file
+  -- heading alongside its same-URI match line while still collapsing a redraw.
+  for _, link in ipairs(H.latest_frame(queue, H.repainting[buf])) do
+    -- The queued coordinates are screen cells; resolve them against the synced
+    -- line to bytes. A nil means the line has not reached that cell yet, so the
+    -- link text is not here -- same "not placeable against this sync" drop the
+    -- old byte-length guard made.
+    local start_line =
+      vim.api.nvim_buf_get_lines(buf, link.row, link.row + 1, false)[1]
+    local end_line = link.end_row == link.row and start_line
+      or vim.api.nvim_buf_get_lines(buf, link.end_row, link.end_row + 1, false)[1]
+    local scol = start_line and H.cell_to_byte(start_line, link.col)
+    local ecol = end_line and H.cell_to_byte(end_line, link.end_col)
+
+    if scol and ecol then
       -- A redrawn frame re-emits the same link at the same spot; without this
       -- every repaint would leave another mark behind.
       for _, old in
@@ -227,8 +283,8 @@ H.flush = function(buf)
           vim.api.nvim_buf_get_extmarks(
             buf,
             H.ns,
-            { link.row, link.col },
-            { link.row, link.col },
+            { link.row, scol },
+            { link.row, scol },
             {}
           )
         )
@@ -239,9 +295,9 @@ H.flush = function(buf)
       -- Deliberately not `strict = false`: that does not merely tolerate a
       -- range past the end of a line, it clamps it, silently anchoring the
       -- link to the wrong text.
-      local id = vim.api.nvim_buf_set_extmark(buf, H.ns, link.row, link.col, {
+      local id = vim.api.nvim_buf_set_extmark(buf, H.ns, link.row, scol, {
         end_row = link.end_row,
-        end_col = link.end_col,
+        end_col = ecol,
         invalidate = true,
         undo_restore = false,
       })
@@ -253,9 +309,9 @@ H.flush = function(buf)
           vim.api.nvim_buf_get_text(
             buf,
             link.row,
-            link.col,
+            scol,
             link.end_row,
-            link.end_col,
+            ecol,
             {}
           ),
           '\n'
@@ -435,6 +491,27 @@ HueyTermLink.open_at_cursor = function()
   H.act(win, cursor[1] - 1, cursor[2])
 end
 
+--- Records buffer growth and flags a repaint the first time the terminal
+--- redraws from the top.
+---
+--- A sequential producer only appends: each `on_lines` starts at the frontier
+--- and the high-water mark climbs. A TUI frame homes the cursor and redraws, so
+--- a change reaches back to row 0 while the buffer is already populated -- the
+--- signal (see `H.flush`) that same-URI links must be deduped, not all placed.
+--- Editing the shell prompt or a '\r' progress bar rewrites the last line, not
+--- row 0, so neither trips it.
+--- @param buf integer
+--- @param firstline integer 0-based first changed row
+--- @param new_lastline integer 0-based row past the last changed row
+H.on_lines_change = function(buf, firstline, new_lastline)
+  if firstline == 0 and (H.high_water[buf] or 0) > 0 then
+    H.repainting[buf] = true
+  end
+  if new_lastline > (H.high_water[buf] or 0) then
+    H.high_water[buf] = new_lastline
+  end
+end
+
 --- @param buf integer
 H.on_term_open = function(buf)
   local opts = H.opts
@@ -443,7 +520,8 @@ H.on_term_open = function(buf)
   -- screen the TermRequest coordinates referred to. Runs under textlock, so it
   -- only schedules.
   vim.api.nvim_buf_attach(buf, false, {
-    on_lines = function()
+    on_lines = function(_, _, _, firstline, _, new_lastline)
+      H.on_lines_change(buf, firstline, new_lastline)
       if H.queued[buf] then H.schedule_flush(buf) end
     end,
   })
@@ -490,6 +568,8 @@ H.create_autocmds = function()
       H.queued[ev.buf] = nil
       H.flush_scheduled[ev.buf] = nil
       H.links[ev.buf] = nil
+      H.repainting[ev.buf] = nil
+      H.high_water[ev.buf] = nil
     end,
   })
 end

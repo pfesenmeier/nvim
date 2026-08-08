@@ -119,10 +119,10 @@
     "chrome-devtools-mcp@claude-plugins-official": true,
     "explanatory-output-style@claude-plugins-official": true
   },
+  "viewMode": "default",
   "effortLevel": "high",
   "autoUpdatesChannel": "stable",
   "tui": "fullscreen",
   "theme": "auto",
-  "viewMode": "default",
   "skipAutoPermissionPrompt": true
 }

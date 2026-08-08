@@ -72,12 +72,35 @@ for _, case in ipairs(uri_cases) do
   T['H.uri_to_target()'][case[1]] = function() eq(H.uri_to_target(case[2]), case[3]) end
 end
 
+T['H.cell_to_byte()'] = new_set()
+
+--stylua: ignore
+local cell_cases = {
+  { 'ascii is identity',       'hello world',          6, 6 },
+  { 'start of line',           'x',                    0, 0 },
+  -- '│ ' (box border + space) is 2 cells but 4 bytes: the nushell table case.
+  { 'past a 3-byte glyph',     '\226\148\130 LINK',    2, 4 },
+  { 'name end past the glyph', '\226\148\130 LINK',    6, 8 },
+  { 'line too short yet',      'ab',                   5, nil },
+}
+
+for _, case in ipairs(cell_cases) do
+  T['H.cell_to_byte()'][case[1]] = function()
+    eq(H.cell_to_byte(case[2], case[3]), case[4])
+  end
+end
+
 T['H.latest_frame()'] = new_set()
 
+-- Each pair is { row, uri } or { row, uri, col, end_col }; columns default to
+-- nil, which keys the same as a plain URI.
 local q = function(...)
   local out = {}
   for _, pair in ipairs({ ... }) do
-    table.insert(out, { row = pair[1], uri = pair[2] })
+    table.insert(
+      out,
+      { row = pair[1], uri = pair[2], col = pair[3], end_col = pair[4] }
+    )
   end
   return out
 end
@@ -95,9 +118,33 @@ T['H.latest_frame()']['keeps a single frame whole'] = function()
 end
 
 T['H.latest_frame()']['keeps two mentions of one file in a frame'] = function()
-  -- Same URI twice at different rows is ambiguous with a repaint, so only the
-  -- later survives -- a lost click, never a wrong file.
+  -- Same URI at the same (here absent) columns on two rows is one link redrawn,
+  -- so only the later survives -- a lost click, never a wrong file.
   eq(uris(H.latest_frame(q({ 1, 'a' }, { 5, 'a' }))), { '5:a' })
+end
+
+T['H.latest_frame()']['keeps same-URI links that sit in different columns'] = function()
+  -- rg's file heading (wide) and its first match line's number (narrow) share a
+  -- URI yet are distinct, coexisting links; the column span tells them apart.
+  eq(
+    uris(H.latest_frame(q({ 0, 'a', 0, 9 }, { 1, 'a', 0, 1 }))),
+    { '0:a', '1:a' }
+  )
+end
+
+T['H.latest_frame()']['collapses a same-URI link redrawn in the same columns'] = function()
+  -- A scrolling repaint redraws the link at identical columns every frame, so
+  -- only its last row matches the synced buffer.
+  eq(uris(H.latest_frame(q({ 0, 'a', 4, 14 }, { 1, 'a', 4, 14 }))), { '1:a' })
+end
+
+T['H.latest_frame()']['uri_only folds a same-URI link across columns'] = function()
+  -- Once a terminal is known to repaint, even a link that reflowed to different
+  -- columns between frames must collapse to its last position.
+  eq(
+    uris(H.latest_frame(q({ 0, 'a', 0, 9 }, { 1, 'a', 5, 20 }), true)),
+    { '1:a' }
+  )
 end
 
 T['H.latest_frame()']['drops frames before drawing restarted'] = function()
@@ -120,6 +167,36 @@ end
 
 T['H.latest_frame()']['handles an empty batch'] = function()
   eq(H.latest_frame({}), {})
+end
+
+T['H.on_lines_change()'] = new_set({
+  hooks = {
+    post_case = function()
+      H.high_water[777], H.repainting[777] = nil, nil
+    end,
+  },
+})
+
+T['H.on_lines_change()']['does not flag sequential appends'] = function()
+  H.on_lines_change(777, 0, 5) -- first write, from an empty buffer
+  H.on_lines_change(777, 5, 9) -- grows at the frontier
+  H.on_lines_change(777, 9, 12)
+  eq(H.repainting[777], nil)
+end
+
+T['H.on_lines_change()']['flags a redraw from the top of a populated buffer'] = function()
+  H.on_lines_change(777, 0, 22) -- first paint fills the screen
+  eq(H.repainting[777], nil) -- ...and is not itself a repaint
+  H.on_lines_change(777, 0, 22) -- coming back to row 0 is
+  eq(H.repainting[777], true)
+end
+
+T['H.on_lines_change()']['ignores a rewrite of the last line'] = function()
+  -- A shell prompt redraw or a '\r' progress bar rewrites the bottom line, not
+  -- row 0, so it must not read as a repaint.
+  H.on_lines_change(777, 0, 4)
+  H.on_lines_change(777, 3, 4)
+  eq(H.repainting[777], nil)
 end
 
 -- Terminal behaviour needs a real job, a real screen and real extmarks.
@@ -181,6 +258,61 @@ T['terminal']['registers a link over exactly the link text'] = function()
   end
   eq(child.lua_get('_G.tl.H.link_at(_G.term_buf, 0, 5)'), vim.NIL)
   eq(child.lua_get('_G.tl.H.link_at(_G.term_buf, 0, 11)'), vim.NIL)
+end
+
+T['terminal']['anchors a link past a multibyte glyph by cell, not byte'] = function()
+  -- Nushell wraps `ls` in a table whose `│` borders are one cell but three
+  -- bytes. TermRequest reports the link's start in cells; using that as a byte
+  -- offset landed the mark on the border and truncated the name. The leading
+  -- '│ ' here stands in for that border.
+  start_term(
+    [[printf '\342\224\202 \033]8;;file:///tmp/x.lua\007LINK\033]8;;\007 tail\n'; sleep 5]]
+  )
+  wait_for_links('LINK tail', 1)
+
+  local mark = child.lua_get([[
+    vim.api.nvim_buf_get_extmarks(_G.term_buf, _G.tl.H.ns, 0, -1, { details = true })[1]
+  ]])
+  -- '│ ' is 4 bytes / 2 cells, so 'LINK' is bytes 4..8. Placed at those *bytes*
+  -- the mark would land on the border ('│ LI'); by cell it lands on the name.
+  eq({ mark[2], mark[3], mark[4].end_row, mark[4].end_col }, { 0, 4, 0, 8 })
+
+  for col = 4, 7 do
+    eq(
+      child.lua_get('_G.tl.H.link_at(_G.term_buf, 0, ' .. col .. ')'),
+      'file:///tmp/x.lua'
+    )
+  end
+  -- Byte 3 is the space before the name; byte 10 is inside ' tail' after it.
+  eq(child.lua_get('_G.tl.H.link_at(_G.term_buf, 0, 3)'), vim.NIL)
+  eq(child.lua_get('_G.tl.H.link_at(_G.term_buf, 0, 10)'), vim.NIL)
+end
+
+T['terminal']['keeps a heading and its match line that share a URI'] = function()
+  -- rg's default output links the file heading and its first match line's
+  -- number to the same URI. Folding by URI alone dropped the heading; the two
+  -- differ in column span, so both must survive. Sequential output, no repaint.
+  start_term(table.concat({
+    [[printf '\033]8;;file:///tmp/f.lua#1\007f.lua\033]8;;\007\n']],
+    [[printf '\033]8;;file:///tmp/f.lua#1\0071\033]8;;\007:hello\n']],
+    'sleep 5',
+  }, '; '))
+  wait_for_links('f%.lua', 2)
+
+  eq(n_links(), 2)
+  -- The heading, whole word, on row 0.
+  for col = 0, 4 do
+    eq(
+      child.lua_get('_G.tl.H.link_at(_G.term_buf, 0, ' .. col .. ')'),
+      'file:///tmp/f.lua#1'
+    )
+  end
+  -- The line-number column on row 1, and nothing at 'hello' after the ':'.
+  eq(
+    child.lua_get('_G.tl.H.link_at(_G.term_buf, 1, 0)'),
+    'file:///tmp/f.lua#1'
+  )
+  eq(child.lua_get('_G.tl.H.link_at(_G.term_buf, 1, 2)'), vim.NIL)
 end
 
 T['terminal']['keeps the newer link when the screen is repainted'] = function()
