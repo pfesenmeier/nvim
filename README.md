@@ -9,6 +9,9 @@
 - [x] clickable links (Claude)
 - [x] :Jj
 - [x] close and go to next workspace
+- [ ] JJ lines history
+- [ ] :Jj diff -f @- %
+- [ ] :Jj command -> instead of dump to second buffer, invoke Jjui
 
 
 ## Niceties
