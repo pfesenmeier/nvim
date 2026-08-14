@@ -870,3 +870,4 @@ source install/cmds/roslynator.nu
 use jj/cmds.nu *
 use jj/completions.nu *
 use misc/wt-layout.nu *
+use kb.nu

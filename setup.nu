@@ -111,6 +111,7 @@ export def setup [] {
     # root: true -> src relative to ~/nvim/config
     # root: false -> src relative to ~/nvim
     # dest: relative to ~
+    # plat: platform (must match $nu.os-info.name: macos, windows, linux
     [{
       src: [nushell]
       root: true
@@ -131,6 +132,7 @@ export def setup [] {
     } {
       src: [komorebi.json]
       dest: [komorebi.json]
+      plat: windows
     } {
       src: [claude settings.json]
       dest: [.claude settings.json]
@@ -147,25 +149,47 @@ export def setup [] {
       src: [jj config.toml]
       dest: [.config jj config.toml]
     } {
+      src: [komorebi-mac]
+      dest: [.config komorebi]
+      plat: macos
+    } {
+      src: [skhdrc]
+      dest: [.config skhd skhdrc]
+      plat: macos
+    } {
       src: [$gpg_config_file]
       dest: [.gnupg gpg-agent.conf]
     }] | each {|x|
-      let root = $x | get root? | default false
+      let plat_supported = (
+        $x | get plat?
+        | default $nu.os-info.name
+        | $in == $nu.os-info.name
+      )
 
-      let src = if $root {
-        $config_path | path join ...$x.src
+      if not $plat_supported {
+        log info $"skipping ($x.src)"
       } else {
-        $config_path | path join config ...$x.src
-      }
-      let dest = $nu.home-dir | path join ...$x.dest
+        let root = $x | get root? | default false
 
-      log info $"linking ($src) to ($dest)"
-      idempotent_symlink $src $dest
+        let src = if $root {
+          $config_path | path join ...$x.src
+        } else {
+          $config_path | path join config ...$x.src
+        }
+        let dest = $nu.home-dir | path join ...$x.dest
+
+        log info $"linking ($src) to ($dest)"
+        idempotent_symlink $src $dest
+      }
     }
 
     symlink_local_bins
 
+    # macos
     if (which komorebic | is-not-empty) {
+       komorebic fetch-app-specific-configuration
+    # windows and wsl w/ windows PATH appended to PATH
+    } else if (which komorebic.exe | is-not-empty) {
        komorebic.exe fetch-app-specific-configuration
     } else {
       log info "Komorebi is not installed, skipping fetch-app-specific-configuration"
