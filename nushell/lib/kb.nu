@@ -4,8 +4,9 @@
 export def start [] {
   match $nu.os-info.name {
     "macos" => {
-      komorebic stop  --bar
-      komorebic start --bar
+      # skipping bar... conflicts 
+      komorebic stop
+      komorebic start
 
       if (ps | where name =~ skhd | is-not-empty) {
         skhd --stop-service
