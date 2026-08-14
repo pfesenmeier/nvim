@@ -5,55 +5,48 @@
   "default_workspace_padding": 15,
   "default_container_padding": 15,
   "border": true,
-  "border_width": 6,
-  "border_offset": 5,
+  "border_width": 7,
+  "border_offset": -1,
+  "border_radius": 10,
   "floating_window_aspect_ratio": "Widescreen",
   "floating_layer_behaviour": "Float",
   "resize_delta": 100,
+  "animation": {
+    "enabled": true,
+    "style": "EaseOutExpo",
+    "fps": 120
+  },
+  "theme": {
+    "palette": "Base16",
+    "name": "EverforestDarkHard",
+    "unfocused_border": "Base02",
+    "monocle_border": "Base09",
+    "bar_accent": "Base0A"
+  },
+  "layout_defaults": {
+    "Scrolling": {
+      "layout_options": {
+        "scrolling": {
+          "columns": 2
+        }
+      }
+    }
+  },
   "ignore_rules": [],
   "floating_applications": [],
-  "manage_rules": [],
+  "manage_rules": [
+    {
+      "kind": "Title",
+      "id": "Claude",
+      "matching_strategy": "Equals"
+    }
+  ],
   "monitors": [
     {
       "workspaces": [
         {
-          "name": "I",
-          "layout": "BSP",
-          "initial_workspace_rules": [
-//            {
-//              "kind": "Exe",
-//              "id": "Zen",
-//              "matching_strategy": "Equals"
-//            }
-          ]
-        },
-        {
-          "name": "II",
-          "layout": "VerticalStack"
-        },
-        {
-          "name": "III",
-          "layout": "HorizontalStack"
-        },
-        {
-          "name": "IV",
-          "layout": "UltrawideVerticalStack"
-        },
-        {
-          "name": "V",
-          "layout": "Rows"
-        },
-        {
-          "name": "VI",
-          "layout": "Grid"
-        },
-        {
-          "name": "VII",
-          "layout": "RightMainVerticalStack"
-        },
-        {
-          "name": "VIII",
-          "layout": "Scrolling"
+          "name": "Dev",
+          "layout": "BSP"
         }
       ]
     }

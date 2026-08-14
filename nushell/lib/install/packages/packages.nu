@@ -18,7 +18,7 @@ export def main [] {
     [ripgrep                               scoop                                     brew                                                brew]
     [bat                                   scoop                                     brew                                                brew]
     [vcredist2022                          scoop                                     null                                                null]
-    ['nerd-fonts/0xProto-NF-Mono'          scoop                                     null                                                null]
+    ['nerd-fonts/0xProto-NF-Mono'          scoop                                     null                                                brew=font-0xproto-nerd-font]
     [gsudo                                 scoop                                     null                                                null]
     [make                                  scoop                                     null                                                null]
     [komorebi                              scoop                                     null                                                'brew=lgug2z/tap;komorebi-for-mac']
