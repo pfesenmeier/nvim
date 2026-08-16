@@ -5,7 +5,6 @@ use ../../constants.nu app_dir
 
 const lsp_dir = $app_dir | path join "microsoft" "roslyn-lsp"
 
-# TODO: not supporting macos intel yet
 const rid = if $nu.os-info.name == "windows" {
   "win-x64"
 } else if $nu.os-info.name == "macos" {
@@ -35,8 +34,10 @@ const exe_full_path = $exe_dir | path join $exe_name
 $env.ROSLYN_LSP = $exe_full_path
 
 # run script to install roslyn lsp
+# DEPRECATED. prefer installing roslyn-language-server as a dotnet global tool
 export def "install roslyn-lsp" [] {
   # concat the url for the proper platform
+  print "DEPRECATED. prefer installing roslyn-language-server as a dotnet global tool"
   print "Begin try installing roslyn lsp for " + $rid
 
   input --numchar 1 ("Download artifact from " + $download_url + "\nPress any key to continue...")

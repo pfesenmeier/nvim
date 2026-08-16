@@ -2,10 +2,10 @@ export def main [] {
   [
     [name                                  srcWindows                                srcUnix                                             srcMac ];
     [stylua                                null                                      brew                                                brew]
+    [harlequin                             null                                      brew                                                brew]
     [powershell                            null                                      brew                                                brew]
     [poppler                               null                                      brew                                                brew]
     [deno                                  scoop                                     brew                                                brew]
-    [hunk                                  null                                      brew=modem-dev/tap/hunk                             brew=modem-dev/tap/hunk]
     [fd                                    scoop                                     brew                                                brew]
     [fnm                                   scoop                                     brew                                                brew]
     [fzf                                   scoop                                     brew                                                brew]
@@ -50,17 +50,16 @@ export def main [] {
     [vscode-langservers-extracted          null                                      npm                                                 npm]
     [@tailwindcss/language-server          null                                      null                                                null]
     [claude-code                           winget=Anthropic.ClaudeCode               'brew=claude-code@latest'                           'brew=claude-code@latest']
-    [@agentclientprotocol/claude-agent-acp npm                                       npm                                                 npm]
     [pandoc                                null                                      brew                                                brew]
     [yq                                    scoop                                     brew                                                brew]
     [git-credential-manager                null                                      dotnet                                              dotnet]
     [dotnet-ef                             null                                      dotnet                                              dotnet]
-    [@github/copilot                       null                                      null                                                null]
+    [csharpier                             null                                      dotnet                                              dotnet]
+    # TODO: wait until out of prerelease https://www.nuget.org/packages/roslyn-language-server/
+    # [roslyn-language-server                null                                      dotnet                                              dotnet]
     [func                                  winget=Microsoft.Azure.FunctionsCoreTools 'brew=azure/functions;azure-functions-core-tools@4' 'brew=azure/functions;azure-functions-core-tools@4']
-    [linqpad                               winget=LINQPad.LINQPad.9                  null                                                null]
     [azure-storage-explorer                winget=Microsoft.Azure.StorageExplorer    null                                                null]
     [win32yank                             winget=equalsraf.win32yank                null                                                null]
-    [jb                                    null                                      dotnet=JetBrains.ReSharper.GlobalTools              dotnet=JetBrains.ReSharper.GlobalTools]
     [Logitech.OptionsPlus                  winget                                    null                                                brew=logi-options+]
   ]
 }
