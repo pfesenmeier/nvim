@@ -21,8 +21,8 @@ else
   curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
 fi
 
-brew install neovim nushell fnm
-fnm use --install-if-missing --log-level quiet lts-latest 
+brew install neovim nushell pnpm
+pnpm runtime set node lts -g
 
 if [ -d "$HOME/nvim" ]; then
     echo "~/nvim folder already exists"

@@ -277,7 +277,6 @@ source misc/util.nu
 source install/install-packages.nu
 source paths.nu
 source dotnet/jb-clean.nu
-source node-env.nu
 source dotnet/env.nu
 source git/cmds.nu
 source ~/.zoxide.nu

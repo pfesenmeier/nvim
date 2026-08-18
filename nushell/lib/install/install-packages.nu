@@ -160,7 +160,7 @@ def upgrade-all [manager: any, bin_col = "name"] {
   ^$bin ...$cmd
 }
 
-# TODO handle npm / npm.exe, dotnet / dotnet.exe
+# TODO handle pnpm / pnpm.exe, dotnet / dotnet.exe
 export def "install upgrades" [] {
   if ($nu.os-info.name == 'linux') {
     print "upgrading system packges. need sudo priveledges"

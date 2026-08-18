@@ -207,7 +207,7 @@ export def setup [] {
 
     set_secrets_file
 
-    fnm use lts-latest --install-if-missing
+    pnpm runtime set node lts -g
 
     # Disable XON/XOFF flow control so Ctrl+S reaches applications (e.g. Neovim)
     stty -ixon

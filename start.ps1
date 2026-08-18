@@ -7,7 +7,7 @@ if (Get-Command scoop -ErrorAction SilentlyContinue) {
   Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
 }
 
-scoop install git neovim nu fnm gsudo
+scoop install git neovim nu pnpm gsudo
 
 if (Test-Path -Path (Join-Path ~ nvim) -PathType Container) {
   Write-Host "~/nvim folder already exists"

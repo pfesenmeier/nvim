@@ -1,27 +1,21 @@
---- @param nodeVersion string
 --- @return string
-local function findVue(nodeVersion)
+local function findVue()
   -- too slow
   -- local output = vim.fn.system{ 'npm', 'list', '--global', '--depth', '0', '--parseable', 'typescript' }
-  local subpath = 'installation/lib/node_modules/@vue/language-server'
-  if Config.env.islinux then
-    return vim.fs.joinpath(
-      vim.env.HOME,
-      '.local/share/fnm/node-versions',
-      nodeVersion,
-      subpath
-    )
-  else
-    return vim.fs.joinpath(
-      vim.env.APPDATA,
-      'fnm/node-versions',
-      nodeVersion,
-      subpath
-    )
-  end
+  -- pnpm keys global installs by content hash, not node/package version, so glob for it
+  local pattern = vim.fs.joinpath(
+    vim.env.PNPM_HOME,
+    'global',
+    '*',
+    '*',
+    'node_modules',
+    '@vue',
+    'language-server'
+  )
+  return vim.fn.glob(pattern, false, true)[1]
 end
 
-local vue_language_server_path = findVue(Config.env.node)
+local vue_language_server_path = findVue()
 local filetypes =
   { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue' }
 

@@ -197,10 +197,11 @@ $env.NU_PLUGIN_DIRS = [
 
 # pnpm
 $env.PNPM_HOME = $nu.home-dir | path join .local share pnpm
+let pnpmBin = $env.PNPM_HOME | path join bin
 let orbBin = $nu.home-dir | path join .orbstack bin
 let localBins = $nu.home-dir | path join nvim bin
 
-$env.PATH = ($env.PATH | split row (char esep) | prepend [$env.PNPM_HOME $orbBin $localBins] )
+$env.PATH = ($env.PATH | split row (char esep) | prepend [$pnpmBin $orbBin $localBins] )
 
 # for linux credential manager
 # OR git config --global credential.credentialStore gpg
