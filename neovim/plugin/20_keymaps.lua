@@ -186,13 +186,15 @@ nmap_leader('fl', '<Cmd>Pick buf_lines scope="all"<CR>', 'Lines (all)')
 nmap_leader('fL', '<Cmd>Pick buf_lines scope="current"<CR>', 'Lines (buf)')
 nmap_leader('fm', '<Cmd>Pick jj_hunks<CR>', 'Hunks in @ (all)')
 nmap_leader('fM', '<Cmd>Pick jj_hunks path="%"<CR>', 'Hunks in @ (buf)')
+nmap_leader('fp', '<Cmd>Pick visit_paths cwd=""<CR>', 'Visit paths (all)')
+nmap_leader('fP', '<Cmd>Pick visit_paths<CR>', 'Visit paths (cwd)')
 nmap_leader('fq', function() require('quickfix').pick_lists() end, 'Quickfix lists')
 nmap_leader('fr', '<Cmd>Pick resume<CR>', 'Resume')
 nmap_leader('fR', '<Cmd>Pick lsp scope="references"<CR>', 'References (LSP)')
 nmap_leader('fs', pick_workspace_symbols_live, 'Symbols workspace (live)')
 nmap_leader('fS', '<Cmd>Pick lsp scope="document_symbol"<CR>', 'Symbols document')
-nmap_leader('fv', '<Cmd>Pick visit_paths cwd=""<CR>', 'Visit paths (all)')
-nmap_leader('fV', '<Cmd>Pick visit_paths<CR>', 'Visit paths (cwd)')
+nmap_leader('fv', '<Cmd>Pick visit_labels cwd=""<CR>', 'Visit labels (all)')
+nmap_leader('fV', '<Cmd>Pick visit_labels<CR>', 'Visit labels (cwd)')
 nmap_leader('fw', function() require('workspace').pick() end, 'Workspaces')
 nmap_leader("f'", '<Cmd>Pick marks<CR>', 'Marks')
 nmap_leader('f"', '<Cmd>Pick registers<CR>', 'Registers')
@@ -305,6 +307,8 @@ vim.keymap.set({'t', 'i'}, "<C-l>", "<C-\\><C-n><C-w>l", { desc = 'Exit term mod
 -- - `<Leader>vv` - add    "core" label to current file.
 -- - `<Leader>vV` - remove "core" label to current file.
 -- - `<Leader>vc` - pick among all files with "core" label.
+-- - `<Leader>vx` - clear a label everywhere. Labeled visits are exempt from the
+--   automatic pruning in 'mini.visits', so the set only shrinks when told to.
 local make_pick_core = function(cwd, desc)
   return function()
     local sort_latest = MiniVisits.gen_sort.default({ recency_weight = 1 })
@@ -319,6 +323,8 @@ nmap_leader('vv', '<Cmd>lua MiniVisits.add_label("core")<CR>', 'Add "core" label
 nmap_leader('vV', '<Cmd>lua MiniVisits.remove_label("core")<CR>', 'Remove "core" label')
 nmap_leader('vl', '<Cmd>lua MiniVisits.add_label()<CR>', 'Add label')
 nmap_leader('vL', '<Cmd>lua MiniVisits.remove_label()<CR>', 'Remove label')
+nmap_leader('vx', '<Cmd>lua HueyVisits.clear_label("")<CR>', 'Clear label (all)')
+nmap_leader('vX', '<Cmd>lua HueyVisits.clear_label()<CR>', 'Clear label (cwd)')
 
 -- w is for 'Workspace'. See 'lua/workspace'; `[w`/`]w` navigate between them.
 -- `wq` stops this workspace's server and lands on the next running one.

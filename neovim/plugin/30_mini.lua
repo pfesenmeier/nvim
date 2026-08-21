@@ -903,10 +903,12 @@ later(function() require('mini.trailspace').setup() end)
 -- tracked on disk to later reuse: show in special frecency order, etc. It also
 -- supports adding labels to visited paths to quickly navigate between them.
 -- Example usage:
--- - `<Leader>fv` - find across all visits
+-- - `<Leader>fp` / `<Leader>fP` - find across visits; all or current working directory
+-- - `<Leader>fv` / `<Leader>fV` - browse labels; preview shows the paths carrying one
 -- - `<Leader>vv` / `<Leader>vV` - add/remove special "core" label to current file
 -- - `<Leader>vc` / `<Leader>vC` - show files with "core" label; all or added within
 --   current working directory
+-- - `<Leader>vx` / `<Leader>vX` - clear a whole label; see 'lua/huey/visits.lua'
 --
 -- See also:
 -- - `:h MiniVisits-overview` - overview of how module works
