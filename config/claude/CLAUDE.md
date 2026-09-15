@@ -1,5 +1,13 @@
-# Tool Preferences
 
+## Comments
+
+- All comments should be in plain english and straight to the point
+
+## Tool Preferences
+- Never pass `--nologo` to `dotnet test`. Under the .NET 10 Microsoft.Testing.Platform runner it does not
+  just suppress a banner -- the run reports "Zero tests ran" with exit code 5 and no error message, which
+  looks exactly like a broken test suite. Run `dotnet test <project>` plain.
+- Start Azure Function apps locally with `dotnet run`, not `func start`.
 - Use `jj` instead of `git` for version control
 - Use `rg --files` instead of `find` for file searching
 - Use `rg` instead of `grep` for content searching
@@ -17,5 +25,3 @@
     - Scoping: `-g GLOB` (repeatable, `!` negates), `-t TYPE`/`-T TYPE` (`rg --type-list`), `-d NUM` for max depth.
     - Result order is nondeterministic due to parallel traversal; `--sort=path` stabilizes it at the cost of single-threading.
 
-- Be judicious about adding comments - should be infrequent and terse
-- Your audience is always a developer who will do the PR review for the feature branch into main, or will find this change on main weeks or months from now.

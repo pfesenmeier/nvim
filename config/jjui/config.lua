@@ -4,8 +4,16 @@ function EditFile()
     flash("no file under cursor")
     return
   end
-  -- exec_shell inherits env, so the spawned shell sees $NVIM and runs `nv`.
-  exec_shell("nvim --server $NVIM --remote " .. file)
+  local server = os.getenv("NVIM")
+  if not server or server == "" then
+    flash({ text = "not running inside nvim ($NVIM unset)", error = true })
+    return
+  end
+  -- exec_shell takes over the terminal and then prints "press enter to continue"
+  -- for any command that exits in under 5s. jj_async runs in the background
+  -- instead, and `jj util exec` is what lets it run something other than jj.
+  -- Passing argv directly also keeps paths with spaces intact.
+  jj_async("util", "exec", "--", "nvim", "--server", server, "--remote", file)
   flash("→ " .. file)
 end
 

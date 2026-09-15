@@ -10,8 +10,6 @@ Perform a thorough code review of the current branch's changes. Follow these pha
 
 The final review must be saved to `~/Documents/pr-reviews/` as a markdown file, in addition to being printed to the terminal. Create the directory with `mkdir -p ~/Documents/pr-reviews` if it does not already exist. Name the file `<YYYY-MM-DD>-<branch-or-change-id>.md` (use the current change's bookmark/branch name when available; fall back to the jj change ID).
 
-A JSON sidecar must also be written at the **same basename** (e.g. `2026-06-10-my-branch.json`) — see Phase 5 for shape. The JSON path is printed on its own line *before* the final markdown-path line. The last line of terminal output is still the absolute path to the markdown file.
-
 ## Phase 1 — Gather context
 
 Run these commands to understand what changed:
@@ -63,7 +61,6 @@ Rules:
 - Link text is short and repo-relative; the URL is always absolute.
 - Add an `#L<n>` fragment whenever you cite a line — editors that follow the link jump straight to it.
 - Percent-encode characters that are not URL-safe (space → `%20`).
-- **Exception:** the trailing JSON and markdown path lines stay plain absolute paths — they are read by tooling, not clicked.
 
 ---
 

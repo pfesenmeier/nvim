@@ -37,7 +37,7 @@
       "Bash(jj --version:*)"
     ]
   },
-  "model": "opus",
+  "model": "opus[1m]",
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -117,12 +117,12 @@
     "claude-code-setup@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "chrome-devtools-mcp@claude-plugins-official": true,
-    "explanatory-output-style@claude-plugins-official": true
+    "explanatory-output-style@claude-plugins-official": true,
+    "mattpocock-skills@claude-plugins-official": true
   },
   "viewMode": "default",
   "effortLevel": "high",
   "autoUpdatesChannel": "stable",
   "tui": "fullscreen",
-  "theme": "auto",
-  "skipAutoPermissionPrompt": true
+  "theme": "auto"
 }
