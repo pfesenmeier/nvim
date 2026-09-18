@@ -290,7 +290,9 @@ nmap_leader('sw', '<Cmd>lua MiniSessions.write()<CR>', 'Write current')
 -- t is for 'Terminal'
 nmap_leader('tT', '<Cmd>horizontal term<CR>', 'Terminal (horizontal)')
 nmap_leader('tt', '<Cmd>vertical term<CR>', 'Terminal (vertical)')
-nmap_leader('cc', '<Cmd>term claude<CR>', 'Claude code')
+-- Never hand the agent the gpg-agent ssh socket
+local claude_cmd = Config.env.iswindows and 'claude' or 'env -u SSH_AUTH_SOCK claude'
+nmap_leader('cc', '<Cmd>term ' .. claude_cmd .. '<CR>', 'Claude code')
 
 vim.keymap.set('t', "<C-b>", "<C-\\><C-n>", { desc = 'Exit term mode' })
 -- allows these to move around on any buffer

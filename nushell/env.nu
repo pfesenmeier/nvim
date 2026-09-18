@@ -207,6 +207,9 @@ $env.PATH = ($env.PATH | split row (char esep) | prepend [$env.PNPM_HOME $orbBin
 # https://github.com/git-ecosystem/git-credential-manager/blob/main/docs/credstores.md#gpgpass-compatible-files
 $env.GCM_CREDENTIAL_STORE = "gpg"
 
+# SFTP
+$env.SSH_AUTH_SOCK = (gpgconf --list-dirs agent-ssh-socket | str trim)
+
 # Ensure a dbus session bus exists so gpg's graphical pinentry (pinentry-gnome3)
 # can prompt under WSL.
 if ($nu.os-info.family != windows) and ('DBUS_SESSION_BUS_ADDRESS' not-in $env) and (which dbus-launch | is-not-empty) {
