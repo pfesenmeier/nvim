@@ -290,9 +290,17 @@ nmap_leader('sw', '<Cmd>lua MiniSessions.write()<CR>', 'Write current')
 -- t is for 'Terminal'
 nmap_leader('tT', '<Cmd>horizontal term<CR>', 'Terminal (horizontal)')
 nmap_leader('tt', '<Cmd>vertical term<CR>', 'Terminal (vertical)')
--- Never hand the agent the gpg-agent ssh socket
-local claude_cmd = Config.env.iswindows and 'claude' or 'env -u SSH_AUTH_SOCK claude'
-nmap_leader('cc', '<Cmd>term ' .. claude_cmd .. '<CR>', 'Claude code')
+-- Never hand the agent the gpg-agent ssh socket. Nvim names a terminal buffer
+-- after the command string, so unsetting around `:term` instead of wrapping in
+-- `env -u` keeps the tabline label at '<pid>:claude'.
+local claude = function()
+  local saved = vim.env.SSH_AUTH_SOCK
+  vim.env.SSH_AUTH_SOCK = nil
+  local ok, err = pcall(vim.cmd.term, 'claude')
+  vim.env.SSH_AUTH_SOCK = saved
+  if not ok then vim.notify(err, vim.log.levels.ERROR) end
+end
+nmap_leader('cc', claude, 'Claude code')
 
 vim.keymap.set('t', "<C-b>", "<C-\\><C-n>", { desc = 'Exit term mode' })
 -- allows these to move around on any buffer
