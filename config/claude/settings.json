@@ -1,7 +1,8 @@
 {
   "env": {
     "EDITOR": "nvim",
-    "CLAUDE_CODE_DISABLE_MOUSE": "1"
+    "CLAUDE_CODE_DISABLE_MOUSE": "1",
+    "SSH_AUTH_SOCK": ""
   },
   "permissions": {
     "allow": [
@@ -70,7 +71,11 @@
       "Bash(/usr/bin/env:*)",
       "Read(~/.gnupg/**)",
       "Read(~/.ssh/**)",
-      "Read(~/.password-store/**)"
+      "Read(~/.password-store/**)",
+      "Edit(~/nvim/config/gpg-agent.conf)",
+      "Edit(~/nvim/config/gpg-agent.conf.mac)",
+      "Edit(~/.gnupg/**)",
+      "Edit(~/.ssh/**)"
     ]
   },
   "model": "opus[1m]",
