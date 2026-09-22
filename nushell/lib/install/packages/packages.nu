@@ -47,7 +47,7 @@ export def main [] {
     [tree-sitter-cli                       npm                                       npm                                                 npm]
     [vscode-langservers-extracted          null                                      npm                                                 npm]
     [@tailwindcss/language-server          null                                      null                                                null]
-    [claude-code                           winget=Anthropic.ClaudeCode               brew                                                brew]
+    [claude-code                           winget=Anthropic.ClaudeCode               'brew=claude-code@latest'                           'brew=claude-code@latest']
     [@agentclientprotocol/claude-agent-acp npm                                       npm                                                 npm]
     [pandoc                                null                                      brew                                                brew]
     [yq                                    scoop                                     brew                                                brew]
