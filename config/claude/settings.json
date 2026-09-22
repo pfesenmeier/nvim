@@ -78,7 +78,6 @@
       "Edit(~/.ssh/**)"
     ]
   },
-  "model": "opus[1m]",
   "hooks": {
     "UserPromptSubmit": [
       {
