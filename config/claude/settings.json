@@ -5,6 +5,7 @@
     "SSH_AUTH_SOCK": ""
   },
   "permissions": {
+    "defaultMode": "auto",
     "allow": [
       "Bash(fd:*)",
       "Bash(find:*)",
