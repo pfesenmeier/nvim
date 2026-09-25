@@ -34,10 +34,17 @@ def install-packages [manager: any, containers: list<string>, packages: list<str
   let add_container_args = $manager.add_container_cmd | split-whitespace
   let install_multiple = $manager.install_multiple
   let install_cmd = $manager.install_cmd
+  let name = $manager.name
   let manager = if $use_windows_exe {
     $manager.windows_exe
   } else {
     $manager.name
+  }
+
+  # manager has no windows version
+  if $manager == null {
+    print $"skipping ($name), no windows exe: ($packages | str join ' ')"
+    return
   }
 
   for container in $containers {
@@ -136,15 +143,21 @@ export def "install packages" [] {
   }
 }
 
-def upgrade-all [manager: any, bin = "name"] {
-  let bin = $manager | get $bin
+def upgrade-all [manager: any, bin_col = "name"] {
+  let bin = $manager | get $bin_col
+  # manager has no windows version
+  if $bin == null { return }
+
+  let found = which $bin
+  if ($found | is-empty) { return }
+
+  # wsl can see the windows PATH, so leave programs on windows drives to the windows_exe pass
+  if $bin_col == "name" and (is_wsl) and ($found.path.0 =~ '^/mnt/[a-z]/') { return }
+
   let cmd = $manager.upgrade_all_cmd | split-whitespace
+  print $"upgrading packages from ($bin)"
 
-  if (which $bin | is-not-empty) {
-    print $"upgrading packages from ($bin)"
-
-    ^$bin ...$cmd
-  }
+  ^$bin ...$cmd
 }
 
 # TODO handle npm / npm.exe, dotnet / dotnet.exe
