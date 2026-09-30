@@ -12,6 +12,8 @@ export def main [] {
     [gcc                                   scoop                                     brew                                                brew]
     [gh                                    scoop                                     brew                                                brew]
     [lua-language-server                   scoop                                     brew                                                brew]
+    [go                                    null                                      brew                                                brew]
+    [gopls                                 null                                      brew                                                brew]
     [marksman                              scoop                                     brew                                                brew]
     [neovim                                scoop                                     brew                                                brew]
     [nushell                               scoop=nu                                  brew                                                brew]
