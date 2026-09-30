@@ -74,6 +74,7 @@ now_if_args(function()
     'terraform',
     'hcl',
     'html',
+    'razor',
     'regex',
     'prisma',
     'sql',
