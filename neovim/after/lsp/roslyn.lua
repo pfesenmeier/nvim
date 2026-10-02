@@ -1,18 +1,12 @@
-local uv = vim.uv
 local fs = vim.fs
 
--- Prefer 'roslyn-language-server', falling back to the nuget binary name.
--- (The base config probes these in the opposite order.)
-local exe = vim.fn.executable('roslyn-language-server') == 1 and 'roslyn-language-server'
-  or 'Microsoft.CodeAnalysis.LanguageServer'
-local cmd = {
-  exe,
-  '--logLevel',
-  'Information',
-  '--extensionLogDirectory',
-  fs.joinpath(uv.os_tmpdir(), 'roslyn_ls/logs'),
-  '--stdio',
-}
+-- Overrides roslyn.nvim's config (lsp/roslyn.lua). A list like `cmd` replaces
+-- the plugin's rather than merging, so start from the plugin's own cmd to keep
+-- its flags (e.g. --daemon-mode) and only append the Roslynator extensions.
+local plugin_lsp = vim.iter(vim.api.nvim_get_runtime_file('lsp/roslyn.lua', true)):find(function(path)
+  return path:find('roslyn.nvim', 1, true) ~= nil
+end)
+local cmd = vim.deepcopy(dofile(plugin_lsp).cmd)
 
 -- Load Roslynator's analyzers/refactorings as roslyn analyzer extensions.
 -- ROSLYNATOR_DIR is exported by the nushell installer (install/cmds/roslynator.nu),

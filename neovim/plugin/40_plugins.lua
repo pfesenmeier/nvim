@@ -132,6 +132,8 @@ end)
 now_if_args(function()
   add({
     'https://github.com/neovim/nvim-lspconfig',
+    -- C# and Razor; enables its own 'roslyn' server, see after/lsp/roslyn.lua
+    'https://github.com/seblyng/roslyn.nvim',
   })
 
   -- Use `:h vim.lsp.enable()` to automatically enable language server based on
@@ -154,7 +156,6 @@ now_if_args(function()
     'vue_ls',
     'marksman',
     'terraformls',
-    'roslyn_ls',
     'gopls',
   })
 end)
