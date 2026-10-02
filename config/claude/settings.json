@@ -5,13 +5,11 @@
     "SSH_AUTH_SOCK": ""
   },
   "permissions": {
-    "defaultMode": "auto",
     "allow": [
       "Bash(fd:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
       "Bash(rg:*)",
-      "Bash(xargs:*)",
       "Bash(cat:*)",
       "Bash(jj diff:*)",
       "Bash(jj show:*)",
@@ -79,7 +77,8 @@
       "Edit(~/nvim/config/gpg-agent.conf.mac)",
       "Edit(~/.gnupg/**)",
       "Edit(~/.ssh/**)"
-    ]
+    ],
+    "defaultMode": "auto"
   },
   "hooks": {
     "UserPromptSubmit": [
@@ -152,21 +151,50 @@
   "enabledPlugins": {
     "lua-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "frontend-design@claude-plugins-official": true,
-    "code-review@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": false,
+    "code-review@claude-plugins-official": false,
     "csharp-lsp@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true,
-    "claude-code-setup@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": false,
+    "skill-creator@claude-plugins-official": false,
+    "ralph-loop@claude-plugins-official": false,
+    "claude-code-setup@claude-plugins-official": false,
+    "pr-review-toolkit@claude-plugins-official": false,
     "chrome-devtools-mcp@claude-plugins-official": true,
-    "explanatory-output-style@claude-plugins-official": true,
-    "mattpocock-skills@claude-plugins-official": true
+    "explanatory-output-style@claude-plugins-official": false,
+    "mattpocock-skills@claude-plugins-official": false
   },
   "viewMode": "default",
   "effortLevel": "high",
   "autoUpdatesChannel": "stable",
   "tui": "fullscreen",
-  "theme": "auto"
+  "theme": "auto",
+  "autoMode": {
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: public — pfesenmeier/nvim (github.com/pfesenmeier/nvim)",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: None configured",
+      "**Default / protected branches**: main; no rulesets or protected branches listed via gh",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: None configured",
+      "**Host containment**: None configured — assume Claude Code runs on an ordinary developer machine or CI runner with open internet",
+      "**Source control**: The trusted repo (pfesenmeier/nvim on github.com) and its remote only — no additional orgs configured",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: None configured",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: nushell/lib/secrets.nu, neovim/after/lsp/terraformls.lua, neovim/tests/test_terraformls.lua — treat as potentially holding credentials/config secrets; restrict to audiences cleared for this repo's own maintainer",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development (personal dev-config / Neovim config repo)",
+      "**Trusted repo**: /home/pfes/nvim (github.com/pfesenmeier/nvim, public) — since public, only this repo's own work belongs in it; confidential/secret material is never cleared into it by visibility alone",
+      "**Org-specific CLIs**: None configured — personal tool preferences noted (jj in place of git, rg in place of grep/find, dotnet run instead of func start) but these are user workflow preferences, not org-specific tooling",
+      "routine under ~/nvim/ prefix: editing/testing this Neovim config repo (jj version control, rg search, dotnet test for related tooling)"
+    ]
+  }
 }
