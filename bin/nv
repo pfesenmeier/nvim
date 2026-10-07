@@ -8,8 +8,8 @@
 # MiniTest suite in a fresh headless nvim.
 #
 # We use --remote-expr (not --remote-send) so commands run regardless of which
-# mode the outer nvim is in (e.g. when this is invoked from inside a floatterm
-# where nvim's focused window is in terminal mode).
+# mode the outer nvim is in (e.g. when this is invoked from inside a terminal
+# buffer where nvim's focused window is in terminal mode).
 
 # Path of this script, resolved through the ~/.local/bin symlink that setup.nu
 # creates (`path self` alone yields the symlink).

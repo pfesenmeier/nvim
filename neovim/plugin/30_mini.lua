@@ -184,26 +184,6 @@ now(function()
       end,
     },
   })
-
-  local function apply_floatterm_hls()
-    vim.api.nvim_set_hl(
-      0,
-      'FloatTermSlotShown',
-      { link = 'MiniStatuslineModeNormal' }
-    )
-    vim.api.nvim_set_hl(0, 'FloatTermSlotHidden', { link = 'Comment' })
-    -- "Inverted" pill: swap fg/bg of the shown pill. Resolved at runtime so
-    -- it stays in sync if the colorscheme changes.
-    local shown =
-      vim.api.nvim_get_hl(0, { name = 'MiniStatuslineModeNormal', link = false })
-    vim.api.nvim_set_hl(0, 'FloatTermSlotLast', {
-      fg = shown.bg,
-      bg = shown.fg,
-      bold = shown.bold,
-    })
-  end
-  apply_floatterm_hls()
-  vim.api.nvim_create_autocmd('ColorScheme', { callback = apply_floatterm_hls })
 end)
 
 -- Tabline. Sets `:h 'tabline'` to show all listed buffers in a line at the top.

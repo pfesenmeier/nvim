@@ -47,9 +47,3 @@ There is no `home` entry. The TUI's own server is not registered in
 workspace whose path matches the TUI's startup directory spawns a *separate*
 headless server for it and leaves the TUI's original session idle in the
 background.
-
-## Nice to Have
-
-- Decorate picker rows with the workspace's claude status (new
-  `scripts/nv get-claude-status` subcommand that reads `floatterm.get_status`
-  per server).

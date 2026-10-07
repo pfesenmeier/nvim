@@ -40,23 +40,6 @@ local function probe(sock)
   return true
 end
 
-local function bot_status_remote(sock)
-  if not vim.loop.fs_stat(sock) then return nil end
-  local ok, chan = pcall(vim.fn.sockconnect, 'pipe', sock, { rpc = true })
-  if not ok or chan == 0 then return nil end
-  local got, icon = pcall(
-    vim.rpcrequest,
-    chan,
-    'nvim_exec_lua',
-    "return require('floatterm').get_status('claude')",
-    {}
-  )
-  pcall(vim.fn.chanclose, chan)
-  if got and icon ~= vim.NIL then return icon end
-end
-
-function M.bot_status(name) return bot_status_remote(sock_for(name)) end
-
 function M.status(name) return probe(sock_for(name)) and 'running' or 'stopped' end
 
 local function spawn(ws)
@@ -109,8 +92,7 @@ end
 function M.pick()
   local glyph = function(status) return status == 'running' and '●' or '○' end
   local row = function(status, name, trailing)
-    local bot = M.bot_status(name) or '  '
-    return ('%s %s  %-20s  %s'):format(glyph(status), bot, name, trailing)
+    return ('%s  %-20s  %s'):format(glyph(status), name, trailing)
   end
   local items = {}
   for _, ws in ipairs(opts.workspaces) do
@@ -151,9 +133,8 @@ end
 function M.starter_items()
   local items = {}
   for _, ws in ipairs(opts.workspaces) do
-    local bot = M.bot_status(ws.name)
     items[#items + 1] = {
-      name = bot and (ws.name .. ' ' .. bot) or ws.name,
+      name = ws.name,
       action = ("lua require('workspace').connect('%s')"):format(ws.name),
       section = 'Workspaces',
     }
