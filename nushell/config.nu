@@ -262,7 +262,6 @@ $env.config = {
 
 
 alias e = nvim
-alias nv = nvim --clean -l
 alias s = git status
 alias a = git add
 alias c = git commit

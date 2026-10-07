@@ -1,0 +1,22 @@
+#!/usr/bin/env nu
+
+# Run the MiniTest suite for the neovim config in a fresh headless nvim.
+
+# Path of this script, resolved through the ~/.local/bin symlink that setup.nu
+# creates (`path self` alone yields the symlink).
+const self_path = path self
+
+def main [
+  file?: string  # single test file relative to neovim/, e.g. tests/test_jj.lua
+] {
+  # MiniTest collects `tests/**/test_*.lua` relative to cwd
+  cd ($self_path | path expand | path dirname | path dirname | path join neovim)
+
+  let run = if ($file | is-empty) {
+    "lua MiniTest.run()"
+  } else {
+    $"lua MiniTest.run_file\('($file)')"
+  }
+
+  nvim --headless --noplugin -u scripts/minimal_init.lua -c $run
+}

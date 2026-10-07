@@ -1,6 +1,6 @@
 -- Minimal init for 'tests/'. Run from the 'neovim' directory:
 --   nvim --headless --noplugin -u scripts/minimal_init.lua -c 'lua MiniTest.run()'
--- or `nv test`.
+-- or `nvim-test [tests/test_x.lua]` from anywhere.
 
 -- `package.path` rather than mini.nvim's `let &rtp.=','.getcwd()`: adding this
 -- directory to 'runtimepath' would source 'plugin/', whose files call

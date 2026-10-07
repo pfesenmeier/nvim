@@ -30,12 +30,6 @@ Commands
 Move terminal commands
 - I forget that they are tuis. explore? float?
 
-## NV
-
-- nv notify
-    - have stop / prompt hooks call nv notify
-    - different types of notifications, e.g. 'buffer edited'
-
 ## AI / REGISTER
 
 - :50at  ? share last 50 lines of terminal buffer
