@@ -22,18 +22,8 @@ def repo-neovim-dir [] {
 # True when running inside a parent nvim instance (nvim sets $NVIM for its
 # :terminal children). Subcommands use this to silently no-op when there's no
 # parent nvim to talk to, rather than erroring.
-def nvim-bufnr [] {
-   $env.NVIM_BUFNR?
-}
-
 def nvim-server [] {
    $env.NVIM?
-}
-
-def bot-status-keys [
-  state: string  # idle | working | needs-input
-] {
-
 }
 
 # Open a file in the parent nvim.
@@ -46,28 +36,6 @@ def "main open" [
   let abs = $files | each { path expand }
 
   nvim --server $server --remote ...$abs
-}
-
-def hueyterm-keys [
-  method: string,
-  bufnr: number,
-] {
-  $"<Cmd>:lua HueyTerm.($method)\(($bufnr))<CR>"
-}
-
-
-# Update the parent nvim's bot status (drives the statusline indicator).
-def "main bot-status" [
-  state: string  # idle | working | needs-input
-] {
-  let server = nvim-server
-  if ($server | is-empty) { return }
-  let bufnr = nvim-bufnr
-  if ($bufnr | is-empty) { return }
-
-  # let keys = hueyterm-keys bot_started 'INFO'
-  #
-  # nvim --server $server --remote-send
 }
 
 def notify-keys [msg: string, level: string] {
@@ -106,6 +74,6 @@ def "main test" [
 
 def main []: nothing -> nothing {
   print "nv: helper commands for this nvim config."
-  print "Subcommands: open, notify, bot-status, test."
+  print "Subcommands: open, notify, test."
   print "See `nv <subcmd> --help`."
 }

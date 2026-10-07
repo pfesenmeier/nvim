@@ -36,6 +36,12 @@ The list also comes from `$WORKSPACES` (a JSON array of the same shape) when
   mapping runs *inside* the server being closed. Quits outright when no other
   workspace is running.
 - `:WorkspaceConnect <name>` — same flow as picker confirm.
+- `<leader>fB` / `:WorkspaceBuffers [pattern]` — pick a listed buffer from any
+  **running** workspace, each row prefixed with its workspace. The optional
+  argument is a Lua pattern matched against the buffer name, e.g.
+  `:WorkspaceBuffers ^term://.*:claude` for every `<leader>cc` terminal. Preview
+  shows the buffer's lines as they are in its own server; confirming switches
+  that server to the buffer, then `:connect`s to it.
 - `:WorkspaceStop <name>` — RPC-quit the workspace's server and clean up the
   socket. Unlike `<leader>wq`, this can target a workspace other than the
   current one, and leaves the UI where it is.

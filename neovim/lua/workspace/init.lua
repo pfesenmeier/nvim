@@ -40,6 +40,20 @@ local function probe(sock)
   return true
 end
 
+-- Run a Lua chunk in the server at `sock` and return its result, or nil when
+-- the server is unreachable or the chunk errors.
+local function rpc_lua(sock, code, args)
+  if not vim.loop.fs_stat(sock) then return nil end
+  local ok, chan = pcall(vim.fn.sockconnect, 'pipe', sock, { rpc = true })
+  if not ok or chan == 0 then return nil end
+  local got, res = pcall(vim.rpcrequest, chan, 'nvim_exec_lua', code, args or {})
+  pcall(vim.fn.chanclose, chan)
+  if got and res ~= vim.NIL then return res end
+end
+
+-- True when `sock` is one of this process's own listen addresses.
+local function is_self(sock) return vim.tbl_contains(vim.fn.serverlist(), sock) end
+
 function M.status(name) return probe(sock_for(name)) and 'running' or 'stopped' end
 
 local function spawn(ws)
@@ -108,6 +122,95 @@ function M.pick()
       choose = function(item)
         if not item then return end
         vim.schedule(function() M.connect(item.name) end)
+      end,
+    },
+  })
+end
+
+--- Run a Lua chunk in every running workspace server, in configuration order.
+--- This server runs it in-process rather than over RPC.
+--- @param code string Lua chunk; receives `args` as `...`
+--- @param args any[]?
+--- @return { ws: string, result: any }[] nil results are skipped
+function M.collect(code, args)
+  args = args or {}
+  local out = {}
+  for _, ws in ipairs(opts.workspaces) do
+    local sock = sock_for(ws.name)
+    local res
+    if is_self(sock) then
+      res = assert(loadstring(code))(unpack(args))
+    elseif M.status(ws.name) == 'running' then
+      res = rpc_lua(sock, code, args)
+    end
+    if res ~= nil then out[#out + 1] = { ws = ws.name, result = res } end
+  end
+  return out
+end
+
+local list_bufs = [[
+  local pat = ...
+  local out = {}
+  for _, b in ipairs(vim.api.nvim_list_bufs()) do
+    local name = vim.api.nvim_buf_get_name(b)
+    if vim.bo[b].buflisted and name ~= '' and (pat == '' or name:find(pat)) then
+      out[#out + 1] = { bufnr = b, name = name }
+    end
+  end
+  return out
+]]
+
+--- Pick a listed buffer from any running workspace.
+--- @param pattern string? Lua pattern the buffer name must match
+function M.pick_buffers(pattern)
+  local items = {}
+  for _, r in ipairs(M.collect(list_bufs, { pattern or '' })) do
+    for _, b in ipairs(r.result) do
+      items[#items + 1] = {
+        ws = r.ws,
+        -- not `bufnr`: MiniPick would treat it as a buffer in this process
+        remote_buf = b.bufnr,
+        name = b.name,
+        text = ('%-12s %s'):format(r.ws, vim.fn.fnamemodify(b.name, ':~')),
+      }
+    end
+  end
+
+  -- Run in the item's server, locally when that is this one
+  local run = function(item, code)
+    local sock = sock_for(item.ws)
+    if not is_self(sock) then return rpc_lua(sock, code, { item.remote_buf }) end
+    -- the buffer may be gone by now; fail quietly like the RPC path does
+    local ok, res = pcall(assert(loadstring(code)), item.remote_buf)
+    if ok then return res end
+  end
+
+  MiniPick.start({
+    source = {
+      name = 'Buffers (workspaces)',
+      items = items,
+      preview = function(buf_id, item)
+        local lines = run(
+          item,
+          'return vim.api.nvim_buf_get_lines(..., 0, -1, false)'
+        ) or {}
+        -- terminal buffers pad the end with blank lines
+        while #lines > 0 and lines[#lines] == '' do
+          lines[#lines] = nil
+        end
+        vim.api.nvim_buf_set_lines(buf_id, 0, -1, false, lines)
+        -- the latest output is the interesting part of a terminal
+        local win = vim.fn.bufwinid(buf_id)
+        if win ~= -1 then
+          pcall(vim.api.nvim_win_set_cursor, win, { math.max(#lines, 1), 0 })
+        end
+      end,
+      choose = function(item)
+        if not item then return end
+        vim.schedule(function()
+          run(item, 'vim.cmd.buffer(...)')
+          if not is_self(sock_for(item.ws)) then M.connect(item.ws) end
+        end)
       end,
     },
   })
@@ -242,6 +345,15 @@ function M.setup(user)
   vim.api.nvim_create_user_command('WorkspaceQuit', M.quit, {
     desc = "Stop this workspace's server, connecting the UI to the next running one",
   })
+
+  vim.api.nvim_create_user_command(
+    'WorkspaceBuffers',
+    function(o) M.pick_buffers(o.args) end,
+    {
+      nargs = '?',
+      desc = 'Pick a buffer from any running workspace (Lua pattern filter)',
+    }
+  )
 end
 
 return M
