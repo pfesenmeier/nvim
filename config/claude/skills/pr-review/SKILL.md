@@ -1,7 +1,6 @@
 ---
 name: pr-review
 description: Full code review of current branch changes (correctness, security, tests, architecture)
-disable-model-invocation: true
 allowed-tools: Bash, Read, Write, Grep, Glob
 argument-hint: "[focus-area]"
 ---

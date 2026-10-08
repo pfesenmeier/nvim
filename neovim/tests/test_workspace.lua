@@ -120,7 +120,11 @@ local setup_live = function()
     _G.ws.setup({ workspaces = spec, server_dir = server_dir })
     _G.connected = {}
     _G.ws.connect = function(name) table.insert(_G.connected, name) end
-    _G.MiniPick = { start = function(o) _G.source = o.source end }
+    _G.MiniPick = {
+      start = function(o) _G.source = o.source end,
+      -- inactive, so the bots picker's refresh timer stops on its first tick
+      is_picker_active = function() return false end,
+    }
   ]],
     { spec, root .. '/servers' }
   )
@@ -364,60 +368,113 @@ T['M.collect()']['runs in-process for its own workspace'] = function()
   })
 end
 
-T['M.pick_buffers()'] = new_set()
+-- Real terminal buffers ('buftype' cannot be set to 'terminal' by hand), with
+-- `HueyTerm` stubbed to read icons from `_G.icons` so a test can change them.
+local add_bot_code = [[
+  local icon = ...
+  _G.icons = _G.icons or {}
+  _G.HueyTerm = _G.HueyTerm or { get_icon = function(b) return _G.icons[b] end }
+  vim.cmd.enew()
+  vim.fn.jobstart({ 'sleep', '30' }, { term = true })
+  local b = vim.api.nvim_get_current_buf()
+  _G.icons[b] = icon
+  return { bufnr = b, name = vim.api.nvim_buf_get_name(b) }
+]]
 
-T['M.pick_buffers()']['lists buffers from every running workspace'] = function()
-  local root = setup_live()
-  local a, b = root .. '/beta/a.txt', root .. '/delta/b.txt'
-  start_server(root, 'beta', { { name = a } })
-  start_server(root, 'delta', { { name = b } })
-  child.lua('_G.ws.pick_buffers()')
-  eq(picked(), { { 'beta', a }, { 'delta', b } })
-  -- rows lead with the workspace
-  eq(child.lua_get('_G.source.items[1].text'):match('^%S+'), 'beta')
+--- Adds a terminal to server `chan` (or the child when nil) with status `icon`
+--- (none when nil).
+--- @return { bufnr: integer, name: string }
+local add_bot = function(chan, icon)
+  if chan then
+    return vim.rpcrequest(chan, 'nvim_exec_lua', add_bot_code, { icon })
+  end
+  return child.lua(add_bot_code, { icon })
 end
 
-T['M.pick_buffers()']['filters names by Lua pattern'] = function()
-  local root = setup_live()
-  local term = 'term://' .. root .. '/beta//123:claude'
-  start_server(root, 'beta', {
-    { name = term },
-    { name = root .. '/beta/claude-notes.md' },
-    { name = root .. '/beta/other.txt' },
-  })
-  child.lua('_G.ws.pick_buffers(...)', { '^term://.*:claude' })
-  eq(picked(), { { 'beta', term } })
+local set_icon = function(chan, bufnr, icon)
+  vim.rpcrequest(
+    chan,
+    'nvim_exec_lua',
+    '_G.icons[...] = select(2, ...)',
+    { bufnr, icon }
+  )
 end
 
-T['M.pick_buffers()']['skips unlisted buffers'] = function()
-  local root = setup_live()
-  local listed = root .. '/beta/listed.txt'
-  start_server(root, 'beta', {
-    { name = listed },
-    { name = root .. '/beta/hidden.txt', listed = false },
-  })
-  child.lua('_G.ws.pick_buffers()')
-  eq(picked(), { { 'beta', listed } })
+--- Leading icon of every row the picker was given, in order.
+local row_icons = function()
+  return child.lua_get([[vim.tbl_map(
+    function(i) return i.text:match('^(%S+)') end,
+    _G.source.items
+  )]])
 end
 
-T['M.pick_buffers()']['opens a remote buffer in its server, then connects'] = function()
+T['M.pick_bots()'] = new_set()
+
+T['M.pick_bots()']['lists terminals with a status from every running workspace'] = function()
   local root = setup_live()
-  local a, b = root .. '/beta/a.txt', root .. '/beta/b.txt'
-  local chan = start_server(root, 'beta', { { name = a }, { name = b } })
-  child.lua('_G.ws.pick_buffers()')
-  choose(b)
-  eq(vim.rpcrequest(chan, 'nvim_eval', 'bufname()'), b)
+  local beta = start_server(root, 'beta')
+  local delta = start_server(root, 'delta')
+  local working = add_bot(delta, '∿')
+  add_bot(beta, nil) -- a terminal with no status
+  local waiting = add_bot(beta, '⏸')
+  child.lua('_G.ws.pick_bots()')
+  eq(picked(), { { 'beta', waiting.name }, { 'delta', working.name } })
+  eq(row_icons(), { '⏸', '∿' })
+  eq(child.lua_get('_G.source.items[1].text'):match('^%S+%s+(%S+)'), 'beta')
+end
+
+T['M.pick_bots()']['skips a server without HueyTerm'] = function()
+  local root = setup_live()
+  start_server(root, 'beta') -- `--clean`, so no HueyTerm
+  local delta = start_server(root, 'delta')
+  local bot = add_bot(delta, '∿')
+  child.lua('_G.ws.pick_bots()')
+  eq(picked(), { { 'delta', bot.name } })
+end
+
+T['M.pick_bots()']['refreshes rows while open, only on change'] = function()
+  local root = setup_live()
+  local beta = start_server(root, 'beta')
+  local bot = add_bot(beta, '∿')
+  child.lua([[
+    _G.MiniPick.is_picker_active = function() return true end
+    _G.set_items = {}
+    _G.MiniPick.set_picker_items = function(items) table.insert(_G.set_items, items) end
+    _G.ws.pick_bots()
+  ]])
+  -- nothing changed: no reset of the picker
+  vim.uv.sleep(1500)
+  eq(child.lua_get('#_G.set_items'), 0)
+
+  set_icon(beta, bot.bufnr, '⏸')
+  eq(child.wait_for('#_G.set_items == 1'), true)
+  eq(child.lua_get('_G.set_items[1][1].text'):match('^%S+'), '⏸')
+
+  child.api.nvim_exec_autocmds('User', { pattern = 'MiniPickStop' })
+  set_icon(beta, bot.bufnr, '●')
+  vim.uv.sleep(1500)
+  eq(child.lua_get('#_G.set_items'), 1)
+end
+
+T['M.pick_bots()']['opens a remote terminal in its server, then connects'] = function()
+  local root = setup_live()
+  local beta = start_server(root, 'beta')
+  local first = add_bot(beta, '∿')
+  add_bot(beta, '⏸') -- now current in beta
+  child.lua('_G.ws.pick_bots()')
+  choose(first.name)
+  eq(vim.rpcrequest(beta, 'nvim_get_current_buf'), first.bufnr)
   eq(connected(), { 'beta' })
 end
 
-T['M.pick_buffers()']['opens a local buffer without connecting'] = function()
+T['M.pick_bots()']['opens a local terminal without connecting'] = function()
   local root = setup_live()
   child_listen_as(root, 'alpha')
-  local path = root .. '/alpha/here.txt'
-  child.lua('vim.bo[vim.fn.bufadd(...)].buflisted = true', { path })
-  child.lua('_G.ws.pick_buffers()')
-  choose(path)
-  eq(child.api.nvim_buf_get_name(0), path)
+  local here = add_bot(nil, '∿')
+  child.cmd('enew')
+  child.lua('_G.ws.pick_bots()')
+  choose(here.name)
+  eq(child.api.nvim_get_current_buf(), here.bufnr)
   eq(connected(), {})
 end
 

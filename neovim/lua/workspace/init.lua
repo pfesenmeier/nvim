@@ -148,33 +148,80 @@ function M.collect(code, args)
   return out
 end
 
-local list_bufs = [[
-  local pat = ...
+-- Terminals with a tabline status icon (see 'huey/term.lua'). Empty in a server
+-- that never set up HueyTerm.
+local list_bots = [[
+  local term = rawget(_G, 'HueyTerm')
+  if not term then return {} end
   local out = {}
   for _, b in ipairs(vim.api.nvim_list_bufs()) do
-    local name = vim.api.nvim_buf_get_name(b)
-    if vim.bo[b].buflisted and name ~= '' and (pat == '' or name:find(pat)) then
-      out[#out + 1] = { bufnr = b, name = name }
+    local icon = vim.api.nvim_buf_is_valid(b)
+      and vim.bo[b].buftype == 'terminal'
+      and term.get_icon(b)
+    if icon then
+      out[#out + 1] = { bufnr = b, name = vim.api.nvim_buf_get_name(b), icon = icon }
     end
   end
   return out
 ]]
 
---- Pick a listed buffer from any running workspace.
---- @param pattern string? Lua pattern the buffer name must match
-function M.pick_buffers(pattern)
+--- Picker rows for every terminal with a status in a running workspace. Read
+--- live from each server on every call; nothing is cached.
+--- @return table[]
+function M.bot_items()
   local items = {}
-  for _, r in ipairs(M.collect(list_bufs, { pattern or '' })) do
+  for _, r in ipairs(M.collect(list_bots)) do
     for _, b in ipairs(r.result) do
       items[#items + 1] = {
         ws = r.ws,
         -- not `bufnr`: MiniPick would treat it as a buffer in this process
         remote_buf = b.bufnr,
         name = b.name,
-        text = ('%-12s %s'):format(r.ws, vim.fn.fnamemodify(b.name, ':~')),
+        text = ('%s  %-12s %s'):format(
+          b.icon,
+          r.ws,
+          vim.fn.fnamemodify(b.name, ':~')
+        ),
       }
     end
   end
+  return items
+end
+
+local refresh_ms = 1000
+
+--- Pick a terminal with a status from any running workspace. Rows refresh
+--- while the picker is open so the icons track the terminals.
+function M.pick_bots()
+  local items = M.bot_items()
+  local texts = function(list)
+    return table.concat(vim.tbl_map(function(i) return i.text end, list), '\n')
+  end
+  local shown = texts(items)
+
+  local timer = assert(vim.uv.new_timer())
+  local stop = function()
+    if timer:is_closing() then return end
+    timer:stop()
+    timer:close()
+  end
+  timer:start(
+    refresh_ms,
+    refresh_ms,
+    vim.schedule_wrap(function()
+      if not MiniPick.is_picker_active() then return stop() end
+      local fresh = M.bot_items()
+      -- only on change: setting items moves the cursor back to the top
+      if texts(fresh) == shown then return end
+      shown = texts(fresh)
+      MiniPick.set_picker_items(fresh)
+    end)
+  )
+  vim.api.nvim_create_autocmd('User', {
+    pattern = 'MiniPickStop',
+    once = true,
+    callback = stop,
+  })
 
   -- Run in the item's server, locally when that is this one
   local run = function(item, code)
@@ -187,7 +234,7 @@ function M.pick_buffers(pattern)
 
   MiniPick.start({
     source = {
-      name = 'Buffers (workspaces)',
+      name = 'Bots (workspaces)',
       items = items,
       preview = function(buf_id, item)
         local lines = run(
@@ -346,14 +393,9 @@ function M.setup(user)
     desc = "Stop this workspace's server, connecting the UI to the next running one",
   })
 
-  vim.api.nvim_create_user_command(
-    'WorkspaceBuffers',
-    function(o) M.pick_buffers(o.args) end,
-    {
-      nargs = '?',
-      desc = 'Pick a buffer from any running workspace (Lua pattern filter)',
-    }
-  )
+  vim.api.nvim_create_user_command('WorkspaceBots', M.pick_bots, {
+    desc = 'Pick a terminal with a status from any running workspace',
+  })
 end
 
 return M

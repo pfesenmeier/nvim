@@ -165,6 +165,28 @@ H.create_autocmds = function()
     end,
   })
 
+  vim.api.nvim_create_autocmd({ 'TermClose' }, {
+    group = gr,
+    desc = 'Drop statuses a dead process can no longer hold',
+    callback = function(ev)
+      local progress = bufstatuses[ev.buf]
+      if not progress then return end
+
+      -- keep outcomes (done, error) until the buffer is visited
+      local done = progress.state == 1 and progress.value == 100
+      if not done and progress.state ~= 2 then
+        bufstatuses[ev.buf] = nil
+        vim.cmd.redrawtabline()
+      end
+    end,
+  })
+
+  vim.api.nvim_create_autocmd({ 'BufWipeout' }, {
+    group = gr,
+    desc = 'Forget a wiped buffer so a reused number starts clean',
+    callback = function(ev) bufstatuses[ev.buf] = nil end,
+  })
+
   -- :h terminal-osc7
   vim.api.nvim_create_autocmd({ 'TermRequest' }, {
     group = gr,
