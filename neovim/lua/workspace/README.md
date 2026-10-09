@@ -41,7 +41,10 @@ The list also comes from `$WORKSPACES` (a JSON array of the same shape) when
   workspace. Rows are read live from each server and refresh every second while
   the picker is open, so they never show a cached status. A terminal whose
   process exits loses its working/waiting icon; done and error stay until the
-  buffer is visited. Preview shows the buffer's lines as they are in its own
+  buffer is visited. Each row shows the terminal's title (`b:term_title`, set by
+  OSC 0/2) in place of its buffer name, minus a leading state glyph; Claude Code
+  titles itself with a short topic summary. Terminals with no useful title fall
+  back to the buffer name. Preview shows the buffer's lines as they are in its own
   server; confirming switches that server to the buffer, then `:connect`s to it.
 - `:WorkspaceStop <name>` — RPC-quit the workspace's server and clean up the
   socket. Unlike `<leader>wq`, this can target a workspace other than the

@@ -159,11 +159,29 @@ local list_bots = [[
       and vim.bo[b].buftype == 'terminal'
       and term.get_icon(b)
     if icon then
-      out[#out + 1] = { bufnr = b, name = vim.api.nvim_buf_get_name(b), icon = icon }
+      out[#out + 1] = {
+        bufnr = b,
+        name = vim.api.nvim_buf_get_name(b),
+        icon = icon,
+        title = vim.b[b].term_title,
+      }
     end
   end
   return out
 ]]
+
+--- What a terminal's title says it is working on, or nil when it says nothing
+--- useful. Claude Code titles are "<state glyph> <topic summary>"; the glyph
+--- repeats the status icon, so it is dropped.
+--- @param title string? `b:term_title`
+--- @return string?
+local function summary(title)
+  if not title or title:match('^term://') then return nil end
+  title = vim.trim((title:gsub('^[\128-\255]+%s+', '')))
+  -- Claude Code's title before the first prompt
+  if title == '' or title == 'Claude Code' then return nil end
+  return title
+end
 
 --- Picker rows for every terminal with a status in a running workspace. Read
 --- live from each server on every call; nothing is cached.
@@ -180,7 +198,7 @@ function M.bot_items()
         text = ('%s  %-12s %s'):format(
           b.icon,
           r.ws,
-          vim.fn.fnamemodify(b.name, ':~')
+          summary(b.title) or vim.fn.fnamemodify(b.name, ':~')
         ),
       }
     end

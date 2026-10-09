@@ -371,24 +371,25 @@ end
 -- Real terminal buffers ('buftype' cannot be set to 'terminal' by hand), with
 -- `HueyTerm` stubbed to read icons from `_G.icons` so a test can change them.
 local add_bot_code = [[
-  local icon = ...
+  local icon, title = ...
   _G.icons = _G.icons or {}
   _G.HueyTerm = _G.HueyTerm or { get_icon = function(b) return _G.icons[b] end }
   vim.cmd.enew()
   vim.fn.jobstart({ 'sleep', '30' }, { term = true })
   local b = vim.api.nvim_get_current_buf()
   _G.icons[b] = icon
+  if title then vim.b[b].term_title = title end
   return { bufnr = b, name = vim.api.nvim_buf_get_name(b) }
 ]]
 
 --- Adds a terminal to server `chan` (or the child when nil) with status `icon`
---- (none when nil).
+--- (none when nil) and, when given, terminal `title`.
 --- @return { bufnr: integer, name: string }
-local add_bot = function(chan, icon)
+local add_bot = function(chan, icon, title)
   if chan then
-    return vim.rpcrequest(chan, 'nvim_exec_lua', add_bot_code, { icon })
+    return vim.rpcrequest(chan, 'nvim_exec_lua', add_bot_code, { icon, title })
   end
-  return child.lua(add_bot_code, { icon })
+  return child.lua(add_bot_code, { icon, title })
 end
 
 local set_icon = function(chan, bufnr, icon)
@@ -398,6 +399,14 @@ local set_icon = function(chan, bufnr, icon)
     '_G.icons[...] = select(2, ...)',
     { bufnr, icon }
   )
+end
+
+--- Text after the icon and workspace of every row the picker was given.
+local row_details = function()
+  return child.lua_get([[vim.tbl_map(
+    function(i) return i.text:match('^%S+%s+%S+%s+(.*)$') end,
+    _G.source.items
+  )]])
 end
 
 --- Leading icon of every row the picker was given, in order.
@@ -421,6 +430,24 @@ T['M.pick_bots()']['lists terminals with a status from every running workspace']
   eq(picked(), { { 'beta', waiting.name }, { 'delta', working.name } })
   eq(row_icons(), { '⏸', '∿' })
   eq(child.lua_get('_G.source.items[1].text'):match('^%S+%s+(%S+)'), 'beta')
+end
+
+T['M.pick_bots()']['shows the terminal title without its state glyph'] = function()
+  local root = setup_live()
+  local beta = start_server(root, 'beta')
+  add_bot(beta, '∿', '◐ pick_bots in workspace init.lua')
+  add_bot(beta, '⏸', 'plain title')
+  child.lua('_G.ws.pick_bots()')
+  eq(row_details(), { 'pick_bots in workspace init.lua', 'plain title' })
+end
+
+T['M.pick_bots()']['falls back to the buffer name without a summary'] = function()
+  local root = setup_live()
+  local beta = start_server(root, 'beta')
+  local untitled = add_bot(beta, '∿') -- title is the default `term://` name
+  local fresh = add_bot(beta, '⏸', '✳ Claude Code')
+  child.lua('_G.ws.pick_bots()')
+  eq(row_details(), { untitled.name, fresh.name })
 end
 
 T['M.pick_bots()']['skips a server without HueyTerm'] = function()
