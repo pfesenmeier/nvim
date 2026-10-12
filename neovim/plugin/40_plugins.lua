@@ -230,6 +230,11 @@ Config.now(function()
   vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F99' })
 end)
 
+later(function()
+  vim.pack.add({ 'https://github.com/MeanderingProgrammer/render-markdown.nvim' })
+  require('render-markdown').setup({})
+end)
+
 -- Dap
 later(function()
   add({
