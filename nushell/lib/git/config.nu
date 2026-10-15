@@ -5,6 +5,16 @@ git config --global user.email pfesenmeier@gmail.com
 git config --global diff.external difft
 git config --global push.autoSetupRemote true
 
+# register git-credential-manager as the credential helper (github and azure devops)
+git-credential-manager configure
+# also set in env.nu, but git launched outside nushell needs it here
+git config --global credential.credentialStore gpg
+# azure devops sign in under wsl: gcm 3 tries the linux sign in broker, which isn't installed,
+# and exits silently
+if $nu.os-info.name == 'linux' {
+  git config --global credential.msauthUseBroker false
+}
+
 git config --global commit.gpgsign false
 git config --global gpg.program gpg
 

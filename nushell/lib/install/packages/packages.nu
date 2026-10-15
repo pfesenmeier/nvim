@@ -55,6 +55,8 @@ export def main [] {
     [git-credential-manager                null                                      dotnet                                              dotnet]
     [dotnet-ef                             null                                      dotnet                                              dotnet]
     [csharpier                             null                                      dotnet                                              dotnet]
+    # auth for azure devops nuget feeds
+    [Microsoft.Artifacts.CredentialProvider.NuGet.Tool null                      dotnet                                              dotnet]
     # TODO: wait until out of prerelease https://www.nuget.org/packages/roslyn-language-server/
     # [roslyn-language-server                null                                      dotnet                                              dotnet]
     [func                                  winget=Microsoft.Azure.FunctionsCoreTools 'brew=azure/functions;azure-functions-core-tools@4' 'brew=azure/functions;azure-functions-core-tools@4']
@@ -67,5 +69,7 @@ export def main [] {
     [dbus-x11                              null                                      apt                                                 null]
     # backs the git-credential-manager gpg store
     [pass                                  null                                      apt                                                 null]
+    # secure store for gcm's azure devops token cache, otherwise it falls back to plain text
+    [gnome-keyring                         null                                      apt                                                 null]
   ]
 }

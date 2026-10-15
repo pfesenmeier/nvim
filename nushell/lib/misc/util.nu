@@ -39,10 +39,6 @@ export def --env cdp [] {
   cd-sibling true
 }
 
- export def azurite-tmp [] {
-   job spawn { azurite --inMemoryPersistence } -d azurite
- }
-
  # Copy zoxide entries from one jj workspace to every sibling jj workspace.
  # Paths are rewritten (source prefix -> sibling prefix); scores are preserved.
  # Re-running accumulates scores (`zoxide import --merge`).
