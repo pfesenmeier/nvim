@@ -29,12 +29,21 @@ def parse-install-cmd [cmd: string, packages: list<string>]: nothing -> list<str
   }
 }
 
+def run-manager [manager: string, args: list<string>, use_sudo: bool] {
+  if $use_sudo {
+    ^sudo $manager ...$args
+  } else {
+    ^$manager ...$args
+  }
+}
+
 def install-packages [manager: any, containers: list<string>, packages: list<string>, use_windows_exe = false] {
   let manager = get-manager $manager
   let add_container_args = $manager.add_container_cmd | split-whitespace
   let install_multiple = $manager.install_multiple
   let install_cmd = $manager.install_cmd
   let name = $manager.name
+  let use_sudo = $manager.sudo
   let manager = if $use_windows_exe {
     $manager.windows_exe
   } else {
@@ -56,11 +65,11 @@ def install-packages [manager: any, containers: list<string>, packages: list<str
     print $"packages ($packages | str join ' ')"
     if $install_multiple {
       let install_cmd = parse-install-cmd $install_cmd $packages
-      ^$manager ...$install_cmd
+      run-manager $manager $install_cmd $use_sudo
     } else {
       for package in $packages {
         let install_cmd = parse-install-cmd $install_cmd [$package]
-        ^$manager ...$install_cmd
+        run-manager $manager $install_cmd $use_sudo
       }
     }
   } else {
@@ -130,13 +139,17 @@ def install_grouped_packages [$grouped_packages: any, use_windows_exe: bool = fa
   }
 }
 
-export def "install packages" [] {
+export def "install packages" [
+  --windows # under wsl, also install the windows packages
+] {
   let src_col = get-package-column
   let grouped_packages = group_packages $src_col
 
   install_grouped_packages $grouped_packages
 
-  if (is_wsl) {
+  if $windows and not (is_wsl) {
+    print "--windows only applies under wsl. skipping"
+  } else if $windows {
     print ("installing wsl")
     let grouped_packages = group_packages srcWindows
     install_grouped_packages $grouped_packages true
@@ -147,6 +160,8 @@ def upgrade-all [manager: any, bin_col = "name"] {
   let bin = $manager | get $bin_col
   # manager has no windows version
   if $bin == null { return }
+  # manager is upgraded elsewhere (apt)
+  if $manager.upgrade_all_cmd == null { return }
 
   let found = which $bin
   if ($found | is-empty) { return }

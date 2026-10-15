@@ -6,7 +6,8 @@ const self_path = path self
 def check-pinentry [] {
   if $nu.os-info.name == "linux" and (which pinentry-gnome3 | is-empty) {
     log warning "pinentry-gnome3 is not installed on this system"
-    log warning "install with 'sudo apt install pinentry-gnome3'"
+    log warning "install with 'sudo apt install pinentry-gnome3 dbus-x11 pass'"
+    log warning "then run scripts/gpg_setup.nu"
   }
 }
 

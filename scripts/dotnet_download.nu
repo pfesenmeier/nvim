@@ -1,7 +1,3 @@
-if $nu.os-info.name != 'macos' {
-  print "macos not detected"
-  exit 1
-}
 
 # https://learn.microsoft.com/en-us/dotnet/core/install/macos#install-net-with-a-script
 cd ~/Downloads

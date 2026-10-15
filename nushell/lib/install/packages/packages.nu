@@ -2,23 +2,20 @@ export def main [] {
   [
     [name                                  srcWindows                                srcUnix                                             srcMac ];
     [stylua                                null                                      brew                                                brew]
-    [harlequin                             null                                      brew                                                brew]
-    [powershell                            null                                      brew                                                brew]
+    # pdfs 
     [poppler                               null                                      brew                                                brew]
-    [deno                                  scoop                                     brew                                                brew]
     [fd                                    scoop                                     brew                                                brew]
     [pnpm                                  scoop                                     brew                                                brew]
     [fzf                                   scoop                                     brew                                                brew]
     [gcc                                   scoop                                     brew                                                brew]
     [gh                                    scoop                                     brew                                                brew]
     [lua-language-server                   scoop                                     brew                                                brew]
-    [go                                    null                                      brew                                                brew]
-    [gopls                                 null                                      brew                                                brew]
     [marksman                              scoop                                     brew                                                brew]
     [neovim                                scoop                                     brew                                                brew]
     [nushell                               scoop=nu                                  brew                                                brew]
     [ripgrep                               scoop                                     brew                                                brew]
     [bat                                   scoop                                     brew                                                brew]
+    # neovim
     [vcredist2022                          scoop                                     null                                                null]
     ['nerd-fonts/0xProto-NF-Mono'          scoop                                     null                                                brew=font-0xproto-nerd-font]
     [gsudo                                 scoop                                     null                                                null]
@@ -26,12 +23,13 @@ export def main [] {
     [komorebi                              scoop                                     null                                                'brew=lgug2z/tap;komorebi-for-mac']
     [whkd                                  scoop                                     null                                                'brew=asmvik/formulae/skhd']
     [gpg4win                               scoop                                     null                                                null]
-    [discord                               winget=discord.discord                    null                                                null]
+    [difftastic                            null                                      brew                                                brew]
+    # [discord                               winget=discord.discord                    null                                                null]
     [chrome                                winget=google.chrome                      null                                                null]
     [visualstudiocode                      winget=microsoft.visualstudiocode         null                                                null]
     [dockerdesktop                         winget=docker.dockerdesktop               null                                                null]
     [orbstack                              null                                      null                                                brew]
-    [postgres                              null                                      null                                                'brew=postgresql@18']
+    # [postgres                              null                                      null                                                'brew=postgresql@18']
     [dbeaver                               winget=dbeaver.dbeaver                    null                                                null]
     [gpg4win                               winget=GnuPG.Gpg4win                      null                                                null]
     [devtoys                               winget=DevToys-app.DevToys                null                                                null]
@@ -51,6 +49,7 @@ export def main [] {
     [vscode-langservers-extracted          null                                      pnpm                                                pnpm]
     [@tailwindcss/language-server          null                                      null                                                null]
     [claude-code                           winget=Anthropic.ClaudeCode               'brew=claude-code@latest'                           'brew=claude-code@latest']
+    # word files
     [pandoc                                null                                      brew                                                brew]
     [yq                                    scoop                                     brew                                                brew]
     [git-credential-manager                null                                      dotnet                                              dotnet]
@@ -62,5 +61,11 @@ export def main [] {
     [azure-storage-explorer                winget=Microsoft.Azure.StorageExplorer    null                                                null]
     [win32yank                             winget=equalsraf.win32yank                null                                                null]
     [Logitech.OptionsPlus                  winget                                    null                                                brew=logi-options+]
+    # gpg passphrase prompt for git signing and the credential manager store
+    [pinentry-gnome3                       null                                      apt                                                 null]
+    # dbus-launch, so pinentry-gnome3 can open under wsl
+    [dbus-x11                              null                                      apt                                                 null]
+    # backs the git-credential-manager gpg store
+    [pass                                  null                                      apt                                                 null]
   ]
 }
