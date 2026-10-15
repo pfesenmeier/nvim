@@ -6,6 +6,11 @@
 # Theme file lives at themes/everforest.toml in this repo (symlinked).
 theme = "everforest"
 
+[preview]
+# Use the pane-sized difft tool from the jj config
+revision_command = ["show", "--color", "always", "--tool", "difft-pane", "-r", "$change_id"]
+file_command = ["diff", "--color", "always", "--tool", "difft-pane", "-r", "$change_id", "$file"]
+
 [[actions]]
 name = "nv_edit_file"
 lua = "EditFile()"

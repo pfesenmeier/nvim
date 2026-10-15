@@ -123,17 +123,40 @@ def group_packages [src_col: string] {
   (packages
     | each {|pkg|
         let src = $pkg | get $src_col
-        parse-pkg-row $pkg.name $src
+        parse-pkg-row $pkg.name $src | if $in != null { insert name $pkg.name }
       }
     | group-by manager --prune --to-table
   )
+}
+
+def is-deb-installed [name: string]: nothing -> bool {
+  let result = ^dpkg-query -W -f '${Status}' $name | complete
+  $result.exit_code == 0 and ($result.stdout | str contains "install ok installed")
+}
+
+# apt only installs a .deb from a local path, so download urls first.
+# skip ones already installed, apt upgrade handles those
+def resolve-deb-url [item: record]: nothing -> any {
+  if not ($item.package | str starts-with "https://") { return $item.package }
+  if (is-deb-installed $item.name) { return null }
+
+  let path = mktemp --tmpdir --suffix .deb
+  print $"downloading ($item.package)"
+  http get --raw $item.package | save --force $path
+  # let apt's sandbox user read it
+  chmod 644 $path
+  $path
 }
 
 def install_grouped_packages [$grouped_packages: any, use_windows_exe: bool = false] {
   for group in $grouped_packages {
     let manager = $group.manager
     let containers = $group.items | get container | where $it != null | uniq
-    let packages = $group.items | get package | uniq
+    let packages = if $manager == "apt" {
+      $group.items | each {|item| resolve-deb-url $item } | compact | uniq
+    } else {
+      $group.items | get package | uniq
+    }
 
     install-packages $manager $containers $packages $use_windows_exe
   }

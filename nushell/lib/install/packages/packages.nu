@@ -2,8 +2,8 @@ export def main [] {
   [
     [name                                  srcWindows                                srcUnix                                             srcMac ];
     [stylua                                null                                      brew                                                brew]
-    # pdfs 
-    [poppler                               null                                      brew                                                brew]
+    # pdfs. apt on linux: brew's poppler pulls in a second gnupg that clashes with apt's gpg-agent
+    [poppler                               null                                      apt=poppler-utils                                   brew]
     [fd                                    scoop                                     brew                                                brew]
     [pnpm                                  scoop                                     brew                                                brew]
     [fzf                                   scoop                                     brew                                                brew]
@@ -25,7 +25,8 @@ export def main [] {
     [gpg4win                               scoop                                     null                                                null]
     [difftastic                            null                                      brew                                                brew]
     # [discord                               winget=discord.discord                    null                                                null]
-    [chrome                                winget=google.chrome                      null                                                null]
+    # linux: the .deb adds google's apt repo, so apt upgrade keeps it current after this
+    [google-chrome-stable                  winget=google.chrome                      'apt=https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb' null]
     [visualstudiocode                      winget=microsoft.visualstudiocode         null                                                null]
     [dockerdesktop                         winget=docker.dockerdesktop               null                                                null]
     [orbstack                              null                                      null                                                brew]
@@ -52,6 +53,7 @@ export def main [] {
     # word files
     [pandoc                                null                                      brew                                                brew]
     [yq                                    scoop                                     brew                                                brew]
+    [jq                                    scoop                                     brew                                                brew]
     [git-credential-manager                null                                      dotnet                                              dotnet]
     [dotnet-ef                             null                                      dotnet                                              dotnet]
     [csharpier                             null                                      dotnet                                              dotnet]
@@ -60,7 +62,9 @@ export def main [] {
     # TODO: wait until out of prerelease https://www.nuget.org/packages/roslyn-language-server/
     # [roslyn-language-server                null                                      dotnet                                              dotnet]
     [func                                  winget=Microsoft.Azure.FunctionsCoreTools 'brew=azure/functions;azure-functions-core-tools@4' 'brew=azure/functions;azure-functions-core-tools@4']
-    [azure-storage-explorer                winget=Microsoft.Azure.StorageExplorer    null                                                null]
+    [azure-cli                             winget=Microsoft.AzureCLI                 brew                                                brew]
+    [sqlcmd                                winget=Microsoft.Sqlcmd                   brew                                                brew]
+    [azure-storage-explorer               winget=Microsoft.Azure.StorageExplorer    null                                                null]
     [win32yank                             winget=equalsraf.win32yank                null                                                null]
     [Logitech.OptionsPlus                  winget                                    null                                                brew=logi-options+]
     # gpg passphrase prompt for git signing and the credential manager store
