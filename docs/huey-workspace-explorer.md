@@ -1,0 +1,60 @@
+# Huey
+
+- Huey is a collection of neovim plugins to help manage agents, workspaces, and neovim servers
+- API is heavily inspired by herdr-core and rex
+    - https://www.superlogical.com/rex/docs/installation
+    - https://github.com/herdrdev/herdr-core, https://herdr.dev/core/
+
+- out of scope:
+  - persistence of agents outside the neovim server process. relying on claude /resume command
+
+- term definition
+  - workspace - a neovim server with `cwd` set to a jujutsu worktree.
+
+- Features include
+  - pickers to attach to a server or open an agent terminal
+  - plugin to manage workspaces and their agents a-la mini.files
+  - a commandline tool and skill for agents to interact with your editor
+  - status bar and buffer bar helpers that work in mini
+
+
+## Huey.Explorer
+
+there are three panes:
+- repositories
+  - workspaces (jj workspace + huey.workspace)
+    - agents
+
+- each one has a status icon next to it
+
+- <leader>eh -> open huey.explorer pane
+  - if coming from an agent buffer, open at the agent pane
+  - else, open on the workspace pane, with current workspace focused.
+
+(does this mean each pane will be a different buffer type?)
+
+- each will need to define how to sync with the current state
+  - creating a line
+  - deleting a line
+  - changing the text
+
+## Huey.Cli and SKILL.md
+
+## Implementation:
+
+### State
+
+- global .huey folder to keep track of persistent state
+
+### Configuration Options
+
+- where workspaces are saved on disk (sibling folder vs global folder)
+- which harness to use (claude, codex, opencode, pi)
+- custom pre-processor, e.g. to allow custom prefixes to commands
+
+## Open Questions
+
+1. Would like to include the prompt inline in the agents pane, but allow opening interactive (empty) claude instances
+  a. solution - allow synchronizing empty lines (mini.files strips empty lines)
+1. How to
+
