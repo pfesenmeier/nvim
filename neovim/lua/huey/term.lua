@@ -26,6 +26,9 @@ local H = {}
 --- but this is what we actually need for the bufline
 local bufstatuses = {}
 
+--- @table <number, true> terminals that have reported progress and are still running
+local bots = {}
+
 --- Parses an OSC 9;4 progress sequence
 --- Matches "\27]9;4;<state>" or "\27]9;4;<state>;<value>".
 --- @param sequence string
@@ -126,6 +129,12 @@ HueyTerm.get_icon = function(buf)
   return H.get_icon(progress)
 end
 
+--- True for a running terminal that has reported progress, even when it has no
+--- status right now (e.g. one that reported state 0).
+---@param buf number
+---@return boolean
+HueyTerm.is_bot = function(buf) return bots[buf] == true end
+
 H.create_autocmds = function()
   local gr = vim.api.nvim_create_augroup('HueyTerm', {})
 
@@ -137,6 +146,7 @@ H.create_autocmds = function()
       local buf = ev.buf
       if not buf or not progress then return end
 
+      bots[buf] = true
       if progress.state == 0 then
         bufstatuses[buf] = nil
       else
@@ -150,29 +160,15 @@ H.create_autocmds = function()
     end,
   })
 
-  vim.api.nvim_create_autocmd({ 'BufEnter' }, {
-    group = gr,
-    desc = "Removes terminal ('done') statuses when enter a buffer",
-    callback = function(ev)
-      if vim.bo[ev.buf].buftype ~= 'terminal' then return end
-      local progress = bufstatuses[ev.buf]
-      if not progress then return end
-
-      -- 1 => "in progress"
-      if progress.state ~= 1 or progress.value == 100 then
-        bufstatuses[ev.buf] = nil
-      end
-    end,
-  })
-
   vim.api.nvim_create_autocmd({ 'TermClose' }, {
     group = gr,
     desc = 'Drop statuses a dead process can no longer hold',
     callback = function(ev)
+      bots[ev.buf] = nil
       local progress = bufstatuses[ev.buf]
       if not progress then return end
 
-      -- keep outcomes (done, error) until the buffer is visited
+      -- keep outcomes (done, error) until the buffer is wiped
       local done = progress.state == 1 and progress.value == 100
       if not done and progress.state ~= 2 then
         bufstatuses[ev.buf] = nil
@@ -184,7 +180,10 @@ H.create_autocmds = function()
   vim.api.nvim_create_autocmd({ 'BufWipeout' }, {
     group = gr,
     desc = 'Forget a wiped buffer so a reused number starts clean',
-    callback = function(ev) bufstatuses[ev.buf] = nil end,
+    callback = function(ev)
+      bufstatuses[ev.buf] = nil
+      bots[ev.buf] = nil
+    end,
   })
 
   -- :h terminal-osc7

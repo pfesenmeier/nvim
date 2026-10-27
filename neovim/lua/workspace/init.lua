@@ -148,8 +148,9 @@ function M.collect(code, args)
   return out
 end
 
--- Terminals with a tabline status icon (see 'huey/term.lua'). Empty in a server
--- that never set up HueyTerm.
+-- Terminals with a tabline status icon (see 'huey/term.lua'), plus running ones
+-- that reported progress before but have no status now, shown as idle. Empty in
+-- a server that never set up HueyTerm.
 local list_bots = [[
   local term = rawget(_G, 'HueyTerm')
   if not term then return {} end
@@ -157,7 +158,7 @@ local list_bots = [[
   for _, b in ipairs(vim.api.nvim_list_bufs()) do
     local icon = vim.api.nvim_buf_is_valid(b)
       and vim.bo[b].buftype == 'terminal'
-      and term.get_icon(b)
+      and (term.get_icon(b) or (term.is_bot and term.is_bot(b) and '·'))
     if icon then
       out[#out + 1] = {
         bufnr = b,

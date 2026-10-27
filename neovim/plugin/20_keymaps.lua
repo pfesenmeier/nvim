@@ -294,6 +294,14 @@ nmap_leader('tt', '<Cmd>vertical term<CR>', 'Terminal (vertical)')
 nmap_leader('cc', '<Cmd>term claude<CR>', 'Claude code')
 
 vim.keymap.set('t', "<C-b>", "<C-\\><C-n>", { desc = 'Exit term mode' })
+-- <C-b> also goes back from normal and visual mode, so `a`/`i` stay free for textobjects
+vim.api.nvim_create_autocmd('TermOpen', {
+  desc = 'Map <C-b> to resume terminal',
+  callback = function(ev)
+    vim.keymap.set('n', '<C-b>', 'i', { buffer = ev.buf, desc = 'Resume terminal' })
+    vim.keymap.set('x', '<C-b>', '<Esc>i', { buffer = ev.buf, desc = 'Resume terminal' })
+  end,
+})
 -- allows these to move around on any buffer
 vim.keymap.set({'t', 'i'}, "<C-j>", "<C-\\><C-n><C-w>j", { desc = 'Exit term mode' })
 vim.keymap.set({'t', 'i'}, "<C-k>", "<C-\\><C-n><C-w>k", { desc = 'Exit term mode' })

@@ -60,7 +60,7 @@ T['TermClose drops a status a dead process cannot hold'] = new_set({
   end,
 })
 
-T['TermClose keeps an outcome until visited'] = new_set({
+T['TermClose keeps an outcome'] = new_set({
   parametrize = { { '2', '⊘' }, { '1;100', '●' } },
 }, {
   test = function(seq, shown)
@@ -68,6 +68,37 @@ T['TermClose keeps an outcome until visited'] = new_set({
     eq(icon(), shown)
   end,
 })
+
+local is_bot = function() return child.lua_get('HueyTerm.is_bot(_G.term_buf)') end
+
+T['keeps a status when the buffer is visited'] = function()
+  start_term([[printf '\033]9;4;1;100\007'; sleep 30]])
+  wait_icon('●')
+  child.cmd('enew')
+  child.cmd('buffer ' .. child.lua_get('_G.term_buf'))
+  eq(icon(), '●')
+end
+
+T['stays a bot after state 0'] = function()
+  start_term([[printf '\033]9;4;3\007'; read x; printf '\033]9;4;0\007'; sleep 30]])
+  wait_icon('∿')
+  advance()
+  wait_icon(nil)
+  eq(is_bot(), true)
+end
+
+T['a plain terminal is no bot'] = function()
+  start_term('sleep 30')
+  eq(is_bot(), false)
+end
+
+T['stops being a bot when its process exits'] = function()
+  start_term([[printf '\033]9;4;1;100\007'; read x]])
+  wait_icon('●')
+  advance()
+  eq(child.wait_for('_G.closed'), true)
+  eq(is_bot(), false)
+end
 
 T['forgets a wiped buffer'] = function()
   start_term([[printf '\033]9;4;3\007'; sleep 30]])

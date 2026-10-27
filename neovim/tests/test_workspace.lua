@@ -369,27 +369,36 @@ T['M.collect()']['runs in-process for its own workspace'] = function()
 end
 
 -- Real terminal buffers ('buftype' cannot be set to 'terminal' by hand), with
--- `HueyTerm` stubbed to read icons from `_G.icons` so a test can change them.
+-- `HueyTerm` stubbed to read icons from `_G.icons` and bots from `_G.bots` so a
+-- test can change them.
 local add_bot_code = [[
-  local icon, title = ...
-  _G.icons = _G.icons or {}
-  _G.HueyTerm = _G.HueyTerm or { get_icon = function(b) return _G.icons[b] end }
+  local icon, title, bot = ...
+  -- nil args before a non-nil one arrive over RPC as vim.NIL
+  if icon == vim.NIL then icon = nil end
+  if title == vim.NIL then title = nil end
+  _G.icons, _G.bots = _G.icons or {}, _G.bots or {}
+  _G.HueyTerm = _G.HueyTerm or {
+    get_icon = function(b) return _G.icons[b] end,
+    is_bot = function(b) return _G.bots[b] == true end,
+  }
   vim.cmd.enew()
   vim.fn.jobstart({ 'sleep', '30' }, { term = true })
   local b = vim.api.nvim_get_current_buf()
   _G.icons[b] = icon
+  _G.bots[b] = bot
   if title then vim.b[b].term_title = title end
   return { bufnr = b, name = vim.api.nvim_buf_get_name(b) }
 ]]
 
 --- Adds a terminal to server `chan` (or the child when nil) with status `icon`
---- (none when nil) and, when given, terminal `title`.
+--- (none when nil) and, when given, terminal `title`. `bot` marks it as having
+--- reported progress before.
 --- @return { bufnr: integer, name: string }
-local add_bot = function(chan, icon, title)
+local add_bot = function(chan, icon, title, bot)
   if chan then
-    return vim.rpcrequest(chan, 'nvim_exec_lua', add_bot_code, { icon, title })
+    return vim.rpcrequest(chan, 'nvim_exec_lua', add_bot_code, { icon, title, bot })
   end
-  return child.lua(add_bot_code, { icon, title })
+  return child.lua(add_bot_code, { icon, title, bot })
 end
 
 local set_icon = function(chan, bufnr, icon)
@@ -430,6 +439,16 @@ T['M.pick_bots()']['lists terminals with a status from every running workspace']
   eq(picked(), { { 'beta', waiting.name }, { 'delta', working.name } })
   eq(row_icons(), { '⏸', '∿' })
   eq(child.lua_get('_G.source.items[1].text'):match('^%S+%s+(%S+)'), 'beta')
+end
+
+T['M.pick_bots()']['lists a bot with no status as idle'] = function()
+  local root = setup_live()
+  local beta = start_server(root, 'beta')
+  local working = add_bot(beta, '●', nil, true)
+  local idle = add_bot(beta, nil, nil, true) -- it reported state 0
+  child.lua('_G.ws.pick_bots()')
+  eq(picked(), { { 'beta', working.name }, { 'beta', idle.name } })
+  eq(row_icons(), { '●', '·' })
 end
 
 T['M.pick_bots()']['shows the terminal title without its state glyph'] = function()
