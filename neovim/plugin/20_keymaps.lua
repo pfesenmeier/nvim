@@ -115,7 +115,6 @@ nmap_leader('bP', '<Cmd>lua HueyBuffer.delete_buf_swaps()<CR>', 'Swap files (del
 nmap_leader('bw', '<Cmd>lua MiniBufremove.wipeout()<CR>', 'Wipeout')
 nmap_leader('bW', '<Cmd>lua MiniBufremove.wipeout(0, true)<CR>', 'Wipeout!')
 nmap_leader('bo', '<Cmd>%bd | e #<CR>', 'Buf only')
-
 -- e is for 'Explore' and 'Edit'. Common usage:
 -- - `<Leader>ed` - open explorer at current working directory
 -- - `<Leader>ef` - open directory of current file (needs to be present on disk)

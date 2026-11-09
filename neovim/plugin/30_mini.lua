@@ -65,12 +65,30 @@ now(function()
     },
   })
 end)
-vim.keymap.set(
-  'n',
-  'gY',
-  '<Cmd>let @+ = expand("%")',
-  { desc = 'Copy path to system clipboard' }
-)
+-- `gY` appends to the system clipboard, the way `"Ay` appends to register `a`.
+-- The `+` register has no uppercase form, so yank into the unnamed register and
+-- add that onto the end of the clipboard.
+local append_unnamed_to_clipboard = function()
+  local reg = vim.fn.getreginfo('"')
+  vim.fn.setreg('+', reg.regcontents, 'a' .. reg.regtype)
+end
+
+Config.clipboard_append_operator = function(type)
+  local select = ({ char = '`[v`]', line = "'[V']", block = '`[\22`]' })[type]
+  vim.cmd('silent keepjumps normal! ' .. select .. 'y')
+  append_unnamed_to_clipboard()
+end
+
+local clipboard_append = function()
+  vim.o.operatorfunc = 'v:lua.Config.clipboard_append_operator'
+  return 'g@'
+end
+vim.keymap.set('n', 'gY', clipboard_append, { expr = true, desc = 'Append to system clipboard' })
+vim.keymap.set('n', 'gYY', function() return clipboard_append() .. '_' end, { expr = true, desc = 'Append line to system clipboard' })
+vim.keymap.set('x', 'gY', function()
+  vim.cmd('normal! y')
+  append_unnamed_to_clipboard()
+end, { desc = 'Append selection to system clipboard' })
 
 -- Icon provider. Usually no need to use manually. It is used by plugins like
 -- 'mini.pick', 'mini.files', 'mini.statusline', and others.
