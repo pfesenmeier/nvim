@@ -13,7 +13,8 @@ export def main [] {
     [marksman                              scoop                                     brew                                                brew]
     [neovim                                scoop                                     brew                                                brew]
     # gui for neovim. wsl uses the windows install with `neovide --wsl`
-    [neovide                               scoop                                     null                                                brew]
+    # mac: the cask has Neovide.app, the `neovide` formula is only the cli binary
+    [neovide                               scoop                                     null                                                brew=neovide-app]
     [nushell                               scoop=nu                                  brew                                                brew]
     [ripgrep                               scoop                                     brew                                                brew]
     [bat                                   scoop                                     brew                                                brew]
