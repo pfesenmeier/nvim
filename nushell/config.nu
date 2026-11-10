@@ -111,6 +111,8 @@ let everforest = {
         separator: '#D3C6AA'
 }
 
+let default_keybindings = $env.config.keybindings
+
 $env.config = {
     show_banner: false
     edit_mode: vi
@@ -152,9 +154,9 @@ $env.config = {
     # empty -- run `history import` once to carry over history.txt.
     # history: { file_format: "sqlite", isolation: true }
 
-    # Only bindings that are NOT already reedline/nushell defaults. Entries merge
-    # with the defaults by `name`: a matching name replaces that default, a new
-    # name is appended. Reusing one name twice warns (shared_keybindings_name).
+    # Only bindings that are NOT already reedline/nushell defaults. The block
+    # after this record merges them with the defaults by `name`: a matching name
+    # replaces that default, a new name is appended.
     keybindings: [
         {
             name: neovim
@@ -260,6 +262,14 @@ $env.config = {
     ]
 }
 
+# Setting `keybindings` above replaces the default list outright, which drops
+# completion_menu and leaves Tab doing nothing. Put the defaults back, minus
+# any we redefine by name.
+$env.config.keybindings = (
+    $default_keybindings
+    | where name not-in ($env.config.keybindings | get name)
+    | append $env.config.keybindings
+)
 
 alias e = nvim
 alias s = git status

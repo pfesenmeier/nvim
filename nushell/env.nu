@@ -206,7 +206,9 @@ $env.PATH = ($env.PATH | split row (char esep) | prepend [$pnpmBin $orbBin $loca
 # for linux credential manager
 # OR git config --global credential.credentialStore gpg
 # https://github.com/git-ecosystem/git-credential-manager/blob/main/docs/credstores.md#gpgpass-compatible-files
-$env.GCM_CREDENTIAL_STORE = "gpg"
+if $nu.os-info.family != windows {
+    $env.GCM_CREDENTIAL_STORE = "gpg"
+}
 
 # SFTP
 $env.SSH_AUTH_SOCK = (gpgconf --list-dirs agent-ssh-socket | str trim)

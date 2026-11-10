@@ -15,6 +15,12 @@ if $nu.os-info.name == 'linux' {
   git config --global credential.msauthUseBroker false
 }
 
+# git for windows defaults this to false and checks out symlinks as text files holding the target path.
+# creating symlinks needs developer mode turned on.
+if $nu.os-info.name == 'windows' {
+  git config --global core.symlinks true
+}
+
 git config --global commit.gpgsign false
 git config --global gpg.program gpg
 

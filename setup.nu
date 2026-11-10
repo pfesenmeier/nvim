@@ -26,7 +26,15 @@ def set_secrets_file [] {
 # because self-installed programs depend on it (e.g. roslyn lsp)
 def symlink_local_bins [] {
   let srcs = $self_path | path dirname | path join bin
-  let srcs = glob ($srcs + "/*")
+  # ls instead of glob: on windows the backslashes in the path
+  # are treated as escape characters in the glob pattern
+  let srcs = ls $srcs | get name
+  # .cmd wrappers are only for windows
+  let srcs = if $nu.os-info.family == 'windows' {
+    $srcs
+  } else {
+    $srcs | where {|src| ($src | path parse | get extension) != 'cmd' }
+  }
 
   let dest_dir = $nu.home-dir | path join .local bin
 
@@ -36,6 +44,22 @@ def symlink_local_bins [] {
 
     log info $"linking ($src) to ($dest)"
     idempotent_symlink $src $dest
+  }
+}
+
+# programs not started from nushell (e.g. claude hooks) need ~/.local/bin on the windows user PATH
+def add_local_bin_to_windows_path [] {
+  if $nu.os-info.family != 'windows' { return }
+
+  let local_bin = $nu.home-dir | path join .local bin
+  let user_path = powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable('PATH','User')" | str trim
+
+  if ($user_path | split row ';' | any {|p| $p == $local_bin }) {
+    log info $"($local_bin) already on user PATH"
+  } else {
+    log info $"adding ($local_bin) to user PATH"
+    let cmd = "[Environment]::SetEnvironmentVariable('PATH', '" + $local_bin + ";' + [Environment]::GetEnvironmentVariable('PATH','User'), 'User')"
+    powershell -NoProfile -Command $cmd
   }
 }
 
@@ -65,8 +89,11 @@ def idempotent_symlink [source: string, dest: string] {
   let dest_dir = $dest | path dirname
   mkdir $dest_dir
 
-  if ($dest | path exists) {
-    rm --recursive $dest
+  # --no-symlink: also catch existing links, including broken ones,
+  # which plain `path exists` reports as missing because it follows the link
+  if ($dest | path exists --no-symlink) {
+    log info $"removing existing ($dest)"
+    rm --recursive --permanent $dest
   }
 
   symlink $source $dest
@@ -99,6 +126,11 @@ export def setup [] {
     } else {
       'ghostty.linux'
     }
+  )
+
+  let herdr_core_config_folder = (
+    (if $nu.os-info.family == 'windows' { [AppData Roaming] } else { [.config] })
+    | append herdr-core
   )
 
   let gpg_config_file = (
@@ -198,6 +230,7 @@ export def setup [] {
     }
 
     symlink_local_bins
+    add_local_bin_to_windows_path
 
     # macos
     if (which komorebic | is-not-empty) {
@@ -224,7 +257,10 @@ export def setup [] {
     pnpm runtime set node lts -g
 
     # Disable XON/XOFF flow control so Ctrl+S reaches applications (e.g. Neovim)
-    stty -ixon
+    # (windows has no stty and no XON/XOFF to disable)
+    if $nu.os-info.family != 'windows' {
+      stty -ixon
+    }
 
     check-pinentry
 }

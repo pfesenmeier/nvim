@@ -111,26 +111,27 @@ export def --env cdp [] {
    }
  }
 
- export def job-select [] {
-   let jobs = job list | sort-by id --reverse
-
-   # TODO pattern matching
-   let num_jobs = $jobs | length
-   if $num_jobs == 1 {
-     job unfreeze $jobs.0.id
-   } else if $num_jobs > 1 {
-     job list | input list | job unfreeze $in.id
-   }
- }
-
- def job-resume [name: string] {
-   let existing = job list | where { $in.tag == $name } | first
-
-   match $existing {
-     null => { ^$name },
-     _ => { job unfreeze $existing.id }
-   }
- }
+ # TODO: unfreeze not supported on Windows
+ # export def job-select [] {
+ #   let jobs = job list | sort-by id --reverse
+ #
+ #   # TODO pattern matching
+ #   let num_jobs = $jobs | length
+ #   if $num_jobs == 1 {
+ #     job unfreeze $jobs.0.id
+ #   } else if $num_jobs > 1 {
+ #     job list | input list | job unfreeze $in.id
+ #   }
+ # }
+ #
+ # def job-resume [name: string] {
+ #   let existing = job list | where { $in.tag == $name } | first
+ #
+ #   match $existing {
+ #     null => { ^$name },
+ #     _ => { job unfreeze $existing.id }
+ #   }
+ # }
 
  export def jn [] {
    job-resume nvim

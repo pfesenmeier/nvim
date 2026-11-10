@@ -37,6 +37,10 @@ local now_if_args, later = Config.now_if_args, Config.later
 --   with `:TSInstall <language>`. Be sure to have necessary system dependencies
 --   (see MiniMax README section for software requirements).
 now_if_args(function()
+  -- On Windows the tree-sitter CLI defaults to MSVC's cl.exe; use gcc when cl.exe is missing
+  local no_msvc = vim.fn.has('win32') == 1 and vim.fn.executable('cl') == 0
+  if no_msvc and vim.env.CC == nil and vim.fn.executable('gcc') == 1 then vim.env.CC = 'gcc' end
+
   -- Define hook to update tree-sitter parsers after plugin is updated
   local ts_update = function() vim.cmd('TSUpdate') end
   Config.on_packchanged('nvim-treesitter', { 'update' }, ts_update, ':TSUpdate')
