@@ -1,0 +1,7 @@
+{
+  "programs": {
+    "jj": { "name": "Jujutsu", "icon": "my-icons/jj.svg", "tint": false },
+    "jjui": { "name": "jjui", "icon": "my-icons/jj.svg", "tint": false },
+    "nvim": { "icon": "my-icons/nvim.svg", "tint": false }
+  }
+}

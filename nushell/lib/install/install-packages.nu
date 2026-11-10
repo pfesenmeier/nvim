@@ -29,11 +29,19 @@ def parse-install-cmd [cmd: string, packages: list<string>]: nothing -> list<str
   }
 }
 
-def run-manager [manager: string, args: list<string>, use_sudo: bool] {
-  if $use_sudo {
-    ^sudo $manager ...$args
-  } else {
-    ^$manager ...$args
+# a failure is printed and skipped so the remaining packages and managers still run
+# exit codes in ok_exit_codes are not failures
+def run-manager [manager: string, args: list<string>, use_sudo: bool = false, ok_exit_codes: list<int> = []] {
+  try {
+    if $use_sudo {
+      ^sudo $manager ...$args
+    } else {
+      ^$manager ...$args
+    }
+  } catch {|err|
+    if $err.exit_code? not-in $ok_exit_codes {
+      print $"($manager) ($args | str join ' ') failed: ($err.msg)"
+    }
   }
 }
 
@@ -44,6 +52,7 @@ def install-packages [manager: any, containers: list<string>, packages: list<str
   let install_cmd = $manager.install_cmd
   let name = $manager.name
   let use_sudo = $manager.sudo
+  let ok_exit_codes = $manager.ok_exit_codes
   let manager = if $use_windows_exe {
     $manager.windows_exe
   } else {
@@ -57,7 +66,7 @@ def install-packages [manager: any, containers: list<string>, packages: list<str
   }
 
   for container in $containers {
-    ^$manager ...$add_container_args $container
+    run-manager $manager [...$add_container_args $container]
   }
 
   if ($packages | is-not-empty) {
@@ -65,11 +74,11 @@ def install-packages [manager: any, containers: list<string>, packages: list<str
     print $"packages ($packages | str join ' ')"
     if $install_multiple {
       let install_cmd = parse-install-cmd $install_cmd $packages
-      run-manager $manager $install_cmd $use_sudo
+      run-manager $manager $install_cmd $use_sudo $ok_exit_codes
     } else {
       for package in $packages {
         let install_cmd = parse-install-cmd $install_cmd [$package]
-        run-manager $manager $install_cmd $use_sudo
+        run-manager $manager $install_cmd $use_sudo $ok_exit_codes
       }
     }
   } else {
@@ -195,7 +204,7 @@ def upgrade-all [manager: any, bin_col = "name"] {
   let cmd = $manager.upgrade_all_cmd | split-whitespace
   print $"upgrading packages from ($bin)"
 
-  ^$bin ...$cmd
+  run-manager $bin $cmd
 }
 
 # TODO handle pnpm / pnpm.exe, dotnet / dotnet.exe

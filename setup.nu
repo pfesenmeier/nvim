@@ -99,6 +99,18 @@ def idempotent_symlink [source: string, dest: string] {
   symlink $source $dest
 }
 
+def idempotent_copy [source: string, dest: string] {
+  let dest_dir = $dest | path dirname
+  mkdir $dest_dir
+
+  if ($dest | path exists --no-symlink) {
+    log info $"removing existing ($dest)"
+    rm --recursive --permanent $dest
+  }
+
+  cp --recursive $source $dest
+}
+
 # symlinks configuration files into their expected locations
 export def setup [] {
   let config_path = $nu.home-dir | path join nvim
@@ -176,6 +188,9 @@ export def setup [] {
       src: [claude skills]
       dest: [.claude skills]
     } {
+      src: [claude themes]
+      dest: [.claude themes]
+    } {
       src: [jjui]
       dest: [.config jjui]
     } {
@@ -191,6 +206,17 @@ export def setup [] {
     } {
       src: [herdr-app layouts my-main.json]
       dest: [.config herdr-app layouts my-main.json]
+    } {
+      src: [herdr-app themes everforest-light.json]
+      dest: [.config herdr-app themes everforest-light.json]
+    } {
+      # herdr won't load images that resolve outside its home folder, so copy instead of link
+      src: [herdr-app my-icons]
+      dest: [.config herdr-app my-icons]
+      copy: true
+    } {
+      src: [herdr-app programs.json]
+      dest: [.config herdr-app programs.json]
     } {
       src: [herdr-core config.toml]
       dest: ($herdr_core_config_folder | append config.toml)
@@ -224,8 +250,13 @@ export def setup [] {
         }
         let dest = $nu.home-dir | path join ...$x.dest
 
-        log info $"linking ($src) to ($dest)"
-        idempotent_symlink $src $dest
+        if ($x | get copy? | default false) {
+          log info $"copying ($src) to ($dest)"
+          idempotent_copy $src $dest
+        } else {
+          log info $"linking ($src) to ($dest)"
+          idempotent_symlink $src $dest
+        }
       }
     }
 

@@ -7,8 +7,8 @@ const KNOWN = "new-menu.agents";
 
 // TUI tools shown under "Open a tool". Each opens in a new tab in the current space.
 const TOOLS = [
-  { key: "jjui", name: "jjui", argv: ["jjui"], icon: t => svg("mods/workspace-chrome/branch.svg").size(14).text_color(t.foreground) },
-  { key: "nvim", name: "Neovim", argv: ["nvim"], icon: () => image("icons/nvim.svg").size(14) },
+  { key: "jjui", name: "jjui", argv: ["jjui"], icon: () => image("my-icons/jj.svg").size(14) },
+  { key: "nvim", name: "Neovim", argv: ["nvim"], icon: () => image("my-icons/nvim.svg").size(14) },
 ];
 
 function shortcut(name) {

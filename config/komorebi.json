@@ -14,7 +14,7 @@
     }
   },
   "bar_configurations": [
-    "$Env:USERPROFILE/nvim/komorebi.bar.json"
+    "$Env:USERPROFILE/nvim/config/komorebi.bar.json"
   ],
   "animation": {
     "enabled": true,

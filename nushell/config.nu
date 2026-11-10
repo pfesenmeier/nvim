@@ -8,107 +8,133 @@
 # stays current across upgrades. Inspect defaults with `nu -n -c '$env.config'`,
 # `keybindings default`, or `config nu --doc`.
 
-# Everforest. Colors nushell does not recognize are silently ignored, so keys
-# must match `nu -n -c '$env.config.color_config | columns'`.
-#
-#   red '#E67E80'   orange '#E69875'  yellow '#DBBC7F'  green '#A7C080'
-#   aqua '#83C092'  blue '#7FBBB3'    purple '#D699B6'
-#   fg '#D3C6AA'    grey '#414B50'
-let everforest = {
-        binary: '#D699B6'
-        block: '#7FBBB3'
-        bool: '#D699B6'
-        cell-path: '#D3C6AA'
-        closure: '#83C092'
-        duration: '#DBBC7F'
-        float: '#D699B6'
-        glob: '#D3C6AA'
-        int: '#D699B6'
-        list: '#83C092'
-        nothing: '#E67E80'
-        range: '#E69875'
-        record: '#83C092'
-        semver: '#7FBBB3'
-        semver-range: '#7FBBB3'
-        string: '#A7C080'
+# Follow the OS light/dark setting, like herdr does. Neovim gets there on its
+# own by asking the terminal for its background color.
+def system-is-light [] {
+    match $nu.os-info.name {
+        windows => {
+            (registry query --hkcu 'Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' AppsUseLightTheme
+            | get value?) == 1
+        }
+        # `defaults` fails when the key is missing, which means light mode
+        macos => { (do { ^defaults read -g AppleInterfaceStyle } | complete).exit_code != 0 }
+        _ => false
+    }
+}
 
-        binary_printable: '#7FBBB3'
-        binary_whitespace: '#83C092'
-        binary_non_ascii: '#DBBC7F'
-        binary_null_char: '#414B50'
-        binary_ascii_other: '#D699B6'
+# Everforest hard, the same palettes the everforest colorscheme uses in Neovim.
+# `grey` is for dim text like hints; `search_bg` is behind search matches.
+let p = if (system-is-light) {
+    {
+        red: '#F85552' orange: '#F57D26' yellow: '#DFA000' green: '#8DA101'
+        aqua: '#35A77C' blue: '#3A94C5' purple: '#DF69BA'
+        fg: '#5C6A72' grey: '#A6B0A0' search_bg: '#FFE7DE'
+    }
+} else {
+    {
+        red: '#E67E80' orange: '#E69875' yellow: '#DBBC7F' green: '#A7C080'
+        aqua: '#83C092' blue: '#7FBBB3' purple: '#D699B6'
+        fg: '#D3C6AA' grey: '#414B50' search_bg: '#D3C6AA'
+    }
+}
+
+# Colors nushell does not recognize are silently ignored, so keys must match
+# `nu -n -c '$env.config.color_config | columns'`.
+let everforest = {
+        binary: $p.purple
+        block: $p.blue
+        bool: $p.purple
+        cell-path: $p.fg
+        closure: $p.aqua
+        duration: $p.yellow
+        float: $p.purple
+        glob: $p.fg
+        int: $p.purple
+        list: $p.aqua
+        nothing: $p.red
+        range: $p.orange
+        record: $p.aqua
+        semver: $p.blue
+        semver-range: $p.blue
+        string: $p.green
+
+        binary_printable: $p.blue
+        binary_whitespace: $p.aqua
+        binary_non_ascii: $p.yellow
+        binary_null_char: $p.grey
+        binary_ascii_other: $p.purple
 
         # was `date`, which nushell stopped reading -- this closure was dead
         datetime: {|| (date now) - $in |
             if $in < 1hr {
-                { fg: '#E67E80' attr: 'b' }
+                { fg: $p.red attr: 'b' }
             } else if $in < 6hr {
-                '#E67E80'
+                $p.red
             } else if $in < 1day {
-                '#DBBC7F'
+                $p.yellow
             } else if $in < 3day {
-                '#A7C080'
+                $p.green
             } else if $in < 1wk {
-                { fg: '#A7C080' attr: 'b' }
+                { fg: $p.green attr: 'b' }
             } else if $in < 6wk {
-                '#83C092'
+                $p.aqua
             } else if $in < 52wk {
-                '#7FBBB3'
+                $p.blue
             } else { 'dark_gray' }
         }
 
         filesize: {|e|
             if $e == 0b {
-                '#D3C6AA'
+                $p.fg
             } else if $e < 1mb {
-                '#83C092'
-            } else {{ fg: '#7FBBB3' }}
+                $p.aqua
+            } else {{ fg: $p.blue }}
         }
 
-        shape_binary: { fg: '#D699B6' attr: 'b' }
-        shape_block: { fg: '#7FBBB3' attr: 'b' }
-        shape_bool: '#D699B6'
-        shape_closure: { fg: '#83C092' attr: 'b' }
-        shape_custom: '#A7C080'
-        shape_datetime: { fg: '#83C092' attr: 'b' }
-        shape_directory: '#A7C080'
-        shape_external: '#A7C080'
-        shape_external_resolved: '#A7C080'
-        shape_externalarg: { fg: '#A7C080' attr: 'b' }
-        shape_filepath: '#A7C080'
-        shape_flag: { fg: '#7FBBB3' attr: 'b' }
-        shape_float: { fg: '#D699B6' attr: 'b' }
+        shape_binary: { fg: $p.purple attr: 'b' }
+        shape_block: { fg: $p.blue attr: 'b' }
+        shape_bool: $p.purple
+        shape_closure: { fg: $p.aqua attr: 'b' }
+        shape_custom: $p.green
+        shape_datetime: { fg: $p.aqua attr: 'b' }
+        shape_directory: $p.green
+        shape_external: $p.green
+        shape_external_resolved: $p.green
+        shape_externalarg: { fg: $p.green attr: 'b' }
+        shape_filepath: $p.green
+        shape_flag: { fg: $p.blue attr: 'b' }
+        shape_float: { fg: $p.purple attr: 'b' }
         shape_garbage: { fg: '#FFFFFF' bg: '#FF0000' attr: 'b' }
-        shape_glob_interpolation: { fg: '#83C092' attr: 'b' }
-        shape_globpattern: { fg: '#83C092' attr: 'b' }
-        shape_int: { fg: '#D699B6' attr: 'b' }
-        shape_internalcall: { fg: '#A7C080' attr: 'b' }
-        shape_keyword: { fg: '#E67E80' attr: 'b' }
-        shape_list: { fg: '#83C092' attr: 'b' }
-        shape_literal: '#7FBBB3'
-        shape_match_pattern: '#A7C080'
+        shape_glob_interpolation: { fg: $p.aqua attr: 'b' }
+        shape_globpattern: { fg: $p.aqua attr: 'b' }
+        shape_int: { fg: $p.purple attr: 'b' }
+        shape_internalcall: { fg: $p.green attr: 'b' }
+        shape_keyword: { fg: $p.red attr: 'b' }
+        shape_list: { fg: $p.aqua attr: 'b' }
+        shape_literal: $p.blue
+        shape_match_pattern: $p.green
         shape_matching_brackets: { attr: 'u' }
-        shape_nothing: '#E67E80'
-        shape_operator: '#E69875'
-        shape_pipe: { fg: '#E69875' attr: 'b' }
-        shape_range: { fg: '#E69875' attr: 'b' }
-        shape_raw_string: { fg: '#A7C080' attr: 'b' }
-        shape_record: { fg: '#83C092' attr: 'b' }
-        shape_redirection: { fg: '#E69875' attr: 'b' }
-        shape_signature: { fg: '#A7C080' attr: 'b' }
-        shape_string: '#A7C080'
-        shape_string_interpolation: { fg: '#83C092' attr: 'b' }
-        shape_table: { fg: '#7FBBB3' attr: 'b' }
-        shape_vardecl: { fg: '#7FBBB3' attr: 'u' }
-        shape_variable: '#7FBBB3'
+        shape_nothing: $p.red
+        shape_operator: $p.orange
+        shape_pipe: { fg: $p.orange attr: 'b' }
+        shape_range: { fg: $p.orange attr: 'b' }
+        shape_raw_string: { fg: $p.green attr: 'b' }
+        shape_record: { fg: $p.aqua attr: 'b' }
+        shape_redirection: { fg: $p.orange attr: 'b' }
+        shape_signature: { fg: $p.green attr: 'b' }
+        shape_string: $p.green
+        shape_string_interpolation: { fg: $p.aqua attr: 'b' }
+        shape_table: { fg: $p.blue attr: 'b' }
+        shape_vardecl: { fg: $p.blue attr: 'u' }
+        shape_variable: $p.blue
 
-        empty: '#7FBBB3'
-        header: { fg: '#A7C080' attr: 'b' }
-        hints: '#414B50'
+        empty: $p.blue
+        header: { fg: $p.green attr: 'b' }
+        hints: $p.grey
         leading_trailing_space_bg: { attr: 'n' }
-        row_index: { fg: '#A7C080' attr: 'b' }
-        search_result: { fg: '#E67E80' bg: '#D3C6AA' }
-        separator: '#D3C6AA'
+        row_index: { fg: $p.green attr: 'b' }
+        search_result: { fg: $p.red bg: $p.search_bg }
+        separator: $p.fg
 }
 
 let default_keybindings = $env.config.keybindings

@@ -1,6 +1,9 @@
 import { View, div, svg, image } from "gpui-kit";
 import { h_flex } from "gpui-base";
-import { spaces, panes, run, openOverlay, theme, window, shared, layout, settings } from "herdr";
+import { spaces, panes, terminals, focused, hc, exec, run, openOverlay, theme, window, shared, layout, settings } from "herdr";
+
+// The terminal the layout's jj-panel block shows
+const JJ = "jj-panel";
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -9,6 +12,15 @@ function find(node, id) {
     if (found) return found;
   }
   return null;
+}
+
+// The folder jjui should follow: the focused pane's, or the active tab's when the jj panel has focus
+function jjFolder() {
+  const f = focused();
+  if (f?.pane) return f.cwd;
+  const space = spaces().find(s => s.active), tab = space?.tabs.find(c => c.active);
+  const inTab = panes().filter(p => p.tab === tab?.id && p.cwd);
+  return (inTab.find(p => p.focused) ?? inTab[0])?.cwd ?? space?.folder ?? null;
 }
 
 export default class Tabs extends View {
@@ -45,6 +57,39 @@ export default class Tabs extends View {
     localStorage.setItem("panels", JSON.stringify(this.panels));
   }
 
+  // Starts jjui at the folder's repo root unless it's already running there.
+  // Answers false outside a jj repo, where jjui would quit right away.
+  async startJj(cwd) {
+    const repo = await exec("jj", ["root"], cwd ? { cwd } : {}).catch(() => null);
+    if (repo?.code !== 0) return false;
+    const root = repo.stdout.trim();
+    if (terminals().some(x => x.name === JJ && x.state === "live" && x.cwd === root)) return true;
+    this.jjStarting = Date.now() + 3000;
+    await hc(["kill", JJ]);
+    await hc(["rm", JJ]);
+    const started = await hc(["run", "--bg", "--rm", "--no-notify", "--name", JJ, "--cwd", root, "jjui"]);
+    if (started.code !== 0) { this.jjStarting = 0; return false; }
+    return true;
+  }
+
+  // Shows jjui beside the tab, starting it in the focused folder's repo when needed.
+  // Hiding leaves it running; it's restarted when the repo changes.
+  async toggleJj(shown) {
+    this.jjWanted = !shown;
+    if (shown) { run("layout.hide", { id: "jj-panel" }); return; }
+    if (!(await this.startJj(jjFolder()))) return;
+    run("layout.show", { id: "jj-panel" });
+    // The block is found by the name in its content, not by the terminal's address
+    run("pane.focus", { terminal: JJ });
+  }
+
+  // After a space switch, an open jj panel follows the new space's repo.
+  // It hides in a space with no repo and comes back in the next one that has one.
+  async refreshJj() {
+    if (await this.startJj(jjFolder())) run("layout.show", { id: "jj-panel" });
+    else run("layout.hide", { id: "jj-panel" });
+  }
+
   render() {
     const t = theme();
     const space = spaces().find(p => p.active);
@@ -79,25 +124,37 @@ export default class Tabs extends View {
     const panel = find(root, "panel"), body = find(root, "panel-body");
     const enabled = shared("workspace.panels") ?? ["files", "changes"];
     this.syncPanel(space, panel, body, enabled);
+    const chip = (id, label, icon, on, action) => h_flex().id(id).h(26).px(8).gap(5).flex_none().items_center().rounded(6)
+      .text_size(12).bg(on ? t.selected : t.chrome).text_color(on ? t.foreground : t.muted)
+      .hover(s => s.bg(t.hover)).on_mouse_down("left", stop)
+      .on_click(action).child(icon).child(label);
     const panelButton = (id, label, icon) => {
       const on = panel && !panel.hidden && body?.active === id;
-      return h_flex().id(`panel-${id}`).h(26).px(8).gap(5).flex_none().items_center().rounded(6)
-        .text_size(12).bg(on ? t.selected : t.chrome).text_color(on ? t.foreground : t.muted)
-        .hover(s => s.bg(t.hover)).on_mouse_down("left", stop)
-        .on_click(() => {
-          if (on) run("layout.hide", { id: "panel" });
-          else { run("layout.select", { stack: "panel-body", child: id }); run("layout.show", { id: "panel" }); }
-        }).child(svg(icon).size(14)).child(label);
+      return chip(`panel-${id}`, label, svg(icon).size(14), on, () => {
+        if (on) run("layout.hide", { id: "panel" });
+        else { run("layout.select", { stack: "panel-body", child: id }); run("layout.show", { id: "panel" }); }
+      });
     };
+    const jj = find(root, "jj-panel"), jjShown = Boolean(jj && !jj.hidden);
+    // Collapse the jj panel once jjui exits (its terminal is removed on exit)
+    if (terminals().some(x => x.name === JJ && x.state === "live")) this.jjStarting = 0;
+    else if (jjShown && !(Date.now() < this.jjStarting)) { this.jjWanted = false; run("layout.hide", { id: "jj-panel" }); }
+    if (space && space.id !== this.jjSpace) {
+      const first = this.jjSpace === undefined;
+      this.jjSpace = space.id;
+      if (!first && (jjShown || this.jjWanted)) { this.jjWanted = true; this.refreshJj(); }
+    }
     return h_flex().size_full().min_w(0).px(10).pl(lightsPadding).gap(3).items_center().bg(t.chrome).border_b(1).border_color(t.border)
       .on_mouse_up("left", () => { this.pressed = null; })
       .on_scroll_wheel(e => { if (Math.abs(e.delta.y) >= 1) run(e.delta.y > 0 ? "tab.prev" : "tab.next"); })
       .child(h_flex().id("tab-scroll").flex_1().min_w(0).h_full().items_center().gap(3).overflow_x_scrollbar().children(shown.map(item)))
       .child(button("tab-new", "+", () => openOverlay({ mod: "my-new-menu", kind: "popup", width: 250, height: 600 })))
+      .when(Boolean(jj), el => el.child(chip("panel-jj", "jj", image("my-icons/jj.svg").size(14), jjShown, () => this.toggleJj(jjShown))))
       .when(enabled.includes("files"), el => el.child(panelButton("files", "Files", "mods/files/file.svg")))
       .when(enabled.includes("changes"), el => el.child(panelButton("changes", "Changes", "mods/changes/changes.svg")))
-      .when(w?.buttons, el => el.child(button("minimize", w.platform === "windows" ? svg("mods/my-tabs/win-min.svg").size(16) : "−", () => run("window.minimize")))
-        .child(button("maximize", w.platform === "windows" ? svg(`mods/my-tabs/${w.maximized ? "win-restore" : "win-max"}.svg`).size(16) : "□", () => run("window.maximize")))
-        .child(button("close-window", w.platform === "windows" ? svg("mods/my-tabs/win-close.svg").size(16) : svg("mods/pane/close.svg").size(13), () => run("window.close"))));
+      // Window icons come from the shipped tabs mod: herdr won't load images through this mod's symlink
+      .when(w?.buttons, el => el.child(button("minimize", w.platform === "windows" ? svg("mods/tabs/win-min.svg").size(16) : "−", () => run("window.minimize")))
+        .child(button("maximize", w.platform === "windows" ? svg(`mods/tabs/${w.maximized ? "win-restore" : "win-max"}.svg`).size(16) : "□", () => run("window.maximize")))
+        .child(button("close-window", w.platform === "windows" ? svg("mods/tabs/win-close.svg").size(16) : svg("mods/pane/close.svg").size(13), () => run("window.close"))));
   }
 }

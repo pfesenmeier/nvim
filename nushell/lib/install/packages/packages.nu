@@ -30,7 +30,7 @@ export def main [] {
     [dockerdesktop                         winget=docker.dockerdesktop               null                                                null]
     [orbstack                              null                                      null                                                brew]
     # [postgres                              null                                      null                                                'brew=postgresql@18']
-    [dbeaver                               winget=dbeaver.dbeaver                    null                                                null]
+    [dbeaver                               winget=DBeaver.DBeaver.Community          null                                                null]
     [gpg4win                               winget=GnuPG.Gpg4win                      null                                                null]
     [devtoys                               winget=DevToys-app.DevToys                null                                                null]
     [zoxide                                scoop                                     brew                                                brew]
