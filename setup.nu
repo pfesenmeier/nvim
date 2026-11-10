@@ -150,6 +150,19 @@ export def setup [] {
       src: [jj config.toml]
       dest: [.config jj config.toml]
     } {
+      # herdr-app owns the rest of its home folder, so only link my own mods and layouts
+      src: [herdr-app mods my-new-menu]
+      dest: [.config herdr-app mods my-new-menu]
+    } {
+      src: [herdr-app mods my-tabs]
+      dest: [.config herdr-app mods my-tabs]
+    } {
+      src: [herdr-app layouts my-main.json]
+      dest: [.config herdr-app layouts my-main.json]
+    } {
+      src: [herdr-core config.toml]
+      dest: ($herdr_core_config_folder | append config.toml)
+    } {
       src: [komorebi-mac]
       dest: [.config komorebi]
       plat: macos

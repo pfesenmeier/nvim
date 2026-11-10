@@ -1,0 +1,2 @@
+# shell for new terminals and recovery, one argument per item
+shell = ["nu"]
