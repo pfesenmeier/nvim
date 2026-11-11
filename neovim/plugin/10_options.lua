@@ -129,6 +129,24 @@ vim.opt.shellredir = '| save %s'
 if Config.env.iswindows then
   vim.g.netrw_browsex_viewer = "msedge.exe"
   vim.opt.clipboard = "unnamedplus"
+
+  -- Under Neovide (`nvim --embed`) stdin/stdout are RPC pipes. Windows copies
+  -- the parent's std handles into ':terminal' children, so they see pipes
+  -- instead of the pty: claude falls into --print mode and jjui can't go raw.
+  -- Clearing the handles makes children open the pty instead. The RPC channel
+  -- already holds its own handles, so nvim keeps working.
+  local ffi = require('ffi')
+  -- pcall: cdef errors if another plugin already declared these
+  pcall(ffi.cdef, [[
+    void* GetStdHandle(unsigned long n);
+    int SetStdHandle(unsigned long n, void* h);
+    int GetConsoleMode(void* h, unsigned long* mode);
+  ]])
+  local std_input, std_output, std_error = 0xFFFFFFF6, 0xFFFFFFF5, 0xFFFFFFF4
+  local mode = ffi.new('unsigned long[1]')
+  if ffi.C.GetConsoleMode(ffi.C.GetStdHandle(std_input), mode) == 0 then
+    for _, n in ipairs({ std_input, std_output, std_error }) do ffi.C.SetStdHandle(n, nil) end
+  end
 end
 if Config.env.is_wsl_linux then
   vim.g.netrw_browsex_viewer = '"/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"'

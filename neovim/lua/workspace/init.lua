@@ -9,7 +9,14 @@ local M = {}
 -- that is *unique per process* -- so each process would look in a different
 -- place, never reuse a server, and keep spawning competing duplicates. Use a
 -- stable TMPDIR-based path there instead.
+--
+-- On Windows, nvim can only listen on named pipes, so the "directory" is a
+-- pipe-name prefix. Pipe names may contain '/', so `<dir>/<name>.sock` works.
+local is_win = vim.fn.has('win32') == 1
 local function default_server_dir()
+  if is_win then
+    return [[\\.\pipe\nvim-workspaces-]] .. (vim.env.USERNAME or 'user')
+  end
   if vim.env.XDG_RUNTIME_DIR and vim.env.XDG_RUNTIME_DIR ~= '' then
     return vim.fn.stdpath('run') .. '/workspaces'
   end
@@ -32,8 +39,11 @@ local function find_ws(name)
   end
 end
 
+-- A named pipe can't be stat'ed, so on Windows only connecting tells.
+local function may_exist(sock) return is_win or vim.loop.fs_stat(sock) ~= nil end
+
 local function probe(sock)
-  if not vim.loop.fs_stat(sock) then return false end
+  if not may_exist(sock) then return false end
   local ok, chan = pcall(vim.fn.sockconnect, 'pipe', sock, { rpc = true })
   if not ok or chan == 0 then return false end
   pcall(vim.fn.chanclose, chan)
@@ -43,7 +53,7 @@ end
 -- Run a Lua chunk in the server at `sock` and return its result, or nil when
 -- the server is unreachable or the chunk errors.
 local function rpc_lua(sock, code, args)
-  if not vim.loop.fs_stat(sock) then return nil end
+  if not may_exist(sock) then return nil end
   local ok, chan = pcall(vim.fn.sockconnect, 'pipe', sock, { rpc = true })
   if not ok or chan == 0 then return nil end
   local got, res = pcall(vim.rpcrequest, chan, 'nvim_exec_lua', code, args or {})
@@ -99,8 +109,8 @@ function M.stop(name)
   if not ok or chan == 0 then return end
   pcall(vim.rpcnotify, chan, 'nvim_command', 'qa!')
   pcall(vim.fn.chanclose, chan)
-  vim.wait(1000, function() return not vim.loop.fs_stat(sock) end, 50)
-  pcall(os.remove, sock)
+  vim.wait(1000, function() return not probe(sock) end, 50)
+  if not is_win then pcall(os.remove, sock) end
 end
 
 function M.pick()
@@ -390,7 +400,7 @@ function M.setup(user)
   user = user or {}
   if not user.workspaces then user.workspaces = workspaces_from_env() end
   opts = vim.tbl_deep_extend('force', defaults, user)
-  vim.fn.mkdir(opts.server_dir, 'p')
+  if not is_win then vim.fn.mkdir(opts.server_dir, 'p') end
 
   vim.api.nvim_create_user_command(
     'WorkspaceConnect',

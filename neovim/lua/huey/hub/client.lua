@@ -68,29 +68,11 @@ end
 Client.connect = function()
   if connecting or pipe or leaving then return end
   connecting = true
-
-  local delays = { 50, 100, 200, 400, 800, 1000, 1000 }
-  local attempt = 0
-
-  local try
-  try = function()
-    proto.connect(function() end, H.on_close, function(p)
-      vim.schedule(function()
-        if p then
-          connecting = false
-          return H.on_connect(p)
-        end
-        attempt = attempt + 1
-        if attempt == 1 then proto.spawn_hub() end
-        if attempt > #delays then
-          connecting = false
-          return vim.notify('huey: could not reach the hub', vim.log.levels.WARN)
-        end
-        vim.defer_fn(try, delays[attempt])
-      end)
-    end)
-  end
-  try()
+  proto.reach(function() end, H.on_close, function(p)
+    connecting = false
+    if not p then return vim.notify('huey: could not reach the hub', vim.log.levels.WARN) end
+    H.on_connect(p)
+  end)
 end
 
 Client.setup = function()
@@ -100,9 +82,11 @@ Client.setup = function()
     callback = function() leaving = true end,
   })
 
-  vim.api.nvim_create_user_command('HueyAgents', function()
-    vim.cmd('botright split | term huey tui')
-  end, { desc = 'Show every agent across nvims' })
+  vim.api.nvim_create_user_command(
+    'HueyAgents',
+    function() require('huey.hub.agents').open() end,
+    { desc = 'Show every agent across nvims' }
+  )
 
   Client.connect()
 end

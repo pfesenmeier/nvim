@@ -1,4 +1,4 @@
--- Shared by the hub daemon, the TUI, and the client inside each nvim.
+-- Shared by the hub daemon, the agent lists, and the client inside each nvim.
 -- Runs under `nvim -l` too, so it only uses `vim.uv`, `vim.json` and `vim.fn`.
 local Proto = {}
 
@@ -97,7 +97,31 @@ Proto.connect = function(on_msg, on_close, cb)
   end)
 end
 
---- Icons for each state, shared by the tabline and the TUI.
+--- Connects to the hub, starting one when nothing answers. `cb` runs on the
+--- main loop, with nil once a few seconds of retrying get no answer.
+--- @param on_msg fun(msg: table)
+--- @param on_close fun()
+--- @param cb fun(pipe: uv.uv_pipe_t?)
+Proto.reach = function(on_msg, on_close, cb)
+  local delays = { 50, 100, 200, 400, 800, 1000, 1000 }
+  local attempt = 0
+
+  local try
+  try = function()
+    Proto.connect(on_msg, on_close, function(pipe)
+      vim.schedule(function()
+        if pipe then return cb(pipe) end
+        attempt = attempt + 1
+        if attempt == 1 then Proto.spawn_hub() end
+        if attempt > #delays then return cb(nil) end
+        vim.defer_fn(try, delays[attempt])
+      end)
+    end)
+  end
+  try()
+end
+
+--- Icons for each state, shared by the tabline and the agent lists.
 local moons = { '○', '◔', '◑', '◕', '●' }
 
 --- @param state string
