@@ -46,6 +46,17 @@
                 "weight": 1
               },
               "min": 90
+            },
+            {
+              "id": "prs",
+              "type": "block",
+              "content": {
+                "mod": "my-prs"
+              },
+              "size": {
+                "weight": 1
+              },
+              "min": 90
             }
           ]
         },
@@ -121,24 +132,6 @@
               "size": {
                 "weight": 1
               }
-            },
-            {
-              "id": "jj-panel",
-              "type": "block",
-              "content": {
-                "terminal": "jj-panel"
-              },
-              "size": {
-                "px": 640
-              },
-              "min": 320,
-              "max": 1400,
-              "border": {
-                "width": 1,
-                "color": "border"
-              },
-              "radius": 10,
-              "hidden": true
             },
             {
               "id": "panel",

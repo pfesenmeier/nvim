@@ -43,6 +43,12 @@
       }
     },
     {
+      "Cpu": {
+        "enable": true,
+        "auto_select_over": 80
+      }
+    },
+    {
       "Memory": {
         "enable": true
       }

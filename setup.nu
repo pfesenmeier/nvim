@@ -209,6 +209,9 @@ export def setup [] {
       src: [herdr-app mods my-tabs]
       dest: [.config herdr-app mods my-tabs]
     } {
+      src: [herdr-app mods my-prs]
+      dest: [.config herdr-app mods my-prs]
+    } {
       src: [herdr-app layouts my-main.json]
       dest: [.config herdr-app layouts my-main.json]
     } {
