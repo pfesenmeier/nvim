@@ -125,6 +125,58 @@ end
 require('vim._core.ui2').enable()
 
 local sysname = vim.uv.os_uname().sysname:lower()
+
+-- nushell sets these variables (env.nu, paths.nu, dotnet/env.nu, install/cmds).
+-- When nvim was not started from nushell, fill in the same values here so
+-- LSPs and debuggers still work. Anything already set is left alone.
+do
+  local join = vim.fs.joinpath
+  local home = vim.uv.os_homedir()
+  local iswindows = sysname:match('windows') ~= nil
+
+  local function default(name, value)
+    if vim.env[name] == nil or vim.env[name] == '' then vim.env[name] = value end
+  end
+
+  local bin_dir = iswindows and join(home, 'AppData', 'Local') or join(home, '.local', 'bin')
+  default('binDir', bin_dir)
+  bin_dir = vim.env.binDir
+  default('PNPM_HOME', join(home, '.local', 'share', 'pnpm'))
+  default('DOTNET_ROOT', join(home, '.dotnet'))
+  default('ROSLYNATOR_DIR', join(bin_dir, 'dotnet', 'roslynator'))
+
+  local rid = iswindows and 'win-x64' or sysname:match('darwin') and 'osx-arm64' or 'linux-x64'
+  local roslyn_dir = join(bin_dir, 'microsoft', 'roslyn-lsp', 'tools', 'net10.0', rid)
+  default('ROSLYN_LSP', join(roslyn_dir, iswindows and 'Microsoft.CodeAnalysis.LanguageServer.exe' or 'Microsoft.CodeAnalysis.LanguageServer'))
+
+  local dirs = {
+    join(home, 'nvim', 'bin'),
+    join(home, '.orbstack', 'bin'),
+    join(vim.env.PNPM_HOME, 'bin'),
+    bin_dir,
+    join(bin_dir, 'artempyanykh', 'marksman'),
+    join(bin_dir, 'microsoft', 'vscode-js-debug', 'js-debug', 'src'),
+    join(bin_dir, 'Samsung', 'netcoredbg', 'netcoredbg'),
+    roslyn_dir,
+    vim.env.DOTNET_ROOT,
+    join(vim.env.DOTNET_ROOT, 'tools'),
+  }
+
+  if not iswindows then
+    default('HOMEBREW_PREFIX', sysname:match('darwin') and '/opt/homebrew' or '/home/linuxbrew/.linuxbrew')
+    table.insert(dirs, join(vim.env.HOMEBREW_PREFIX, 'bin'))
+    table.insert(dirs, join(vim.env.HOMEBREW_PREFIX, 'sbin'))
+  end
+
+  -- Prepend dirs that exist and are not on PATH yet
+  local sep = iswindows and ';' or ':'
+  local function key(p) return iswindows and vim.fs.normalize(p):lower() or vim.fs.normalize(p) end
+  local on_path = {}
+  for p in (vim.env.PATH or ''):gmatch('[^' .. sep .. ']+') do on_path[key(p)] = true end
+  local missing = vim.tbl_filter(function(d) return not on_path[key(d)] and vim.uv.fs_stat(d) ~= nil end, dirs)
+  if #missing > 0 then vim.env.PATH = table.concat(missing, sep) .. sep .. (vim.env.PATH or '') end
+end
+
 Config.env = {
   islinux = string.match(sysname, 'linux') ~= nil,
   ismacos = string.match(sysname, 'darwin') ~= nil,

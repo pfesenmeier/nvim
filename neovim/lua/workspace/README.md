@@ -17,8 +17,9 @@ require("workspace").setup({
 })
 ```
 
-The list also comes from `$WORKSPACES` (a JSON array of the same shape) when
-`workspaces` is omitted, which is how it is populated in practice.
+In practice the list comes from the gitignored `lua/secrets.lua` (see
+`plugin/50_libraries.lua`). When `workspaces` is omitted, it falls back to
+`$WORKSPACES` (a JSON array of the same shape).
 
 ## Surface
 
