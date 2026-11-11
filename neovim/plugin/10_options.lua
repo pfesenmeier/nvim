@@ -151,6 +151,66 @@ if Config.env.is_wsl_linux then
       \ }
   ]])
 end
+
+-- Neovide ====================================================================
+-- Only applies when running inside the Neovide gui. See `:h neovide` or
+-- https://neovide.dev/configuration.html
+if vim.g.neovide then
+  vim.o.guifont = '0xProto Nerd Font Mono:h12'
+
+  -- Smooth scrolling
+  vim.g.neovide_scroll_animation_length    = 0.3   -- Seconds a scroll takes
+  vim.g.neovide_scroll_animation_far_lines = 1     -- Lines shown animating on big jumps
+
+  -- Cursor animation
+  vim.g.neovide_cursor_animation_length          = 0.1      -- Seconds the cursor takes to move
+  vim.g.neovide_cursor_short_animation_length    = 0.04     -- Seconds for one-cell moves like typing
+  vim.g.neovide_cursor_trail_size                = 0.8      -- Trail length behind the cursor (0-1)
+  vim.g.neovide_cursor_animate_in_insert_mode    = true
+  vim.g.neovide_cursor_animate_command_line      = true
+  vim.g.neovide_cursor_smooth_blink              = true
+  vim.g.neovide_cursor_vfx_mode                  = 'railgun' -- Particle effect when the cursor moves
+
+  -- Mouse
+  vim.g.neovide_hide_mouse_when_typing = true
+
+  -- Window
+  vim.g.neovide_remember_window_size = true
+  vim.g.neovide_corner_preference    = 'round' -- Windows 11 window corners
+  vim.g.neovide_padding_top          = 4
+  vim.g.neovide_padding_bottom       = 4
+  vim.g.neovide_padding_left         = 4
+  vim.g.neovide_padding_right        = 4
+  vim.g.neovide_floating_corner_radius = 0.2   -- Round floating window corners (fraction of line height)
+
+  -- Match the Windows title bar to the colorscheme
+  local sync_title_bar = function()
+    local normal = vim.api.nvim_get_hl(0, { name = 'Normal', link = false })
+    if normal.bg then vim.g.neovide_title_background_color = string.format('#%06x', normal.bg) end
+    if normal.fg then vim.g.neovide_title_text_color = string.format('#%06x', normal.fg) end
+  end
+  sync_title_bar()
+  Config.new_autocmd('ColorScheme', '*', sync_title_bar, 'Sync Neovide title bar colors')
+
+  vim.keymap.set({ 'n', 'v', 'i', 't' }, '<F11>', function()
+    vim.g.neovide_fullscreen = not vim.g.neovide_fullscreen
+  end, { desc = 'Toggle fullscreen' })
+
+  -- Neovide has no ctrl+shift+v paste, so paste the system clipboard
+  vim.keymap.set({ 'n', 'v', 'i', 'c', 't' }, '<C-S-v>', function()
+    vim.api.nvim_paste(vim.fn.getreg('+'), true, -1)
+  end, { desc = 'Paste system clipboard' })
+
+  -- Zoom with ctrl +/-/0
+  vim.g.neovide_scale_factor = 1.0
+  local zoom = function(delta)
+    return function() vim.g.neovide_scale_factor = delta and vim.g.neovide_scale_factor * delta or 1.0 end
+  end
+  vim.keymap.set({ 'n', 'v', 'i', 't' }, '<C-=>', zoom(1.1),  { desc = 'Zoom in' })
+  vim.keymap.set({ 'n', 'v', 'i', 't' }, '<C-->', zoom(1 / 1.1), { desc = 'Zoom out' })
+  vim.keymap.set({ 'n', 'v', 'i', 't' }, '<C-0>', zoom(nil),  { desc = 'Reset zoom' })
+end
+
 -- Autocommands ===============================================================
 
 -- Don't auto-wrap comments and don't insert comment leader after hitting 'o'.

@@ -12,6 +12,8 @@ export def main [] {
     [lua-language-server                   scoop                                     brew                                                brew]
     [marksman                              scoop                                     brew                                                brew]
     [neovim                                scoop                                     brew                                                brew]
+    # gui for neovim. wsl uses the windows install with `neovide --wsl`
+    [neovide                               scoop                                     null                                                brew]
     [nushell                               scoop=nu                                  brew                                                brew]
     [ripgrep                               scoop                                     brew                                                brew]
     [bat                                   scoop                                     brew                                                brew]

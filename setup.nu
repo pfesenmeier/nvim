@@ -145,6 +145,11 @@ export def setup [] {
     | append herdr-core
   )
 
+  let neovide_config_folder = (
+    (if $nu.os-info.family == 'windows' { [AppData Roaming] } else { [.config] })
+    | append neovide
+  )
+
   let gpg_config_file = (
     if $nu.os-info.name == 'macos' {
       'gpg-agent.conf.mac'
@@ -220,6 +225,9 @@ export def setup [] {
     } {
       src: [herdr-core config.toml]
       dest: ($herdr_core_config_folder | append config.toml)
+    } {
+      src: [neovide config.toml]
+      dest: ($neovide_config_folder | append config.toml)
     } {
       src: [komorebi-mac]
       dest: [.config komorebi]
