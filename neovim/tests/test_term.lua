@@ -170,4 +170,83 @@ T['forgets a wiped buffer'] = function()
   eq(child.lua_get('HueyTerm.get_icon(_G.wiped)'), vim.NIL)
 end
 
+-- Statuses from Claude Code hooks, which reach nvim over RPC rather than
+-- through the terminal (see 'huey/hook').
+
+local huey = vim.fs.normalize(vim.fn.fnamemodify('../bin/huey', ':p'))
+local nvim = vim.fs.normalize(vim.v.progpath)
+
+--- A shell command that runs `huey hook` with `event` on stdin, as Claude Code
+--- would from inside the terminal.
+--- @param event table hook input
+--- @return string
+local hook = function(event)
+  local file = vim.fs.normalize(vim.fn.tempname())
+  vim.fn.writefile({ vim.json.encode(event) }, file)
+  return ("'%s' -l '%s' hook < '%s'"):format(nvim, huey, file)
+end
+
+T['takes a status from a Claude Code hook'] = new_set({
+  parametrize = {
+    { { hook_event_name = 'SessionStart' }, '·', {} },
+    {
+      { hook_event_name = 'UserPromptSubmit', prompt = '  Fix the parser\nand the tests' },
+      '∿',
+      { title = 'Fix the parser' },
+    },
+    {
+      { hook_event_name = 'PermissionRequest', tool_name = 'Bash', tool_input = {} },
+      '⏸',
+      { kind = 'permission', msg = 'Bash' },
+    },
+    { { hook_event_name = 'PreToolUse', tool_name = 'AskUserQuestion' }, '⏸', { kind = 'question' } },
+    { { hook_event_name = 'Stop' }, '●', {} },
+    { { hook_event_name = 'StopFailure', error = 'rate_limit' }, '⊘', { msg = 'rate_limit' } },
+  },
+}, {
+  test = function(event, shown, fields)
+    start_term(hook(event) .. '; sleep 30')
+    wait_icon(shown)
+    local s = status()
+    eq(s.app, 'claude-code')
+    for key, value in pairs(fields) do
+      eq(s[key], value)
+    end
+  end,
+})
+
+T['a hook event that means nothing sends nothing'] = function()
+  local done = vim.fs.normalize(vim.fn.tempname())
+  start_term(
+    hook({ hook_event_name = 'PreToolUse', tool_name = 'Bash' }) .. ("; : > '%s'; sleep 30"):format(done)
+  )
+  eq(child.wait_for(('vim.uv.fs_stat(%q) ~= nil'):format(done)), true)
+  eq(is_bot(), false)
+end
+
+T['drops a hook report older than the last one'] = function()
+  start_term('sleep 30')
+  child.lua([[
+    local pid = vim.fn.jobpid(_G.job)
+    HueyTerm.report(pid, { state = 'done' }, 2)
+    _G.applied = HueyTerm.report(pid, { state = 'working' }, 1)
+  ]])
+  eq(child.lua_get('_G.applied'), false)
+  eq(icon(), '●')
+end
+
+T['ignores a hook report from outside every terminal'] = function()
+  start_term('sleep 30')
+  eq(child.lua_get([[HueyTerm.report(vim.fn.getpid(), { state = 'done' }, 1)]]), false)
+  eq(icon(), vim.NIL)
+end
+
+T['ignores hook reports once the terminal sends OSC 7501 itself'] = function()
+  if vim.fn.has('win32') == 1 then MiniTest.skip('ConPTY drops OSC 7501') end
+  start_term(osc('state=working') .. '; sleep 30')
+  wait_icon('∿')
+  eq(child.lua_get([[HueyTerm.report(vim.fn.jobpid(_G.job), { state = 'done' }, 1)]]), false)
+  eq(icon(), '∿')
+end
+
 return T

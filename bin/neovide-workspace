@@ -1,0 +1,17 @@
+#!/usr/bin/env -S nvim -l
+
+--- neovide-workspace [name]: open Neovide on a workspace server, starting the
+--- server first (default: nvim). Neovide then has no nvim of its own, so
+--- switching workspaces keeps the same window (see 'workspace').
+
+-- resolve through any symlink to load this repo's modules
+local self = vim.uv.fs_realpath(arg[0]) or arg[0]
+local lua_dir = vim.fs.joinpath(vim.fs.dirname(vim.fs.dirname(self)), 'neovim', 'lua')
+package.path = lua_dir .. '/?.lua;' .. lua_dir .. '/?/init.lua;' .. package.path
+
+-- same workspace list as the editor (see 'plugin/50_libraries.lua')
+local has_secrets, secrets = pcall(require, 'secrets')
+local workspace = require('workspace')
+workspace.setup({ workspaces = has_secrets and secrets.workspaces or nil })
+
+if not workspace.neovide(arg[1] or 'nvim') then os.exit(1) end

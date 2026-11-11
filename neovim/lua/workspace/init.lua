@@ -68,8 +68,10 @@ function M.status(name) return probe(sock_for(name)) and 'running' or 'stopped' 
 
 local function spawn(ws)
   local sock = sock_for(ws.name)
+  -- progpath, not 'nvim': on Windows 'nvim' is the scoop shim, a console app
+  -- that pops a console window when started from a GUI like Neovide
   vim.fn.jobstart({
-    'nvim',
+    vim.v.progpath ~= '' and vim.v.progpath or 'nvim',
     '--listen',
     sock,
     '--headless',
@@ -86,9 +88,31 @@ local function spawn(ws)
   return true
 end
 
+-- True in the nvim Neovide started itself (not a workspace server). On
+-- Windows `:connect` can't leave that nvim: Neovide only follows once the
+-- old nvim's stdio closes, the scoop shim in between keeps it open, and the
+-- console nvim swaps to on detach opens as a Windows Terminal tab that it
+-- then hangs on.
+local function is_neovide_own_nvim()
+  if not vim.g.neovide then return false end
+  for _, ws in ipairs(opts.workspaces) do
+    if is_self(sock_for(ws.name)) then return false end
+  end
+  return true
+end
+
+local function has_unsaved()
+  for _, b in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.bo[b].modified and vim.bo[b].buftype == '' then return true end
+  end
+  return false
+end
+
+--- Address of `name`'s server, starting it when it isn't running. Nil when
+--- the name is unknown or the server didn't come up.
 --- @param name string
---- @param stop_current boolean? use `:connect!`, stopping the server left behind
-function M.connect(name, stop_current)
+--- @return string?
+function M.ensure(name)
   local ws = find_ws(name)
   if not ws then
     vim.notify(("workspace: unknown name '%s'"):format(name), vim.log.levels.ERROR)
@@ -96,6 +120,33 @@ function M.connect(name, stop_current)
   end
   local addr = sock_for(name)
   if not probe(addr) and not spawn(ws) then return end
+  return addr
+end
+
+--- Open a new Neovide window on `name`'s server, starting the server first.
+--- @param name string
+--- @return boolean
+function M.neovide(name)
+  local addr = M.ensure(name)
+  if not addr then return false end
+  vim.fn.jobstart({ 'neovide', '--server', addr }, { detach = true })
+  return true
+end
+
+--- @param name string
+--- @param stop_current boolean? use `:connect!`, stopping the server left behind
+function M.connect(name, stop_current)
+  if is_neovide_own_nvim() then
+    if has_unsaved() then
+      vim.notify('workspace: save or discard changes before switching', vim.log.levels.ERROR)
+      return
+    end
+    -- open a new Neovide on the server and quit this one instead
+    if M.neovide(name) then vim.cmd('qa') end
+    return
+  end
+  local addr = M.ensure(name)
+  if not addr then return end
   vim.cmd((stop_current and 'connect! ' or 'connect ') .. vim.fn.fnameescape(addr))
 end
 

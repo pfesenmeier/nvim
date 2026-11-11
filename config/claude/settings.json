@@ -4,6 +4,38 @@
     "CLAUDE_CODE_DISABLE_MOUSE": "1",
     "SSH_AUTH_SOCK": ""
   },
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "async": true, "command": "[ -n \"$NVIM\" ] && nvim -l \"$HOME/nvim/bin/huey\" hook || true" }] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "async": true, "command": "[ -n \"$NVIM\" ] && nvim -l \"$HOME/nvim/bin/huey\" hook || true" }] }
+    ],
+    "PreToolUse": [
+      { "matcher": "AskUserQuestion", "hooks": [{ "type": "command", "async": true, "command": "[ -n \"$NVIM\" ] && nvim -l \"$HOME/nvim/bin/huey\" hook || true" }] }
+    ],
+    "PostToolUse": [
+      { "hooks": [{ "type": "command", "async": true, "command": "[ -n \"$NVIM\" ] && nvim -l \"$HOME/nvim/bin/huey\" hook || true" }] }
+    ],
+    "PostToolUseFailure": [
+      { "hooks": [{ "type": "command", "async": true, "command": "[ -n \"$NVIM\" ] && nvim -l \"$HOME/nvim/bin/huey\" hook || true" }] }
+    ],
+    "PermissionRequest": [
+      { "hooks": [{ "type": "command", "async": true, "command": "[ -n \"$NVIM\" ] && nvim -l \"$HOME/nvim/bin/huey\" hook || true" }] }
+    ],
+    "Notification": [
+      { "matcher": "elicitation_dialog", "hooks": [{ "type": "command", "async": true, "command": "[ -n \"$NVIM\" ] && nvim -l \"$HOME/nvim/bin/huey\" hook || true" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "async": true, "command": "[ -n \"$NVIM\" ] && nvim -l \"$HOME/nvim/bin/huey\" hook || true" }] }
+    ],
+    "StopFailure": [
+      { "hooks": [{ "type": "command", "async": true, "command": "[ -n \"$NVIM\" ] && nvim -l \"$HOME/nvim/bin/huey\" hook || true" }] }
+    ],
+    "SessionEnd": [
+      { "hooks": [{ "type": "command", "timeout": 5, "command": "[ -n \"$NVIM\" ] && nvim -l \"$HOME/nvim/bin/huey\" hook || true" }] }
+    ]
+  },
   "permissions": {
     "allow": [
       "Bash(fd:*)",

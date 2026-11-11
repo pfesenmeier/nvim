@@ -20,6 +20,9 @@ local proto = require('huey.hub.proto')
 --  └──────────┴───────────────────────────────────────────────────────┘
 --  A program sends `ESC ] 7501 ; ?` first and only reports if the terminal
 --  answers, so every terminal buffer answers it.
+--
+--  On Windows ConPTY drops OSC 7501 both ways, so statuses also come in over
+--  RPC from Claude Code hooks (see 'huey/hook' and HueyTerm.report).
 
 --- @class huey.Status
 --- @field state string
@@ -39,6 +42,12 @@ local first_seen = {}
 
 --- @type table<integer, true> terminals that have reported and are still running
 local bots = {}
+
+--- @type table<integer, true> terminals whose statuses arrive as OSC 7501, so hook reports are ignored
+local native = {}
+
+--- @type table<integer, number> bufnr => time of the last hook report, see HueyTerm.report
+local reported_at = {}
 
 local probe_reply = '\27]7501;?\27\\'
 
@@ -188,6 +197,80 @@ H.publish = function(buf)
   if client then client.publish(buf) end
 end
 
+--- Stores `parsed` as `buf`'s status and tells the tabline, the outer terminal
+--- and the hub.
+--- @param buf integer
+--- @param parsed table from H.parse_status
+--- @param raw? { sequence: string, terminator?: string } the OSC as received, to forward
+H.apply = function(buf, parsed, raw)
+  bots[buf] = true
+  if parsed.state == 'clear' then
+    if not bufstatuses[buf] then return end
+    bufstatuses[buf] = nil
+  elseif not H.update(buf, parsed) then
+    return
+  end
+
+  vim.cmd.redrawtabline()
+  if raw then H.forward_raw(raw.sequence, raw.terminator) end
+  H.publish(buf)
+
+  local status = bufstatuses[buf]
+  if status then H.notify(buf, status) end
+  vim.api.nvim_exec_autocmds('User', {
+    pattern = 'HueyTermStatus',
+    data = { buf = buf, status = status },
+  })
+end
+
+--- The terminal buffer whose job is `pid` or one of its ancestors.
+--- @param pid integer
+--- @return integer?
+H.find_term = function(pid)
+  local by_job = {}
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    local chan = vim.bo[buf].channel
+    if vim.bo[buf].buftype == 'terminal' and chan ~= 0 then
+      local ok, job = pcall(vim.fn.jobpid, chan)
+      if ok then by_job[job] = buf end
+    end
+  end
+
+  -- capped in case a reused pid makes a loop
+  for _ = 1, 64 do
+    if by_job[pid] then return by_job[pid] end
+    local ok, proc = pcall(vim.api.nvim_get_proc, pid)
+    if not ok or type(proc) ~= 'table' or not proc.ppid or proc.ppid == 0 then return nil end
+    pid = proc.ppid
+  end
+end
+
+--- Takes a status from outside the terminal, for when its escape codes never
+--- arrive (ConPTY on Windows drops OSC 7501). `huey hook` calls this over RPC
+--- from Claude Code hooks. A terminal that sends OSC 7501 itself wins.
+--- @param pid integer a process in the agent's terminal, e.g. the hook itself
+--- @param record table OSC 7501 fields, with `title` and `msg` as plain text
+--- @param at number when the event happened; a report older than the last one is dropped
+--- @return boolean applied
+HueyTerm.report = function(pid, record, at)
+  if type(record) ~= 'table' or type(record.state) ~= 'string' then return false end
+  local buf = H.find_term(pid)
+  if not buf or native[buf] then return false end
+  -- hooks run in the background, so their reports can arrive out of order
+  if reported_at[buf] and at < reported_at[buf] then return false end
+  reported_at[buf] = at
+
+  H.apply(buf, {
+    state = record.state,
+    kind = record.kind,
+    progress = tonumber(record.progress),
+    title = record.title,
+    msg = record.msg,
+    app = record.app,
+  })
+  return true
+end
+
 H.create_autocmds = function()
   local gr = vim.api.nvim_create_augroup('HueyTerm', {})
 
@@ -208,24 +291,8 @@ H.create_autocmds = function()
       -- sub-records (e.g. sub-agents) are not shown yet
       if parsed.id then return end
 
-      bots[buf] = true
-      if parsed.state == 'clear' then
-        if not bufstatuses[buf] then return end
-        bufstatuses[buf] = nil
-      elseif not H.update(buf, parsed) then
-        return
-      end
-
-      vim.cmd.redrawtabline()
-      H.forward_raw(ev.data.sequence, ev.data.terminator)
-      H.publish(buf)
-
-      local status = bufstatuses[buf]
-      if status then H.notify(buf, status) end
-      vim.api.nvim_exec_autocmds('User', {
-        pattern = 'HueyTermStatus',
-        data = { buf = buf, status = status },
-      })
+      native[buf] = true
+      H.apply(buf, parsed, ev.data)
     end,
   })
 
@@ -234,6 +301,8 @@ H.create_autocmds = function()
     desc = 'Drop statuses a dead process can no longer hold',
     callback = function(ev)
       bots[ev.buf] = nil
+      native[ev.buf] = nil
+      reported_at[ev.buf] = nil
       local status = bufstatuses[ev.buf]
       if not status then return end
 
@@ -254,6 +323,8 @@ H.create_autocmds = function()
       bufstatuses[ev.buf] = nil
       first_seen[ev.buf] = nil
       bots[ev.buf] = nil
+      native[ev.buf] = nil
+      reported_at[ev.buf] = nil
       if had then H.publish(ev.buf) end
     end,
   })

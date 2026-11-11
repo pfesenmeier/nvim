@@ -4,18 +4,20 @@
 ---   huey serve   run the hub (nvim starts it on its own)
 ---   huey tui     live table of every agent; Enter jumps to one
 ---   huey list    print every agent as JSON
+---   huey hook    report a Claude Code hook event (stdin) to the nvim it runs in
 
 -- resolve through the ~/.local/bin symlink to load this repo's modules
 local self = vim.uv.fs_realpath(arg[0]) or arg[0]
 local lua_dir = vim.fs.joinpath(vim.fs.dirname(vim.fs.dirname(self)), 'neovim', 'lua')
 package.path = lua_dir .. '/?.lua;' .. lua_dir .. '/?/init.lua;' .. package.path
 
-local usage = 'usage: huey serve | tui | list\n'
+local usage = 'usage: huey serve | tui | list | hook\n'
 
 local cmds = {
   serve = function() require('huey.hub.server').run() end,
   tui = function() require('huey.hub.tui').run() end,
   list = function() require('huey.hub.tui').list() end,
+  hook = function() require('huey.hook').run() end,
 }
 
 local cmd = cmds[arg[1]]

@@ -45,6 +45,12 @@ there are three panes:
 - `huey/term.lua` reads agent status from OSC 7501 (`state=idle|working|done|blocked|error`,
   plus `kind`, `progress`, base64 `title` and `msg`). Claude Code only sends it after the
   terminal answers its `OSC 7501 ; ?` probe, so every terminal buffer answers.
+- On Windows none of that arrives: nvim's terminal runs on ConPTY, which re-renders output
+  from its own screen buffer and drops every OSC that isn't screen content, the probe
+  included. So Claude Code hooks in `config/claude/settings.json` run `huey hook`, which maps
+  the event to a status and calls `HueyTerm.report` over `$NVIM`. That finds the terminal by
+  walking the hook's parent processes up to a terminal's `jobpid()`. Where OSC 7501 does
+  arrive (Linux, macOS) it wins and hook reports for that terminal are ignored.
 - The first nvim starts `huey serve` (`bin/huey`), a hub listening on `$HUEY_SOCK`, else
   `\\.\pipe\huey-<user>` on Windows or `$XDG_RUNTIME_DIR/huey.sock` (`$TMPDIR/huey-<user>.sock`).
   Every nvim streams its agent statuses there; an nvim that quits or crashes takes its agents
