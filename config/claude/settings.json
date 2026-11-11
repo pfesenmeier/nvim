@@ -81,74 +81,6 @@
     "defaultMode": "auto"
   },
   "model": "opus[1m]",
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "prog-claude 1 25",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "prog-claude 1 100",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "StopFailure": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "prog-claude 2",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "permission_prompt|idle_prompt|agent_needs_input|elicitation_dialog",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "prog-claude 4",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "elicitation_complete|elicitation_response",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "prog-claude 1 25",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "prog-claude 0",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  },
   "enabledPlugins": {
     "lua-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
@@ -196,5 +128,10 @@
       "**Org-specific CLIs**: None configured — personal tool preferences noted (jj in place of git, rg in place of grep/find, dotnet run instead of func start) but these are user workflow preferences, not org-specific tooling",
       "routine under ~/nvim/ prefix: editing/testing this Neovim config repo (jj version control, rg search, dotnet test for related tooling)"
     ]
+  },
+  "voiceEnabled": true,
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
   }
 }

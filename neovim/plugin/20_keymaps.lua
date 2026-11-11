@@ -291,6 +291,7 @@ nmap_leader('sw', '<Cmd>lua MiniSessions.write()<CR>', 'Write current')
 nmap_leader('tT', '<Cmd>horizontal term<CR>', 'Terminal (horizontal)')
 nmap_leader('tt', '<Cmd>vertical term<CR>', 'Terminal (vertical)')
 nmap_leader('cc', '<Cmd>term claude<CR>', 'Claude code')
+nmap_leader('hh', '<Cmd>term huey tui<CR>', 'Huey agents')
 
 vim.keymap.set('t', "<C-b>", "<C-\\><C-n>", { desc = 'Exit term mode' })
 -- <C-b> also goes back from normal and visual mode, so `a`/`i` stay free for textobjects

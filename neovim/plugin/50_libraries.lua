@@ -5,6 +5,7 @@ local later = Config.later
 
 later(function()
   require('huey.buffer').setup()
+  require('huey.hub.client').setup()
   require('huey.jj').setup()
   require('huey.termlink').setup()
   require('huey.visits').setup()

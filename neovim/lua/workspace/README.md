@@ -38,12 +38,12 @@ In practice the list comes from the gitignored `lua/secrets.lua` (see
   workspace is running.
 - `:WorkspaceConnect <name>` — same flow as picker confirm.
 - `<leader>fB` / `:WorkspaceBots` — pick a terminal that has a status icon (the
-  same OSC 9;4 icon the tabline shows, from `huey/term.lua`) in any **running**
+  same OSC 7501 icon the tabline shows, from `huey/term.lua`) in any **running**
   workspace. Rows are read live from each server and refresh every second while
   the picker is open, so they never show a cached status. A terminal whose
-  process exits loses its working/waiting icon; done and error stay until the
-  buffer is wiped. A running terminal that has reported progress before stays
-  listed with an idle `·` after it clears its status with state 0. Each row shows the terminal's title (`b:term_title`, set by
+  process exits loses its working/blocked/idle icon; done and error stay until the
+  buffer is wiped. A running terminal that has reported a status before stays
+  listed with an idle `·` after it clears its status with `state=clear`. Each row shows the terminal's title (`b:term_title`, set by
   OSC 0/2) in place of its buffer name, minus a leading state glyph; Claude Code
   titles itself with a short topic summary. Terminals with no useful title fall
   back to the buffer name. Preview shows the buffer's lines as they are in its own

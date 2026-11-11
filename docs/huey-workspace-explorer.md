@@ -40,6 +40,21 @@ there are three panes:
 
 ## Huey.Cli and SKILL.md
 
+## Agent hub
+
+- `huey/term.lua` reads agent status from OSC 7501 (`state=idle|working|done|blocked|error`,
+  plus `kind`, `progress`, base64 `title` and `msg`). Claude Code only sends it after the
+  terminal answers its `OSC 7501 ; ?` probe, so every terminal buffer answers.
+- The first nvim starts `huey serve` (`bin/huey`), a hub listening on `$HUEY_SOCK`, else
+  `\\.\pipe\huey-<user>` on Windows or `$XDG_RUNTIME_DIR/huey.sock` (`$TMPDIR/huey-<user>.sock`).
+  Every nvim streams its agent statuses there; an nvim that quits or crashes takes its agents
+  with it. The hub exits 30s after the last connection closes.
+- `huey tui` (`<leader>hh`, `:HueyAgents`): every agent across nvims with its workspace,
+  state, age, time in state, and title. Enter switches the agent's nvim to its buffer, and
+  `:connect`s the nvim the TUI runs in over to it.
+- `huey list`: the same agents as JSON.
+- Protocol: one JSON object per line. Code lives in `neovim/lua/huey/hub/`.
+
 ## Implementation:
 
 ### State

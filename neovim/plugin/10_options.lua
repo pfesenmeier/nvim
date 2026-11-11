@@ -33,7 +33,7 @@ vim.o.shada       = "'100,<50,s10,:1000,/100,@100,h" -- Limit ShaDa file (for st
 vim.cmd('filetype plugin indent on')
 if vim.fn.exists('syntax_on') ~= 1 then vim.cmd('syntax enable') end
 
--- Detect Lua scripts run via `nvim -l` that lack a `.lua` extension (e.g. bin/prog)
+-- Detect Lua scripts run via `nvim -l` that lack a `.lua` extension (e.g. bin/huey)
 vim.filetype.add({
   pattern = {
     ['.*/bin/.*'] = function(_, bufnr)

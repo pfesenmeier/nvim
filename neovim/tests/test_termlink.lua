@@ -38,7 +38,7 @@ local osc8_cases = {
   { 'uri containing a semicolon', '\27]8;;file:///a;b', '',      'file:///a;b' },
   -- Must not swallow the sequences 'huey/term.lua' handles.
   { 'osc 7 dir change',       '\27]7;file://host/tmp', nil,      nil },
-  { 'osc 9;4 progress',       '\27]9;4;1;50',          nil,      nil },
+  { 'osc 7501 status',        '\27]7501;state=idle',   nil,      nil },
   { 'not a sequence',         'plain text',            nil,      nil },
   { 'truncated',              '\27]8;',                nil,      nil },
 }

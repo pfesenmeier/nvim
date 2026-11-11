@@ -149,7 +149,7 @@ function M.collect(code, args)
 end
 
 -- Terminals with a tabline status icon (see 'huey/term.lua'), plus running ones
--- that reported progress before but have no status now, shown as idle. Empty in
+-- that reported a status before but have none now, shown as idle. Empty in
 -- a server that never set up HueyTerm.
 local list_bots = [[
   local term = rawget(_G, 'HueyTerm')
