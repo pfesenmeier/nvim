@@ -145,6 +145,12 @@ export def setup [] {
     | append herdr-core
   )
 
+  # native jj on windows ignores ~/.config/jj
+  let jj_config_folder = (
+    (if $nu.os-info.family == 'windows' { [AppData Roaming] } else { [.config] })
+    | append jj
+  )
+
   let neovide_config_folder = (
     (if $nu.os-info.family == 'windows' { [AppData Roaming] } else { [.config] })
     | append neovide
@@ -199,8 +205,13 @@ export def setup [] {
       src: [jjui]
       dest: [.config jjui]
     } {
+      # the scoop jjui package sets JJUI_CONFIG_DIR to this folder, so jjui ignores ~/.config/jjui
+      src: [jjui]
+      dest: [scoop persist jjui config]
+      plat: windows
+    } {
       src: [jj config.toml]
-      dest: [.config jj config.toml]
+      dest: ($jj_config_folder | append config.toml)
     } {
       # herdr-app owns the rest of its home folder, so only link my own mods and layouts
       src: [herdr-app mods my-new-menu]

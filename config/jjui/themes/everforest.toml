@@ -6,12 +6,12 @@
 
 
 "text"      = { fg = "#d3c6aa", bg = "#272e33" }
-"dimmed"    = { fg = "#859289", bg = "#272e33" }
+"dimmed"    = { fg = "#9da9a0", bg = "#272e33" }
 "title"     = { fg = "#7fbbb3", bold = true }
 "shortcut"  = { fg = "#d699b6" }
 "matched"   = { fg = "#dbbc7f" }
 "border"    = { fg = "#859289" }
-"selected"  = { bg = "#2e383c", fg = "#d3c6aa", bold = true }
+"selected"  = { bg = "#414b50", fg = "#d3c6aa", bold = true }
 
 "source_marker" = { bg = "#83c092", fg = "#272e33", bold = true }
 "target_marker" = { bg = "#a7c080", fg = "#272e33", bold = true }
@@ -27,7 +27,7 @@
 "revset completion selected" = { bg = "#414b50", fg = "#d3c6aa" }
 
 "revisions" = { fg = "#d3c6aa" }
-"revisions selected" = { bg = "#2e383c"}
+"revisions selected" = { bg = "#2e383c" }
 "revisions dimmed" = { fg = "#859289" }
 "revisions details selected" = { bg = "#414b50" }
 "oplog selected" = { bold = true }
@@ -39,7 +39,7 @@
 "menu title" = { fg = "#272e33", bg = "#d699b6", bold = true }
 "menu shortcut" = { fg = "#d699b6" }
 "menu matched" = { fg = "#dbbc7f", bold = true }
-"menu dimmed" = { fg = "#859289" }
+"menu dimmed" = { fg = "#9da9a0" }
 "menu border" = { fg = "#2e383c" }
 "menu selected" = { bg = "#414b50", fg = "#d3c6aa" }
 
@@ -65,12 +65,14 @@
 "revisions rebase source_marker" = { bold = true }
 "revisions rebase target_marker" = { bold = true }
 "status shortcut" = { fg = "#d699b6" }
-"status dimmed" = { fg = "#859289" }
+"status dimmed" = { fg = "#9da9a0", bg = "#2e383c" }
 
 "details" = { fg = "#d3c6aa" }
 "details selected" = { bold = true }
-"completion" = { fg = "#d3c6aa" }
-"completion selected" = { bold = true }
+"completion" = { fg = "#d3c6aa", bg = "#272e33" }
+"completion dimmed" = { fg = "#9da9a0", bg = "#272e33" }
+"completion matched" = { fg = "#dbbc7f", bold = true }
+"completion selected" = { fg = "#d3c6aa", bg = "#414b50", bold = true }
 "rebase" = { bold = true }
 
 "workspace" = { fg = "#7fbbb3" }
@@ -81,3 +83,14 @@
 "bookmark" = { fg = "#d699b6" }
 
 
+
+# jjui 0.10 selected-state keys use "name:selected"
+"picker" = { fg = "#d3c6aa" }
+"picker dimmed" = { fg = "#9da9a0" }
+"picker matched" = { fg = "#dbbc7f", underline = true }
+"picker:selected" = { fg = "#d3c6aa", bg = "#414b50", bold = true, underline = false }
+"picker dimmed:selected" = { fg = "#b2bdb5" }
+"bookmarks:selected" = { fg = "#7fbbb3", bold = true, underline = false }
+"git:selected" = { fg = "#7fbbb3", bold = true, underline = false }
+"revset completion dimmed:selected" = { fg = "#b2bdb5" }
+"revisions details dimmed:selected" = { fg = "#b2bdb5" }

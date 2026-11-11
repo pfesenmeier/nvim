@@ -1,0 +1,96 @@
+## tinted-jjui (https://github.com/vic/tinted-jjui)
+# Scheme name: Everforest Light Hard
+# Scheme author: Sainnhe Park (https://github.com/sainnhe)
+# Template author: Victor Borja <vborja@apache.org> (https://github.com/vic)
+
+
+
+"text"      = { fg = "#5c6a72", bg = "#fffbef" }
+"dimmed"    = { fg = "#829181", bg = "#fffbef" }
+"title"     = { fg = "#35a77c", bold = true }
+"shortcut"  = { fg = "#df69ba" }
+"matched"   = { fg = "#dfa000" }
+"border"    = { fg = "#829181" }
+"selected"  = { bg = "#e8e5d5", fg = "#5c6a72", bold = true }
+
+"source_marker" = { bg = "#35a77c", fg = "#fffbef", bold = true }
+"target_marker" = { bg = "#8da101", fg = "#fffbef", bold = true }
+
+"status" = { bg = "#f2efdf" }
+"status title" = { fg = "#fffbef", bg = "#35a77c", bold = true }
+
+"revset title" = { fg = "#35a77c", bold = true }
+"revset text" = { fg = "#5c6a72", bold = true }
+"revset completion text" = { fg = "#5c6a72" }
+"revset completion matched" = { fg = "#dfa000", bold = true }
+"revset completion dimmed" = { fg = "#829181" }
+"revset completion selected" = { bg = "#e8e5d5", fg = "#5c6a72" }
+
+"revisions" = { fg = "#5c6a72" }
+"revisions selected" = { bg = "#f2efdf" }
+"revisions dimmed" = { fg = "#829181" }
+"revisions details selected" = { bg = "#e8e5d5" }
+"oplog selected" = { bold = true }
+
+"evolog" = { fg = "#5c6a72" }
+"evolog selected" = { bg = "#e8e5d5", fg = "#5c6a72", bold = true }
+
+"menu" = { bg = "#fffbef" }
+"menu title" = { fg = "#fffbef", bg = "#df69ba", bold = true }
+"menu shortcut" = { fg = "#df69ba" }
+"menu matched" = { fg = "#dfa000", bold = true }
+"menu dimmed" = { fg = "#829181" }
+"menu border" = { fg = "#f2efdf" }
+"menu selected" = { bg = "#e8e5d5", fg = "#5c6a72" }
+
+"help" = { bg = "#fffbef" }
+"help title" = { fg = "#8da101", bold = true, underline = true }
+"help border" = { fg = "#f2efdf" }
+
+"preview" = { fg = "#5c6a72" }
+"preview border" = { fg = "#f2efdf" }
+
+"confirmation" = { bg = "#fffbef" }
+"confirmation text" = { fg = "#35a77c", bold = true }
+"confirmation dimmed" = { fg = "#829181" }
+"confirmation border" = { fg = "#f85552", bold = true }
+"confirmation selected" = { bg = "#e8e5d5", fg = "#5c6a72" }
+
+"undo" = { bg = "#fffbef" }
+"undo confirmation dimmed" = { fg = "#829181" }
+"undo confirmation selected" = { bg = "#e8e5d5", fg = "#5c6a72" }
+
+"success" = { fg = "#8da101", bold = true }
+"error" = { fg = "#f85552", bold = true }
+"revisions rebase source_marker" = { bold = true }
+"revisions rebase target_marker" = { bold = true }
+"status shortcut" = { fg = "#df69ba" }
+"status dimmed" = { fg = "#829181", bg = "#f2efdf" }
+
+"details" = { fg = "#5c6a72" }
+"details selected" = { bold = true }
+"completion" = { fg = "#5c6a72", bg = "#fffbef" }
+"completion dimmed" = { fg = "#829181", bg = "#fffbef" }
+"completion matched" = { fg = "#dfa000", bold = true }
+"completion selected" = { fg = "#5c6a72", bg = "#e8e5d5", bold = true }
+"rebase" = { bold = true }
+
+"workspace" = { fg = "#35a77c" }
+"branch" = { fg = "#f57d26" }
+"commit" = { fg = "#8da101" }
+"file" = { fg = "#dfa000" }
+"change" = { fg = "#f85552" }
+"bookmark" = { fg = "#df69ba" }
+
+
+
+# jjui 0.10 selected-state keys use "name:selected"
+"picker" = { fg = "#5c6a72" }
+"picker dimmed" = { fg = "#829181" }
+"picker matched" = { fg = "#dfa000", underline = true }
+"picker:selected" = { fg = "#5c6a72", bg = "#e8e5d5", bold = true, underline = false }
+"picker dimmed:selected" = { fg = "#708089" }
+"bookmarks:selected" = { fg = "#35a77c", bold = true, underline = false }
+"git:selected" = { fg = "#35a77c", bold = true, underline = false }
+"revset completion dimmed:selected" = { fg = "#708089" }
+"revisions details dimmed:selected" = { fg = "#708089" }

@@ -15,6 +15,10 @@ diff-args = ["--color=always", "$left", "$right"]
 name = "Paul Fesenmeier"
 email = "pbfesenmeier@sep.com"
 
+# "bright black" is nearly invisible on the jjui selected row
+[colors]
+rest = "#829181"
+
 [revsets]
 bookmark-advance-to = "@-"
 
