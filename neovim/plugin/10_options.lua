@@ -175,7 +175,14 @@ end
 -- Neovide ====================================================================
 -- Only applies when running inside the Neovide gui. See `:h neovide` or
 -- https://neovide.dev/configuration.html
-if vim.g.neovide then
+--
+-- A workspace server starts headless, so `vim.g.neovide` is unset while this
+-- file runs. Neovide sets it when it attaches, so also run on `UIEnter`.
+local neovide_done = false
+local setup_neovide = function()
+  if neovide_done then return end
+  neovide_done = true
+
   vim.o.guifont = '0xProto Nerd Font Mono:h12'
 
   -- Smooth scrolling
@@ -222,13 +229,22 @@ if vim.g.neovide then
   end, { desc = 'Paste system clipboard' })
 
   -- Zoom with ctrl +/-/0
-  vim.g.neovide_scale_factor = 1.0
+  local default_scale = 0.85
+  vim.g.neovide_scale_factor = default_scale
   local zoom = function(delta)
-    return function() vim.g.neovide_scale_factor = delta and vim.g.neovide_scale_factor * delta or 1.0 end
+    return function() vim.g.neovide_scale_factor = delta and vim.g.neovide_scale_factor * delta or default_scale end
   end
   vim.keymap.set({ 'n', 'v', 'i', 't' }, '<C-=>', zoom(1.1),  { desc = 'Zoom in' })
   vim.keymap.set({ 'n', 'v', 'i', 't' }, '<C-->', zoom(1 / 1.1), { desc = 'Zoom out' })
   vim.keymap.set({ 'n', 'v', 'i', 't' }, '<C-0>', zoom(nil),  { desc = 'Reset zoom' })
+end
+
+if vim.g.neovide then
+  setup_neovide()
+else
+  Config.new_autocmd('UIEnter', '*', function()
+    if vim.g.neovide then setup_neovide() end
+  end, 'Apply Neovide settings when Neovide attaches')
 end
 
 -- Autocommands ===============================================================
