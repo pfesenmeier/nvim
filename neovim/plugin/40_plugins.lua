@@ -235,6 +235,13 @@ Config.now(function()
   vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F99' })
 end)
 
+-- Neovide-style cursor trail for terminals. Skipped in Neovide, which has its own.
+later(function()
+  if vim.g.neovide then return end
+  add({ 'https://github.com/sphamba/smear-cursor.nvim' })
+  require('smear_cursor').setup({})
+end)
+
 later(function()
   vim.pack.add({ 'https://github.com/MeanderingProgrammer/render-markdown.nvim' })
   require('render-markdown').setup({})

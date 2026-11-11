@@ -414,10 +414,20 @@ later(function() require('mini.align').setup() end)
 -- window open, window close. Animations are done based on Neovim events and
 -- don't require custom mappings.
 --
--- It is not enabled by default because its effects are a matter of taste.
--- Also scroll and resize have some unwanted side effects (see `:h mini.animate`).
--- Uncomment next line (use `gcc`) to enable.
--- later(function() require('mini.animate').setup() end)
+-- Only scroll is animated here; 'smear-cursor.nvim' handles the cursor (see
+-- 'plugin/40_plugins.lua'). Skipped in Neovide, which animates on its own.
+-- Steps are capped at 10ms so holding `j`/`k` doesn't fall behind key repeat.
+later(function()
+  if vim.g.neovide then return end
+  local animate = require('mini.animate')
+  animate.setup({
+    cursor = { enable = false },
+    scroll = { timing = function(_, n) return math.min(150 / n, 10) end },
+    resize = { enable = false },
+    open = { enable = false },
+    close = { enable = false },
+  })
+end)
 
 -- Go forward/backward with square brackets. Implements consistent sets of mappings
 -- for selected targets (like buffers, diagnostic, quickfix list entries, etc.).
