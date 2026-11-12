@@ -112,6 +112,13 @@ one server shows up in the others.
   workspace's pane. `<Tab>` on the pane it opened from closes it again, and
   `<Tab>` in an agent pane does nothing.
 
+  Every project and workspace line counts its agents by state after its name,
+  most urgent first and coloured by state, e.g. `⏸1 ∿2` for one agent waiting
+  on the user and two working. Agent icons take the same colours. While the
+  explorer is open it re-reads the agents every second and redraws the tallies
+  and the agent pane, keeping the cursor on the agent it was on. A pane with
+  unsynced edits, or one being typed in, is left alone until they are synced.
+
 `:detach` (built-in) drops the UI off a project without stopping it.
 
 There is no `home` entry. The TUI's own server is not registered in

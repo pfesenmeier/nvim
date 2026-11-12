@@ -969,6 +969,7 @@ T['M.add_agent()']['starts a terminal in a workspace server, leaving its UI be']
       workspace = 'feature',
       bufnr = buf,
       icon = '·',
+      state = 'idle',
       text = 'fix the bug',
       prompt = 'fix the bug',
     },

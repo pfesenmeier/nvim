@@ -121,6 +121,18 @@ Proto.reach = function(on_msg, on_close, cb)
   try()
 end
 
+--- States from most to least urgent.
+Proto.states = { 'blocked', 'error', 'working', 'done', 'idle' }
+
+--- Highlight group for each state, shared by the agent lists.
+Proto.hl = {
+  blocked = 'DiagnosticWarn',
+  error = 'DiagnosticError',
+  working = 'DiagnosticInfo',
+  done = 'DiagnosticOk',
+  idle = 'Comment',
+}
+
 --- Icons for each state, shared by the tabline and the agent lists.
 local moons = { '○', '◔', '◑', '◕', '●' }
 

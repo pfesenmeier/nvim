@@ -12,9 +12,11 @@
 -- agent's terminal is deleted. `<Tab>` opens the agents of every
 -- project from the project pane, or of every workspace of the project from the
 -- workspace pane; press it there again to close them. A preview right of an
--- agent pane shows the latest output of the agent under the cursor. See
--- 'lua/huey/projects'.
+-- agent pane shows the latest output of the agent under the cursor. Every
+-- project and workspace line counts its agents by state, and every pane keeps
+-- up with the agents while it is open. See 'lua/huey/projects'.
 local projects = require('huey.projects')
+local proto = require('huey.hub.proto')
 
 local Explorer = {}
 local H = {}
@@ -36,6 +38,11 @@ H.workspaces = { win = nil, buf = nil, project = nil, names = {} }
 --- the output of the one under the cursor, refreshed by `timer`.
 H.agents = { win = nil, buf = nil, agents = {} }
 H.preview = { win = nil, buf = nil, timer = nil }
+
+--- Every agent in a running server as last read, and the timer that re-reads
+--- them while the explorer is open.
+H.all = {}
+H.timer = nil
 
 H.is_open = function(win) return win ~= nil and vim.api.nvim_win_is_valid(win) end
 
@@ -70,6 +77,11 @@ H.close = function()
   H.close_workspaces()
   if H.is_open(H.projects.win) then vim.api.nvim_win_close(H.projects.win, true) end
   H.projects = { win = nil, buf = nil, names = {} }
+  if H.timer and not H.timer:is_closing() then
+    H.timer:stop()
+    H.timer:close()
+  end
+  H.timer, H.all = nil, {}
 end
 
 --- Sets window options shared by both panes.
@@ -111,9 +123,56 @@ H.glyph = function(buf, lnum, running)
   })
 end
 
---- Width of a line showing `name` and then `detail` at the end of the line.
-H.width = function(name, detail)
-  return vim.fn.strdisplaywidth(name) + 2 + vim.fn.strdisplaywidth(detail)
+--- Re-reads every agent from the running servers.
+H.fetch = function() H.all = projects.all_agents() end
+
+--- Agents of `project` from the last read, only those in `workspace` when
+--- given, or of every project when `project` is nil.
+--- @param project string?
+--- @param workspace string?
+--- @return huey.ProjectAgent[]
+H.agents_in = function(project, workspace)
+  return vim.tbl_filter(function(g)
+    return (project == nil or g.project == project)
+      and (workspace == nil or g.workspace == workspace)
+  end, H.all)
+end
+
+--- Virtual text counting `agents` by state, most urgent first, e.g. `⏸1 ∿2`.
+--- Empty when there are none.
+--- @param agents huey.ProjectAgent[]
+--- @return string[][]
+H.tally = function(agents)
+  local counts = {}
+  for _, g in ipairs(agents) do
+    local state = g.state or 'idle'
+    counts[state] = (counts[state] or 0) + 1
+  end
+  local chunks = {}
+  for _, state in ipairs(proto.states) do
+    if counts[state] then
+      local sep = #chunks == 0 and '  ' or ' '
+      chunks[#chunks + 1] = { sep .. proto.icon(state) .. counts[state], proto.hl[state] }
+    end
+  end
+  return chunks
+end
+
+--- Marks line `lnum` of `buf`: whether its server is running ahead of the
+--- text, which is highlighted when `current`, and after it the tally of
+--- `agents` and then `path`. Returns the width the line takes.
+H.decorate = function(buf, lnum, text, running, current, agents, path)
+  H.glyph(buf, lnum, running)
+  local virt_text = H.tally(agents)
+  virt_text[#virt_text + 1] = { '  ' .. path, 'Comment' }
+  vim.api.nvim_buf_set_extmark(buf, H.ns, lnum, 0, {
+    end_col = #text,
+    hl_group = current and 'Title' or nil,
+    virt_text = virt_text,
+    virt_text_pos = 'eol',
+  })
+  local detail = table.concat(vim.tbl_map(function(c) return c[1] end, virt_text))
+  return 2 + vim.fn.strdisplaywidth(text .. detail)
 end
 
 --- Fits `win` to its content, keeping it on screen.
@@ -152,28 +211,33 @@ end
 --- @return integer width widest line, glyph and path included
 H.render_projects = function(buf)
   local names = projects.names()
+  H.projects.buf = buf
   H.projects.names = names
-  local current = projects.current_index()
-
-  vim.api.nvim_buf_clear_namespace(buf, H.ns, 0, -1)
+  H.projects.paths = projects.paths()
+  H.projects.running = vim.tbl_map(
+    function(name) return projects.status(name) == 'running' end,
+    names
+  )
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, names)
   vim.bo[buf].modified = false
+  return H.mark_projects()
+end
 
-  local paths = projects.paths()
+--- Marks every line of the project pane, as `H.decorate()` does, from what
+--- was last read. Fits the pane to the result.
+--- @return integer width widest line, glyph and details included
+H.mark_projects = function()
+  local p = H.projects
+  local current = projects.current_index()
+  vim.api.nvim_buf_clear_namespace(p.buf, H.ns, 0, -1)
   local width = 0
-  for i, name in ipairs(names) do
-    local path = vim.fn.fnamemodify(paths[i], ':~')
-    H.glyph(buf, i - 1, projects.status(name) == 'running')
-    vim.api.nvim_buf_set_extmark(buf, H.ns, i - 1, 0, {
-      end_col = #name,
-      hl_group = i == current and 'Title' or nil,
-      virt_text = { { '  ' .. path, 'Comment' } },
-      virt_text_pos = 'eol',
-    })
-    width = math.max(width, 2 + H.width(name, path))
+  for i, name in ipairs(p.names) do
+    local path = vim.fn.fnamemodify(p.paths[i], ':~')
+    local agents = H.agents_in(name)
+    width = math.max(width, H.decorate(p.buf, i - 1, name, p.running[i], i == current, agents, path))
   end
-  H.projects.width = width
-  if H.is_open(H.projects.win) then H.resize(H.projects.win, width, #names) end
+  p.width = width
+  if H.is_open(p.win) then H.resize(p.win, width, #p.names) end
   return width
 end
 
@@ -257,25 +321,31 @@ H.render_workspaces = function()
   if not list then return false end
 
   ws.names = vim.tbl_map(function(w) return w.name end, list)
-  vim.api.nvim_buf_clear_namespace(ws.buf, H.ns, 0, -1)
+  ws.paths = vim.tbl_map(function(w) return w.path end, list)
+  ws.running = vim.tbl_map(
+    function(w) return projects.status(ws.project, w.name) == 'running' end,
+    list
+  )
   vim.api.nvim_buf_set_lines(ws.buf, 0, -1, false, ws.names)
   vim.bo[ws.buf].modified = false
+  H.mark_workspaces()
+  return true
+end
 
+--- Marks every line of the workspace pane, as `H.decorate()` does, from what
+--- was last read. Fits the pane to the result.
+H.mark_workspaces = function()
+  local ws = H.workspaces
+  vim.api.nvim_buf_clear_namespace(ws.buf, H.ns, 0, -1)
   local width = 0
-  for i, w in ipairs(list) do
-    local path = vim.fn.fnamemodify(w.path, ':~')
-    H.glyph(ws.buf, i - 1, projects.status(ws.project, w.name) == 'running')
-    vim.api.nvim_buf_set_extmark(ws.buf, H.ns, i - 1, 0, {
-      end_col = #w.name,
-      hl_group = H.is_current(ws.project, w.name) and 'Title' or nil,
-      virt_text = { { '  ' .. path, 'Comment' } },
-      virt_text_pos = 'eol',
-    })
-    width = math.max(width, 2 + H.width(w.name, path))
+  for i, name in ipairs(ws.names) do
+    local path = vim.fn.fnamemodify(ws.paths[i], ':~')
+    local current = H.is_current(ws.project, name)
+    local agents = H.agents_in(ws.project, name)
+    width = math.max(width, H.decorate(ws.buf, i - 1, name, ws.running[i], current, agents, path))
   end
   ws.width = width
-  if H.is_open(ws.win) then H.resize(ws.win, width, #list) end
-  return true
+  if H.is_open(ws.win) then H.resize(ws.win, width, #ws.names) end
 end
 
 --- Creates a workspace for every line that names none yet and removes every
@@ -406,11 +476,7 @@ H.can_start_agents = function() return H.agents.workspace ~= nil end
 --- the prompt it started with, dimmed, once that differs from the line.
 H.render_agents = function()
   local a = H.agents
-  if a.workspace then
-    a.agents = projects.agents(a.project, a.workspace)
-  else
-    a.agents = projects.all_agents(a.project)
-  end
+  a.agents = H.agents_in(a.project, a.workspace)
   local single = H.can_start_agents()
   vim.api.nvim_buf_clear_namespace(a.buf, H.ns, 0, -1)
   vim.api.nvim_buf_set_lines(
@@ -425,7 +491,7 @@ H.render_agents = function()
   local width = 0
   for i, g in ipairs(a.agents) do
     vim.api.nvim_buf_set_extmark(a.buf, H.ns, i - 1, 0, {
-      virt_text = { { g.icon .. ' ', 'Special' } },
+      virt_text = { { g.icon .. ' ', proto.hl[g.state] or 'Special' } },
       virt_text_pos = 'inline',
     })
     local chunks = {}
@@ -591,6 +657,7 @@ H.synchronize_agents = function()
   for _, prompt in ipairs(create) do
     projects.add_agent(a.project, a.workspace, prompt)
   end
+  H.fetch()
   -- the server may have just started
   if #create > 0 and H.is_open(H.workspaces.win) then H.render_workspaces() end
   H.render_agents()
@@ -712,6 +779,41 @@ H.back = function()
   H.close_workspaces()
 end
 
+--- True when `pane` is open and still shows exactly the `listed` lines, so a
+--- redraw drops no edits. 'modified' is never set in a scratch buffer.
+--- @param listed string[]
+H.is_untouched = function(pane, listed)
+  if not H.is_open(pane.win) then return false end
+  local lines = vim.api.nvim_buf_get_lines(pane.buf, 0, -1, false)
+  -- an empty pane still has its one empty line
+  if #listed == 0 then return #lines == 1 and lines[1] == '' end
+  return vim.deep_equal(lines, listed)
+end
+
+--- Re-reads the agents and redraws every pane with them. Waits while a pane
+--- is being typed in or has unsynced edits, so they are never dropped. The
+--- agent pane keeps the cursor on the agent it was on.
+H.refresh = function()
+  if not H.is_open(H.projects.win) then return H.close() end
+  if vim.api.nvim_get_mode().mode:sub(1, 1) ~= 'n' then return end
+  H.fetch()
+  if H.is_untouched(H.projects, H.projects.names) then H.mark_projects() end
+  if H.is_untouched(H.workspaces, H.workspaces.names) then H.mark_workspaces() end
+
+  local a = H.agents
+  local texts = vim.tbl_map(function(g) return g.text end, a.agents)
+  if not H.is_untouched(a, texts) then return end
+  local fresh = H.agents_in(a.project, a.workspace)
+  if vim.deep_equal(fresh, a.agents) then return end
+  local was = H.agent_under_cursor()
+  H.render_agents()
+  for i, g in ipairs(was and a.agents or {}) do
+    local same = g.project == was.project and g.workspace == was.workspace
+    if same and g.bufnr == was.bufnr then vim.api.nvim_win_set_cursor(a.win, { i, 0 }) end
+  end
+  H.update_preview()
+end
+
 --- Opens the project pane in the top left corner, with the cursor on the
 --- current project. Focuses it when it is already open.
 Explorer.open = function()
@@ -723,7 +825,7 @@ Explorer.open = function()
   vim.api.nvim_buf_set_name(buf, 'huey://projects')
   vim.bo[buf].bufhidden = 'wipe'
   vim.bo[buf].filetype = 'hueyexplorer'
-  H.projects.buf = buf
+  H.fetch()
   local width = H.render_projects(buf)
   local count = #H.projects.names
 
@@ -750,6 +852,11 @@ Explorer.open = function()
   H.map(buf, '<Esc>', H.close, 'Close')
   H.grow_with_edits(buf, win, function() return H.projects.width or 0 end)
   H.close_on_leave(buf)
+
+  H.timer = assert(vim.uv.new_timer())
+  H.timer:start(refresh_ms, refresh_ms, vim.schedule_wrap(H.refresh))
 end
+
+Explorer.H = H
 
 return Explorer

@@ -496,7 +496,7 @@ end
 
 -- Terminals with a tabline status icon (see 'huey/term.lua'), plus running ones
 -- that reported a status before but have none now, shown as idle, and running
--- ones `M.add_agent()` started that have not reported yet.
+-- ones `M.add_agent()` started that have not reported yet, also idle.
 local list_bots = [[
   local term = rawget(_G, 'HueyTerm')
   local out = {}
@@ -506,11 +506,13 @@ local list_bots = [[
       local running = vim.fn.jobwait({ vim.bo[b].channel }, 0)[1] == -1
       local icon = term and (term.get_icon(b) or (term.is_bot and term.is_bot(b) and '·'))
         or (prompt and running and '·')
+      local status = term and term.get_status and term.get_status(b)
       if icon then
         out[#out + 1] = {
           bufnr = b,
           name = vim.api.nvim_buf_get_name(b),
           icon = icon,
+          state = status and status.state or 'idle',
           title = vim.b[b].term_title,
           prompt = prompt,
         }
@@ -620,6 +622,7 @@ end
 --- @field workspace string
 --- @field bufnr integer terminal buffer in that workspace's server
 --- @field icon string
+--- @field state string idle | working | done | blocked | error
 --- @field text string what it says it is working on, else its prompt
 --- @field prompt string? what `M.add_agent()` started it with
 
@@ -632,6 +635,8 @@ local function add_agent_rows(out, name, ws, bots)
       workspace = ws,
       bufnr = b.bufnr,
       icon = b.icon,
+      -- servers on older code send no state
+      state = b.state or 'idle',
       text = summary(b.title) or b.prompt or vim.fn.fnamemodify(b.name, ':~'),
       prompt = b.prompt,
     }

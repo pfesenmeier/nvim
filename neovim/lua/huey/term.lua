@@ -350,7 +350,10 @@ H.create_autocmds = function()
 end
 
 -- most urgent first
-local sort_order = { blocked = 1, error = 2, working = 3, done = 4, idle = 5 }
+local sort_order = {}
+for i, state in ipairs(proto.states) do
+  sort_order[state] = i
+end
 
 ---@param first huey.Status
 ---@param second huey.Status

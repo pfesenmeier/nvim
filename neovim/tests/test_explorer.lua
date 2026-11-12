@@ -514,7 +514,7 @@ local setup_agents = function(agents, answer)
       local label = projects.label(name, ws)
       _G.agents[label] = _G.agents[label] or {}
       local buf = 100 + #_G.added
-      table.insert(_G.agents[label], { bufnr = buf, icon = '·', text = prompt, prompt = prompt })
+      table.insert(_G.agents[label], { bufnr = buf, icon = '·', state = 'idle', text = prompt, prompt = prompt })
       table.insert(_G.added, { label, prompt })
       return buf
     end
@@ -534,8 +534,8 @@ local setup_agents = function(agents, answer)
   return root, repo
 end
 
-local working = { bufnr = 7, icon = '∿', text = 'Fixing the bug', prompt = 'fix the bug' }
-local idle = { bufnr = 9, icon = '·', text = 'review the diff', prompt = 'review the diff' }
+local working = { bufnr = 7, icon = '∿', state = 'working', text = 'Fixing the bug', prompt = 'fix the bug' }
+local idle = { bufnr = 9, icon = '·', state = 'idle', text = 'review the diff', prompt = 'review the diff' }
 
 --- Opens the agent pane of beta's default workspace.
 local open_beta_agents = function()
@@ -717,8 +717,8 @@ end
 
 T['tab'] = new_set()
 
-local other = { bufnr = 3, icon = '⏸', text = 'needs input', prompt = 'needs input' }
-local elsewhere = { bufnr = 4, icon = '∿', text = 'in alpha' }
+local other = { bufnr = 3, icon = '⏸', state = 'blocked', text = 'needs input', prompt = 'needs input' }
+local elsewhere = { bufnr = 4, icon = '∿', state = 'working', text = 'in alpha' }
 
 T['tab']['in the projects pane lists the agents of every project'] = function()
   setup_agents({ alpha = { elsewhere }, beta = { working }, ['beta/aaa'] = { other } })
@@ -847,6 +847,99 @@ T['tab']['h goes back to the pane it opened from'] = function()
   press('<Tab>h')
   eq(child.api.nvim_buf_get_name(0), 'huey://workspaces/beta')
   eq(#child.api.nvim_list_wins(), 3)
+end
+
+T['status'] = new_set()
+
+--- Agent tally on each line of the current pane, without the path after it.
+local tallies = function()
+  return child.lua_get([[vim.tbl_map(function(m)
+    local chunks = vim.deepcopy(m[4].virt_text)
+    table.remove(chunks)
+    return chunks
+  end, vim.tbl_filter(function(m)
+    return m[4].virt_text_pos == 'eol'
+  end, vim.api.nvim_buf_get_extmarks(0, -1, 0, -1, { details = true })))]])
+end
+
+--- Highlight of each agent's icon in the current pane.
+local icon_hls = function()
+  return child.lua_get([[vim.tbl_map(function(m)
+    return m[4].virt_text[1][2]
+  end, vim.tbl_filter(function(m)
+    return m[4].virt_text_pos == 'inline'
+  end, vim.api.nvim_buf_get_extmarks(0, -1, 0, -1, { details = true })))]])
+end
+
+--- Sets the state and icon of agent `bufnr` in server `label`.
+local set_state = function(label, bufnr, state, icon)
+  child.lua(
+    [[
+    local label, bufnr, state, icon = ...
+    for _, g in ipairs(_G.agents[label]) do
+      if g.bufnr == bufnr then g.state, g.icon = state, icon end
+    end
+  ]],
+    { label, bufnr, state, icon }
+  )
+end
+
+local refresh = function() child.lua('_G.explorer.H.refresh()') end
+
+T['status']['projects count their agents by state, most urgent first'] = function()
+  setup_agents({ alpha = { elsewhere }, beta = { working, idle }, ['beta/aaa'] = { other } })
+  open()
+  eq(tallies(), {
+    { { '  ∿1', 'DiagnosticInfo' } },
+    { { '  ⏸1', 'DiagnosticWarn' }, { ' ∿1', 'DiagnosticInfo' }, { ' ·1', 'Comment' } },
+    {},
+  })
+end
+
+T['status']['workspaces count their own agents'] = function()
+  setup_agents({ beta = { working }, ['beta/aaa'] = { other } })
+  open_beta()
+  eq(tallies(), { { { '  ∿1', 'DiagnosticInfo' } } })
+end
+
+T['status']['agent icons are colored by state'] = function()
+  setup_agents({ beta = { working, idle }, ['beta/aaa'] = { other } })
+  open()
+  press('<Tab>')
+  eq(icon_hls(), { 'DiagnosticInfo', 'Comment', 'DiagnosticWarn' })
+end
+
+T['status']['every pane follows an agent that starts waiting on the user'] = function()
+  setup_agents({ beta = { working, idle } })
+  open_beta_agents()
+  press('j')
+  set_state('beta', 7, 'blocked', '⏸')
+  refresh()
+  eq(glyphs(), { '⏸ ', '· ' })
+  eq(icon_hls()[1], 'DiagnosticWarn')
+  -- the cursor stays on the agent it was on
+  eq(cursor_line(), 2)
+
+  child.api.nvim_set_current_win(child.lua_get('_G.explorer.H.projects.win'))
+  eq(tallies()[2], { { '  ⏸1', 'DiagnosticWarn' }, { ' ·1', 'Comment' } })
+end
+
+T['status']['refreshing keeps unsynced edits'] = function()
+  setup_agents({ beta = { working } })
+  open_beta_agents()
+  press('onew prompt<Esc>')
+  set_state('beta', 7, 'blocked', '⏸')
+  refresh()
+  eq(child.get_lines(), { 'Fixing the bug', 'new prompt' })
+end
+
+T['status']['refreshes on its own while open'] = function()
+  setup_agents({ beta = { working } })
+  open_beta_agents()
+  set_state('beta', 7, 'blocked', '⏸')
+  vim.uv.sleep(1200)
+  child.poke_eventloop()
+  eq(glyphs(), { '⏸ ' })
 end
 
 return T

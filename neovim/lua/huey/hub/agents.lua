@@ -8,13 +8,7 @@ local H = {}
 
 H.ns = vim.api.nvim_create_namespace('HueyAgents')
 
-H.state_hl = {
-  working = 'DiagnosticInfo',
-  blocked = 'DiagnosticWarn',
-  error = 'DiagnosticError',
-  done = 'DiagnosticOk',
-  idle = 'Comment',
-}
+H.state_hl = proto.hl
 
 --- @type table<string, huey.Agent>
 local agents = {}
