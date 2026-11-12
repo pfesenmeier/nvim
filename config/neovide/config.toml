@@ -1,5 +1,0 @@
-# https://neovide.dev/config-file.html
-# editor settings live in neovim/plugin/10_options.lua under `vim.g.neovide`
-
-# return to the shell instead of waiting for neovide to exit
-fork = true

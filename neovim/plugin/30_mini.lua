@@ -415,10 +415,9 @@ later(function() require('mini.align').setup() end)
 -- don't require custom mappings.
 --
 -- Only scroll is animated here; 'smear-cursor.nvim' handles the cursor (see
--- 'plugin/40_plugins.lua'). Skipped in Neovide, which animates on its own.
+-- 'plugin/40_plugins.lua').
 -- Steps are capped at 10ms so holding `j`/`k` doesn't fall behind key repeat.
 later(function()
-  if vim.g.neovide then return end
   local animate = require('mini.animate')
   animate.setup({
     cursor = { enable = false },
