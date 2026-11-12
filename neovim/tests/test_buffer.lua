@@ -8,8 +8,7 @@ local new_set = MiniTest.new_set
 local temp_roots = {}
 
 local new_temp_dir = function()
-  local root = vim.fn.tempname()
-  vim.fn.mkdir(root, 'p')
+  local root = helpers.new_temp_dir()
   table.insert(temp_roots, root)
   return root
 end

@@ -18,8 +18,7 @@ local new_jj_repo = function(files)
   return root
 end
 local new_plain_dir = function()
-  local dir = vim.fn.tempname()
-  vim.fn.mkdir(dir, 'p')
+  local dir = helpers.new_temp_dir()
   table.insert(temp_roots, dir)
   return dir
 end
@@ -385,6 +384,22 @@ T['pick_hunks()']['scopes to a path with a fileset'] = function()
   local command = child.lua_get('_G.captured.cli.command')
   eq({ command[#command - 1], command[#command] }, { '--', 'root-file:"sub/f.txt"' })
   eq(child.lua_get('_G.captured.opts.source.name'), 'jj hunks (@, for path)')
+end
+
+T['pick_hunks()']['resolves a path reached through a symlink'] = function()
+  -- `jj root` prints the real path, so a symlinked path must be resolved
+  -- before it is made workspace-relative
+  helpers.skip_if_no_jj()
+  local root = new_jj_repo({ ['sub/f.txt'] = { 'x' } })
+  local link = vim.fn.tempname()
+  vim.uv.fs_symlink(root, link)
+  mock_pick()
+  child.fn.chdir(root)
+  child.lua('_G.pick_hunks({ path = ... })', { link .. '/sub/f.txt' })
+  vim.fn.delete(link)
+
+  local command = child.lua_get('_G.captured.cli.command')
+  eq(command[#command], 'root-file:"sub/f.txt"')
 end
 
 T['pick_hunks()']['accepts a cwd-relative path'] = function()

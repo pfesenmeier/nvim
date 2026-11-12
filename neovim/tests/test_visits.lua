@@ -9,7 +9,7 @@ local temp_roots = {}
 --- Two real project dirs holding two real files each, so the index survives the
 --- pruning that `write_index()` performs on the way out.
 local new_projects = function()
-  local root = vim.fn.tempname()
+  local root = helpers.new_temp_dir()
   local spec = {}
   for _, proj in ipairs({ 'one', 'two' }) do
     vim.fn.mkdir(root .. '/' .. proj, 'p')

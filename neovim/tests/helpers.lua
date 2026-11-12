@@ -66,6 +66,16 @@ Helpers.is_ci = function() return os.getenv('CI') ~= nil end
 
 Helpers.get_time_const = function(delay) return (Helpers.is_ci() and 2 or 1) * delay end
 
+--- Creates a temp dir and returns its symlink-free path.
+--- On macOS `tempname()` sits under the `/var -> /private/var` symlink, while
+--- buffer names, `getcwd()` and `jj root` all report the resolved path.
+--- @return string
+Helpers.new_temp_dir = function()
+  local root = vim.fn.tempname()
+  vim.fn.mkdir(root, 'p')
+  return vim.uv.fs_realpath(root)
+end
+
 Helpers.skip_if_no_jj = function()
   if vim.fn.executable('jj') == 0 then MiniTest.skip('`jj` executable not found') end
 end
@@ -76,8 +86,7 @@ end
 --- @param files table<string, string[]> repo-relative path -> lines
 --- @return string root
 Helpers.new_jj_repo = function(files)
-  local root = vim.fn.tempname()
-  vim.fn.mkdir(root, 'p')
+  local root = Helpers.new_temp_dir()
 
   local jj = function(...)
     local opts = { cwd = root, text = true }

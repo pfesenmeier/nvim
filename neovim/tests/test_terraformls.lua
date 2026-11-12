@@ -11,7 +11,7 @@ local temp_roots = {}
 --- @param paths string[] root-relative paths
 --- @return string root
 local new_tree = function(paths)
-  local root = vim.fn.tempname()
+  local root = helpers.new_temp_dir()
   for _, path in ipairs(paths) do
     local full = root .. '/' .. path
     if path:sub(-1) == '/' then

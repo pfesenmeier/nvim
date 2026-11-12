@@ -184,7 +184,9 @@ HueyJj.pick_hunks = function(local_opts, opts)
   local revset, n_context = local_opts.revset, local_opts.n_context
 
   local path = local_opts.path
-  if path ~= nil then path = vim.fn.fnamemodify(path, ':p') end
+  -- resolve symlinks so the path lines up with the real root `jj root` prints;
+  -- a deleted file has no real path, so it keeps its plain absolute one
+  if path ~= nil then path = vim.uv.fs_realpath(path) or vim.fn.fnamemodify(path, ':p') end
   local dir = path == nil and vim.fn.getcwd() or vim.fn.fnamemodify(path, ':h')
 
   local root = H.workspace_root(dir)
