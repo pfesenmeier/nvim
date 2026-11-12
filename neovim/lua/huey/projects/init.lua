@@ -387,6 +387,38 @@ function M.add(path)
   return name
 end
 
+--- Remove project `name` from the store, stopping every server it has running
+--- first; once it is gone they could no longer be found. Nothing on disk is
+--- touched. Pinned projects are not in the store, so they stay, and the
+--- project this nvim is in stays too.
+--- @param name string
+--- @return boolean? true when removed
+function M.remove(name)
+  if vim.iter(opts.pinned):any(function(p) return p.name == name end) then
+    vim.notify(("projects: '%s' is pinned"):format(name), vim.log.levels.ERROR)
+    return
+  end
+  local stored = read_store()
+  local kept = vim.tbl_filter(function(p) return p.name ~= name end, stored)
+  if #kept == #stored then
+    vim.notify(("projects: unknown name '%s'"):format(name), vim.log.levels.ERROR)
+    return
+  end
+  local i = M.current_index()
+  if i and list()[i].name == name then
+    vim.notify(
+      ("projects: can't remove %s: this nvim is in it"):format(name),
+      vim.log.levels.ERROR
+    )
+    return
+  end
+  for _, ws in ipairs(running_workspaces(name)) do
+    stop_one(sock_for(name, ws))
+  end
+  write_store(kept)
+  return true
+end
+
 --- Pick a folder under home and add it as a project. Hidden folders, Library
 --- and anything gitignored are left out.
 function M.pick_add()
@@ -661,6 +693,34 @@ function M.add_agent(name, ws, prompt)
   return buf
 end
 
+--- Deletes terminal `bufnr` in the server of workspace `ws` of project `name`,
+--- which stops the agent in it.
+--- @param name string
+--- @param ws string
+--- @param bufnr integer
+--- @return boolean? true when the terminal is gone
+function M.remove_agent(name, ws, bufnr)
+  local ok = run_in(
+    name,
+    ws,
+    [[
+      local buf = ...
+      if vim.api.nvim_buf_is_valid(buf) then
+        vim.api.nvim_buf_delete(buf, { force = true })
+      end
+      return true
+    ]],
+    { bufnr }
+  )
+  if not ok then
+    vim.notify(
+      ('projects: failed to stop an agent in %s'):format(M.label(name, ws)),
+      vim.log.levels.ERROR
+    )
+  end
+  return ok
+end
+
 --- Lines of terminal `bufnr` in the server of workspace `ws` of project
 --- `name`, without the blank lines a terminal pads its end with.
 --- @param name string
@@ -762,6 +822,55 @@ function M.add_workspace(name, ws)
   local out, err = jj(project.path, args)
   if not out then return jj_failed(args, err) end
   return path
+end
+
+--- Deletes jj workspace `ws` of project `name`: stops its server, and the
+--- agents in it, then forgets it in jj and deletes its folder. Refuses
+--- `default`, which is the project's own folder, and the workspace this nvim
+--- is in.
+--- @param name string
+--- @param ws string
+--- @return boolean? true when removed
+function M.remove_workspace(name, ws)
+  local refuse = function(why)
+    vim.notify(
+      ("projects: can't remove %s: %s"):format(M.label(name, ws), why),
+      vim.log.levels.ERROR
+    )
+  end
+  if ws == 'default' then return refuse('it is the project folder') end
+  if M.current_name() == name and M.current_workspace() == ws then
+    return refuse('this nvim is in it')
+  end
+  local found = vim
+    .iter(M.workspaces(name) or {})
+    :find(function(w) return w.name == ws end)
+  if not found then
+    vim.notify(
+      ("projects: %s has no workspace '%s'"):format(name, ws),
+      vim.log.levels.ERROR
+    )
+    return
+  end
+  -- never delete the project folder or a folder holding it
+  local real = function(p) return vim.fs.normalize(vim.fn.resolve(p)) .. '/' end
+  if vim.startswith(real(find(name).path), real(found.path)) then
+    return refuse('its folder holds the project')
+  end
+
+  local sock = sock_for(name, ws)
+  if probe(sock) then stop_one(sock) end
+  local args = { 'workspace', 'forget', ws }
+  local out, err = jj(find(name).path, args)
+  if not out then return jj_failed(args, err) end
+  if vim.fn.delete(found.path, 'rf') ~= 0 then
+    vim.notify(
+      ('projects: forgot %s but failed to delete %s'):format(M.label(name, ws), found.path),
+      vim.log.levels.ERROR
+    )
+    return
+  end
+  return true
 end
 
 --- Position of this server's project in `M.names()`, or nil when it is none.

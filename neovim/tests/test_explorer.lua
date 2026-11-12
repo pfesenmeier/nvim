@@ -97,7 +97,7 @@ T['open()']['lists projects in a focused float'] = function()
   open()
   eq(is_float(), true)
   eq(child.get_lines(), project_names)
-  eq(child.bo.modifiable, false)
+  eq(child.bo.modifiable, true)
 end
 
 T['open()']['starts on the current project'] = function()
@@ -189,6 +189,86 @@ T['keys']['leaving the pane closes it'] = function()
   eq(#child.api.nvim_list_wins(), 1)
 end
 
+T['projects'] = new_set()
+
+--- Like `setup()`, with confirm prompts answering `answer` (1 is yes) and
+--- recording their message in `_G.prompts`, and notifications recorded in
+--- `_G.notes`.
+--- @param answer integer?
+--- @return string root
+local setup_prompts = function(answer)
+  local root = setup({})
+  child.lua(
+    [[
+    local answer = ...
+    _G.prompts, _G.notes = {}, {}
+    vim.notify = function(msg) table.insert(_G.notes, msg) end
+    vim.fn.confirm = function(msg)
+      table.insert(_G.prompts, msg)
+      return answer
+    end
+  ]],
+    { answer or 1 }
+  )
+  return root
+end
+
+--- Project names in the store at `root`.
+local stored_names = function(root)
+  local list = vim.json.decode(table.concat(vim.fn.readfile(root .. '/projects.json'), '\n'))
+  return vim.tbl_map(function(p) return p.name end, list)
+end
+
+T['projects']['= removes a project from the list, not from disk'] = function()
+  local root = setup_prompts()
+  open()
+  press('jdd=')
+  eq(stored_names(root), { 'alpha', 'gamma' })
+  eq(child.get_lines(), { 'alpha', 'gamma' })
+  eq(vim.fn.isdirectory(root .. '/beta'), 1)
+  eq(child.lua_get('_G.prompts[1]'):find('DELETE │ beta', 1, true) ~= nil, true)
+end
+
+T['projects']['= keeps the current project'] = function()
+  local root = setup_prompts()
+  child.fn.chdir(root .. '/beta')
+  open()
+  press('dd=')
+  eq(stored_names(root), project_names)
+  eq(child.lua_get('#_G.prompts'), 0)
+  eq(child.lua_get('_G.notes'), { "explorer: can't remove the current project; kept beta" })
+end
+
+T['projects']['= removes nothing when declined'] = function()
+  local root = setup_prompts(2)
+  open()
+  press('jdd=')
+  eq(stored_names(root), project_names)
+  -- the edit stays, to fix or confirm again
+  eq(child.get_lines(), { 'alpha', 'gamma' })
+end
+
+T['projects']['= ignores a new line'] = function()
+  local root = setup_prompts()
+  open()
+  press('onew<Esc>=')
+  eq(stored_names(root), project_names)
+  eq(child.lua_get('#_G.prompts'), 0)
+  eq(child.get_lines(), project_names)
+  eq(
+    child.lua_get('_G.notes'),
+    { 'explorer: adding projects is not supported, use :ProjectAdd; ignored new' }
+  )
+end
+
+T['projects']['<CR> on an edited line does nothing'] = function()
+  setup({})
+  open()
+  press('ccbet<Esc><CR>')
+  eq(child.lua_get('_G.connected'), {})
+  eq(is_float(), true)
+end
+
 T['workspaces'] = new_set()
 
 --- Like `setup()`, with project `beta` at a fresh jj repo. Confirm prompts
@@ -223,10 +303,12 @@ local open_beta = function()
   press('jl')
 end
 
---- Workspace names jj itself knows about in `repo`.
+--- Workspace names jj itself knows about in `repo`, sorted.
 local jj_workspaces = function(repo)
   local out = helpers.jj(repo, 'workspace', 'list', '-T', 'name ++ "\\n"')
-  return vim.split(vim.trim(out), '\n')
+  local names = vim.split(vim.trim(out), '\n')
+  table.sort(names)
+  return names
 end
 
 T['workspaces']['l opens the default workspace right of the projects'] = function()
@@ -261,7 +343,7 @@ T['workspaces']['= creates nothing when declined'] = function()
   eq(child.get_lines(), { 'default', 'feature' })
 end
 
-T['workspaces']['= keeps a deleted workspace'] = function()
+T['workspaces']['= keeps the default workspace'] = function()
   local _, repo = setup_jj()
   open_beta()
   press('dd=')
@@ -270,8 +352,51 @@ T['workspaces']['= keeps a deleted workspace'] = function()
   eq(child.lua_get('#_G.prompts'), 0)
   eq(
     child.lua_get('_G.notes'),
-    { 'explorer: removing workspaces is not supported; kept default' }
+    { "explorer: can't remove the default or current workspace; kept default" }
   )
+end
+
+T['workspaces']['= keeps the current workspace'] = function()
+  local root, repo = setup_jj()
+  vim.fn.mkdir(root .. '/workspaces/beta', 'p')
+  helpers.jj(repo, 'workspace', 'add', '--name', 'aaa', root .. '/workspaces/beta/aaa')
+  child.fn.chdir(root .. '/workspaces/beta/aaa')
+  -- opens on beta, the current project
+  open()
+  press('ljdd=')
+  eq(jj_workspaces(repo), { 'aaa', 'default' })
+  eq(child.lua_get('#_G.prompts'), 0)
+end
+
+T['workspaces']['= deletes a workspace whose line was deleted'] = function()
+  local root, repo = setup_jj()
+  local path = root .. '/aaa'
+  helpers.jj(repo, 'workspace', 'add', '--name', 'aaa', path)
+  open_beta()
+  press('jdd=')
+  eq(jj_workspaces(repo), { 'default' })
+  eq(vim.fn.isdirectory(path), 0)
+  eq(child.get_lines(), { 'default' })
+  eq(child.lua_get('_G.prompts[1]'):find('DELETE │ aaa', 1, true) ~= nil, true)
+end
+
+T['workspaces']['= deletes nothing when declined'] = function()
+  local root, repo = setup_jj(2)
+  helpers.jj(repo, 'workspace', 'add', '--name', 'aaa', root .. '/aaa')
+  open_beta()
+  press('jdd=')
+  eq(jj_workspaces(repo), { 'aaa', 'default' })
+  eq(vim.fn.isdirectory(root .. '/aaa'), 1)
+end
+
+T['workspaces']['= creates and deletes in one go'] = function()
+  local root, repo = setup_jj()
+  helpers.jj(repo, 'workspace', 'add', '--name', 'aaa', root .. '/aaa')
+  open_beta()
+  press('jccfeature<Esc>=')
+  eq(jj_workspaces(repo), { 'default', 'feature' })
+  local prompt = child.lua_get('_G.prompts[1]')
+  eq(prompt:find('DELETE │ aaa\n  CREATE │ feature', 1, true) ~= nil, true)
 end
 
 T['workspaces']['= rejects a name that is not a folder name'] = function()
@@ -354,7 +479,8 @@ T['agents'] = new_set()
 --- `_G.agents`, a list of agents per server label. `all_agents` goes through
 --- the labels in sorted order. `add_agent` appends one that shows its prompt
 --- and records `{ label, prompt }` in `_G.added`; `open_agent` records
---- `{ label, bufnr }` in `_G.opened`; an agent's output is
+--- `{ label, bufnr }` in `_G.opened`; `remove_agent` drops one and records
+--- `{ label, bufnr }` in `_G.removed`; an agent's output is
 --- `{ 'output of <bufnr>' }`.
 --- @param agents table<string, table[]>? initial agents per label
 --- @param answer integer? confirm answer, 1 is yes
@@ -365,7 +491,7 @@ local setup_agents = function(agents, answer)
   child.lua(
     [[
     local projects = require('huey.projects')
-    _G.agents, _G.added, _G.opened = ..., {}, {}
+    _G.agents, _G.added, _G.opened, _G.removed = ..., {}, {}, {}
     local rows = function(label)
       local name, ws = label:match('^([^/]+)/(.+)$')
       return vim.tbl_map(function(g)
@@ -391,6 +517,12 @@ local setup_agents = function(agents, answer)
       table.insert(_G.agents[label], { bufnr = buf, icon = '·', text = prompt, prompt = prompt })
       table.insert(_G.added, { label, prompt })
       return buf
+    end
+    projects.remove_agent = function(name, ws, bufnr)
+      local label = projects.label(name, ws)
+      _G.agents[label] = vim.tbl_filter(function(g) return g.bufnr ~= bufnr end, _G.agents[label])
+      table.insert(_G.removed, { label, bufnr })
+      return true
     end
     projects.agent_lines = function(_, _, bufnr) return { 'output of ' .. bufnr } end
     projects.open_agent = function(name, ws, bufnr)
@@ -485,7 +617,7 @@ T['agents']['= starts an agent for a new line'] = function()
   eq(child.lua_get('_G.added'), { { 'beta', 'add tests' } })
   eq(child.get_lines(), { 'Fixing the bug', 'add tests' })
   eq(
-    child.lua_get('_G.prompts[1]'):find('Start agents in beta?', 1, true) ~= nil,
+    child.lua_get('_G.prompts[1]'):find('Synchronize agents of beta?', 1, true) ~= nil,
     true
   )
   eq(child.lua_get('_G.prompts[1]'):find('CREATE │ add tests', 1, true) ~= nil, true)
@@ -510,16 +642,30 @@ T['agents']['= starts nothing when declined'] = function()
   eq(child.get_lines(), { 'fix it' })
 end
 
-T['agents']['= keeps a deleted agent'] = function()
-  setup_agents({ beta = { working } })
+T['agents']['= stops an agent whose line was deleted'] = function()
+  setup_agents({ beta = { working, idle } })
   open_beta_agents()
   press('dd=')
-  eq(child.get_lines(), { 'Fixing the bug' })
-  eq(child.lua_get('#_G.prompts'), 0)
-  eq(
-    child.lua_get('_G.notes'),
-    { 'explorer: stopping agents is not supported; kept Fixing the bug' }
-  )
+  eq(child.lua_get('_G.removed'), { { 'beta', 7 } })
+  eq(child.get_lines(), { 'review the diff' })
+  eq(child.lua_get('_G.prompts[1]'):find('DELETE │ Fixing the bug', 1, true) ~= nil, true)
+end
+
+T['agents']['= stops nothing when declined'] = function()
+  setup_agents({ beta = { working } }, 2)
+  open_beta_agents()
+  press('dd=')
+  eq(child.lua_get('_G.removed'), {})
+  eq(child.get_lines(), { '' })
+end
+
+T['agents']['= stops the later of two agents with the same line'] = function()
+  local twin = vim.tbl_extend('force', idle, { bufnr = 11 })
+  setup_agents({ beta = { idle, twin } })
+  open_beta_agents()
+  press('dd=')
+  eq(child.lua_get('_G.removed'), { { 'beta', 11 } })
+  eq(child.get_lines(), { 'review the diff' })
 end
 
 T['agents']['<CR> opens the agent under the cursor'] = function()
@@ -583,7 +729,6 @@ T['tab']['in the projects pane lists the agents of every project'] = function()
   eq(child.get_lines(), { 'in alpha', 'Fixing the bug', 'needs input' })
   eq(glyphs(), { '∿ ', '∿ ', '⏸ ' })
   eq(child.api.nvim_win_get_config(0).col, left.col + left.width + 2)
-  eq(child.bo.modifiable, false)
   -- projects, agents, preview
   eq(#child.api.nvim_list_wins(), 4)
 end
@@ -617,7 +762,6 @@ T['tab']['in the workspace pane lists the agents of the project'] = function()
   press('<Tab>')
   eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta/*')
   eq(child.get_lines(), { 'Fixing the bug', 'needs input' })
-  eq(child.bo.modifiable, false)
   -- projects, workspaces, agents, preview
   eq(#child.api.nvim_list_wins(), 5)
 end
@@ -670,6 +814,31 @@ T['tab']['says so when no agent is running'] = function()
   press('<Tab>')
   eq(child.get_lines(), { '' })
   eq(details(), { { 0, 'no agents running' } })
+end
+
+T['tab']['= stops an agent in its own workspace'] = function()
+  setup_agents({ beta = { working }, ['beta/aaa'] = { other } })
+  open()
+  press('<Tab>jdd=')
+  eq(child.lua_get('_G.removed'), { { 'beta/aaa', 3 } })
+  eq(child.get_lines(), { 'Fixing the bug' })
+  eq(
+    child.lua_get('_G.prompts[1]'):find('DELETE │ needs input  (beta/aaa)', 1, true) ~= nil,
+    true
+  )
+end
+
+T['tab']['= starts no agent for a new line'] = function()
+  setup_agents({ beta = { working } })
+  open()
+  press('<Tab>ofix it<Esc>=')
+  eq(child.lua_get('_G.added'), {})
+  eq(child.lua_get('#_G.prompts'), 0)
+  eq(child.get_lines(), { 'Fixing the bug' })
+  eq(
+    child.lua_get('_G.notes'),
+    { 'explorer: agents start in one workspace, open its agents with l; ignored fix it' }
+  )
 end
 
 T['tab']['h goes back to the pane it opened from'] = function()

@@ -301,6 +301,43 @@ T['M.add()']['sees projects another server added'] = function()
   eq(child.lua_get('_G.projects.names()')[5], 'elsewhere')
 end
 
+T['M.remove()'] = new_set()
+
+T['M.remove()']['drops the project from the store, not from disk'] = function()
+  local root = setup_ws({})
+  eq(child.lua_get([[_G.projects.remove('beta')]]), true)
+  eq(child.lua_get('_G.projects.names()'), { 'alpha', 'gamma', 'delta' })
+  eq(#stored(root), 3)
+  eq(vim.fn.isdirectory(root .. '/beta'), 1)
+end
+
+T['M.remove()']['stops every server of the project'] = function()
+  local root = setup_live()
+  start_server(root, 'beta')
+  start_server(root, 'beta/feature')
+  start_server(root, 'delta')
+  eq(child.lua_get([[_G.projects.remove('beta')]]), true)
+  eq(vim.fn.filereadable(sock_of(root, 'beta')), 0)
+  eq(vim.fn.filereadable(sock_of(root, 'beta/feature')), 0)
+  eq(child.lua_get('_G.projects.servers()'), { { project = 'delta', workspace = 'default' } })
+end
+
+T['M.remove()']['refuses the project this nvim is in'] = function()
+  local root = setup_ws({}, 'beta')
+  child.lua('_G.notes = {}; vim.notify = function(msg) table.insert(_G.notes, msg) end')
+  eq(child.lua_get([[_G.projects.remove('beta')]]), vim.NIL)
+  eq(#stored(root), 4)
+  eq(child.lua_get('_G.notes'), { "projects: can't remove beta: this nvim is in it" })
+end
+
+T['M.remove()']['refuses a pinned project'] = function()
+  setup_pinned(function(root) return { { name = 'pinned', path = root .. '/alpha' } } end)
+  child.lua('_G.notes = {}; vim.notify = function(msg) table.insert(_G.notes, msg) end')
+  eq(child.lua_get([[_G.projects.remove('pinned')]]), vim.NIL)
+  eq(child.lua_get('_G.projects.names()')[1], 'pinned')
+  eq(child.lua_get('_G.notes'), { "projects: 'pinned' is pinned" })
+end
+
 T['M.current_index()'] = new_set()
 
 T['M.current_index()']['resolves cwd to its position'] = function()
@@ -630,6 +667,61 @@ T['M.stop()']['stops one workspace server, or every one of a project'] = functio
   eq(child.lua_get('_G.projects.servers()'), {})
 end
 
+T['M.remove_workspace()'] = new_set()
+
+--- Workspace names jj knows about in `repo`, sorted.
+local jj_workspaces = function(repo)
+  local out = helpers.jj(repo, 'workspace', 'list', '-T', 'name ++ "\\n"')
+  local names = vim.split(vim.trim(out), '\n')
+  table.sort(names)
+  return names
+end
+
+T['M.remove_workspace()']['forgets the workspace and deletes its folder'] = function()
+  local root, repo = setup_jj()
+  eq(child.lua_get([[_G.projects.remove_workspace('alpha', 'one')]]), true)
+  eq(jj_workspaces(repo), { 'default', 'two' })
+  eq(vim.fn.isdirectory(root .. '/workspaces/alpha/one'), 0)
+  eq(vim.fn.isdirectory(root .. '/workspaces/alpha/two'), 1)
+end
+
+T['M.remove_workspace()']['stops its server first'] = function()
+  local root = setup_jj()
+  -- `status` is stubbed, so ask the socket itself
+  local sock = sock_of(root, 'alpha/one')
+  local up = function()
+    local ok, chan = pcall(vim.fn.sockconnect, 'pipe', sock, { rpc = true })
+    if ok and chan ~= 0 then pcall(vim.fn.chanclose, chan) end
+    return ok and chan ~= 0
+  end
+  start_server(root, 'alpha/one')
+  eq(up(), true)
+  eq(child.lua_get([[_G.projects.remove_workspace('alpha', 'one')]]), true)
+  eq(up(), false)
+end
+
+T['M.remove_workspace()']['refuses the default workspace'] = function()
+  local _, repo = setup_jj()
+  eq(child.lua_get([[_G.projects.remove_workspace('alpha', 'default')]]), vim.NIL)
+  eq(jj_workspaces(repo), { 'default', 'one', 'two' })
+  eq(vim.fn.isdirectory(repo), 1)
+  eq(child.lua_get('_G.notes'), { "projects: can't remove alpha: it is the project folder" })
+end
+
+T['M.remove_workspace()']['refuses the workspace this nvim is in'] = function()
+  local root, repo = setup_jj()
+  child.fn.chdir(root .. '/workspaces/alpha/one')
+  eq(child.lua_get([[_G.projects.remove_workspace('alpha', 'one')]]), vim.NIL)
+  eq(jj_workspaces(repo), { 'default', 'one', 'two' })
+  eq(child.lua_get('_G.notes'), { "projects: can't remove alpha/one: this nvim is in it" })
+end
+
+T['M.remove_workspace()']['refuses a workspace the project does not have'] = function()
+  setup_jj()
+  eq(child.lua_get([[_G.projects.remove_workspace('alpha', 'nope')]]), vim.NIL)
+  eq(child.lua_get('_G.notes'), { "projects: alpha has no workspace 'nope'" })
+end
+
 T['M.pick()'] = new_set()
 
 T['M.pick()']['lists every workspace of every project'] = function()
@@ -917,6 +1009,25 @@ T['M.add_agent()']['drops an agent whose process exited'] = function()
   local buf = child.lua_get([[_G.projects.add_agent('beta', 'default', 'fix it')]])
   vim.rpcrequest(beta, 'nvim_exec_lua', 'vim.fn.jobstop(vim.bo[...].channel)', { buf })
   eq(child.wait_for([[#_G.projects.agents('beta', 'default') == 0]]), true)
+end
+
+T['M.remove_agent()'] = new_set()
+
+T['M.remove_agent()']['deletes the terminal of an agent in its server'] = function()
+  local root = setup_live()
+  local beta = start_server(root, 'beta')
+  local buf = child.lua_get([[_G.projects.add_agent('beta', 'default', 'fix it')]])
+  eq(child.lua_get([[_G.projects.remove_agent('beta', 'default', ...)]], { buf }), true)
+  eq(vim.rpcrequest(beta, 'nvim_buf_is_valid', buf), false)
+  eq(agents_of('beta'), {})
+end
+
+T['M.remove_agent()']['deletes a terminal in its own server in process'] = function()
+  local root = setup_live()
+  child_listen_as(root, 'alpha')
+  local buf = child.lua_get([[_G.projects.add_agent('alpha', 'default', 'hi')]])
+  eq(child.lua_get([[_G.projects.remove_agent('alpha', 'default', ...)]], { buf }), true)
+  eq(child.api.nvim_buf_is_valid(buf), false)
 end
 
 T['M.all_agents()'] = new_set()

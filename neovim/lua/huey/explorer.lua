@@ -5,7 +5,11 @@
 -- connects the UI to the one under the cursor. That pane is editable: add a
 -- line and press `=` to create a workspace by that name. `l` there opens the
 -- agent terminals of that workspace's server, where a new line and `=` start
--- an agent with that line as its prompt. `<Tab>` opens the agents of every
+-- an agent with that line as its prompt. In every pane, deleting a line and
+-- pressing `=` removes what it names: a project leaves the list and its
+-- servers stop, a workspace
+-- is forgotten by jj and deleted from disk along with its server, and an
+-- agent's terminal is deleted. `<Tab>` opens the agents of every
 -- project from the project pane, or of every workspace of the project from the
 -- workspace pane; press it there again to close them. A preview right of an
 -- agent pane shows the latest output of the agent under the cursor. See
@@ -17,8 +21,9 @@ local H = {}
 
 H.ns = vim.api.nvim_create_namespace('HueyExplorer')
 
---- Project pane; `names` is the project name on each line
-H.projects = { win = nil, names = {} }
+--- Project pane; `names` is the project name on each line as last read from
+--- the store
+H.projects = { win = nil, buf = nil, names = {} }
 
 --- Workspace pane for `project`; `names` is the workspace on each line as last
 --- read from jj
@@ -64,7 +69,7 @@ end
 H.close = function()
   H.close_workspaces()
   if H.is_open(H.projects.win) then vim.api.nvim_win_close(H.projects.win, true) end
-  H.projects = { win = nil, names = {} }
+  H.projects = { win = nil, buf = nil, names = {} }
 end
 
 --- Sets window options shared by both panes.
@@ -123,16 +128,26 @@ end
 
 --- Connects to the default workspace of the project under the cursor. The
 --- pane closes first, so it is not still open when the UI comes back to this
---- server.
+--- server. An edited line names no project, so it does nothing.
 H.connect = function()
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
-  local name = H.projects.names[lnum]
+  local name = H.project_under_cursor()
+  if not name then return end
   H.close()
   -- already here; `:connect` to our own server would go nowhere
-  if not name or lnum == projects.current_index() then return end
+  if lnum == projects.current_index() then return end
   vim.schedule(function() projects.connect(name) end)
 end
 
+--- The project on the cursor line, unless the line was edited since it was
+--- listed.
+--- @return string?
+H.project_under_cursor = function()
+  local name = H.projects.names[vim.api.nvim_win_get_cursor(0)[1]]
+  if name and vim.trim(vim.api.nvim_get_current_line()) == name then return name end
+end
+
+--- Lists the projects from the store, dropping any unsynced edits.
 --- @param buf integer
 --- @return integer width widest line, glyph and path included
 H.render_projects = function(buf)
@@ -140,9 +155,9 @@ H.render_projects = function(buf)
   H.projects.names = names
   local current = projects.current_index()
 
-  vim.bo[buf].modifiable = true
+  vim.api.nvim_buf_clear_namespace(buf, H.ns, 0, -1)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, names)
-  vim.bo[buf].modifiable = false
+  vim.bo[buf].modified = false
 
   local paths = projects.paths()
   local width = 0
@@ -157,7 +172,73 @@ H.render_projects = function(buf)
     })
     width = math.max(width, 2 + H.width(name, path))
   end
+  H.projects.width = width
+  if H.is_open(H.projects.win) then H.resize(H.projects.win, width, #names) end
   return width
+end
+
+--- Lines of `buf` matched against the `known` names they were listed as. A
+--- line whose text is a known name keeps it; the names no line keeps were
+--- deleted, and the other lines are new.
+--- @param buf integer
+--- @param known string[]
+--- @return string[] removed, string[] added
+H.diff_names = function(buf, known)
+  local kept, added = {}, {}
+  for _, line in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
+    local name = vim.trim(line)
+    if vim.tbl_contains(known, name) then
+      kept[name] = true
+    elseif name ~= '' and not vim.tbl_contains(added, name) then
+      added[#added + 1] = name
+    end
+  end
+  local removed = vim.tbl_filter(function(n) return not kept[n] end, known)
+  return removed, added
+end
+
+--- Asks to apply `changes`, one `{ action, name }` per line of the prompt the
+--- way 'mini.files' lists them. True when there is nothing to ask about.
+--- @param title string
+--- @param changes string[][]
+--- @return boolean
+H.confirm = function(title, changes)
+  if #changes == 0 then return true end
+  local lines = vim.tbl_map(
+    function(c) return ('  %s │ %s'):format(c[1], c[2]) end,
+    changes
+  )
+  local msg = ('%s\n\n%s'):format(title, table.concat(lines, '\n'))
+  return vim.fn.confirm(msg, '&Yes\n&No', 1, 'Question') == 1
+end
+
+--- Removes every project whose line was deleted from the list, after asking,
+--- stopping its servers. Nothing on disk is touched. The current project is
+--- where this nvim runs, so it is not removed. New lines are not projects to
+--- add; that takes a folder, which `:ProjectAdd` picks.
+H.synchronize_projects = function()
+  local p = H.projects
+  local removed, added = H.diff_names(p.buf, p.names)
+  local current = p.names[projects.current_index() or 0]
+  if vim.tbl_contains(removed, current) then
+    vim.notify("explorer: can't remove the current project; kept " .. current, vim.log.levels.WARN)
+    removed = vim.tbl_filter(function(n) return n ~= current end, removed)
+  end
+  if #added > 0 then
+    vim.notify(
+      'explorer: adding projects is not supported, use :ProjectAdd; ignored '
+        .. table.concat(added, ', '),
+      vim.log.levels.WARN
+    )
+  end
+  local changes = vim.tbl_map(function(n) return { 'DELETE', n } end, removed)
+  if not H.confirm('Synchronize projects?', changes) then return end
+  for _, name in ipairs(removed) do
+    projects.remove(name)
+  end
+  -- panes right of this one may show a project that is gone
+  if #removed > 0 then H.close_workspaces() end
+  H.render_projects(p.buf)
 end
 
 -- Workspace pane -------------------------------------------------------------
@@ -197,43 +278,44 @@ H.render_workspaces = function()
   return true
 end
 
---- Creates a workspace for every line that names none yet, after asking, the
---- way 'mini.files' synchronizes. Then re-lists from jj.
+--- Creates a workspace for every line that names none yet and removes every
+--- one whose line was deleted, after asking, the way 'mini.files'
+--- synchronizes. Then re-lists from jj. `default` is the project's own folder
+--- and the current workspace is where this nvim runs, so neither is removed.
 H.synchronize = function()
   local ws = H.workspaces
-  local known, kept, create = {}, {}, {}
-  for _, name in ipairs(ws.names) do
-    known[name] = true
-  end
-  for _, line in ipairs(vim.api.nvim_buf_get_lines(ws.buf, 0, -1, false)) do
-    local name = vim.trim(line)
-    if known[name] then
-      kept[name] = true
-    elseif name ~= '' and not vim.tbl_contains(create, name) then
-      create[#create + 1] = name
-    end
-  end
+  local removed, create = H.diff_names(ws.buf, ws.names)
 
-  local removed = vim.tbl_filter(function(n) return not kept[n] end, ws.names)
-  if #removed > 0 then
+  local kept = vim.tbl_filter(
+    function(n) return n == 'default' or H.is_current(ws.project, n) end,
+    removed
+  )
+  if #kept > 0 then
     vim.notify(
-      'explorer: removing workspaces is not supported; kept '
-        .. table.concat(removed, ', '),
+      "explorer: can't remove the default or current workspace; kept "
+        .. table.concat(kept, ', '),
       vim.log.levels.WARN
     )
   end
+  local delete = vim.tbl_filter(function(n) return not vim.tbl_contains(kept, n) end, removed)
 
-  if #create > 0 then
-    local lines = vim.tbl_map(function(n) return '  CREATE │ ' .. n end, create)
-    local msg = ('Synchronize workspaces of %s?\n\n%s'):format(
-      ws.project,
-      table.concat(lines, '\n')
-    )
-    if vim.fn.confirm(msg, '&Yes\n&No', 1, 'Question') ~= 1 then return end
-    for _, name in ipairs(create) do
-      projects.add_workspace(ws.project, name)
-    end
+  local changes = {}
+  for _, name in ipairs(delete) do
+    changes[#changes + 1] = { 'DELETE', name }
   end
+  for _, name in ipairs(create) do
+    changes[#changes + 1] = { 'CREATE', name }
+  end
+  local title = ('Synchronize workspaces of %s?'):format(ws.project)
+  if not H.confirm(title, changes) then return end
+  for _, name in ipairs(delete) do
+    projects.remove_workspace(ws.project, name)
+  end
+  for _, name in ipairs(create) do
+    projects.add_workspace(ws.project, name)
+  end
+  -- an agent pane over a removed workspace lists nothing that still exists
+  if vim.tbl_contains(delete, H.agents.workspace) then H.close_agents() end
   H.render_workspaces()
 end
 
@@ -272,7 +354,7 @@ end
 --- Opens the workspace pane right of the project pane, for the project under
 --- the cursor.
 H.open_workspaces = function()
-  local name = H.projects.names[vim.api.nvim_win_get_cursor(0)[1]]
+  local name = H.project_under_cursor()
   if not name then return end
   H.close_workspaces()
 
@@ -314,8 +396,9 @@ end
 -- Agent pane -----------------------------------------------------------------
 
 --- True when the pane lists one workspace, so new lines can start agents
---- there. A pane over several workspaces has nowhere to start one.
-H.agents_editable = function() return H.agents.workspace ~= nil end
+--- there. A pane over several workspaces has nowhere to start one, though its
+--- lines can still be deleted.
+H.can_start_agents = function() return H.agents.workspace ~= nil end
 
 --- Lists the pane's agents from their servers, dropping any unsynced edits. A
 --- line shows what the agent says it is working on, or its prompt until it
@@ -328,9 +411,8 @@ H.render_agents = function()
   else
     a.agents = projects.all_agents(a.project)
   end
-  local editable = H.agents_editable()
+  local single = H.can_start_agents()
   vim.api.nvim_buf_clear_namespace(a.buf, H.ns, 0, -1)
-  vim.bo[a.buf].modifiable = true
   vim.api.nvim_buf_set_lines(
     a.buf,
     0,
@@ -339,7 +421,6 @@ H.render_agents = function()
     vim.tbl_map(function(g) return g.text end, a.agents)
   )
   vim.bo[a.buf].modified = false
-  vim.bo[a.buf].modifiable = editable
 
   local width = 0
   for i, g in ipairs(a.agents) do
@@ -348,7 +429,7 @@ H.render_agents = function()
       virt_text_pos = 'inline',
     })
     local chunks = {}
-    if not editable then
+    if not single then
       chunks[#chunks + 1] = { '  ' .. projects.label(g.project, g.workspace), 'Directory' }
     end
     if g.prompt and g.prompt ~= g.text then
@@ -363,7 +444,7 @@ H.render_agents = function()
     end
     width = math.max(width, 2 + vim.fn.strdisplaywidth(g.text .. detail))
   end
-  if #a.agents == 0 and not editable then
+  if #a.agents == 0 and not single then
     vim.api.nvim_buf_set_extmark(a.buf, H.ns, 0, 0, {
       virt_text = { { 'no agents running', 'Comment' } },
       virt_text_pos = 'eol',
@@ -455,45 +536,63 @@ H.open_preview = function()
 end
 
 --- Starts an agent for every line that matches none listed, with the line as
---- its prompt, after asking. Then re-lists from the server, which is started
---- if it was not running.
+--- its prompt, and stops every agent whose line was deleted, after asking.
+--- Then re-lists from the servers; the pane's own is started if it was not
+--- running. Agents can share a line's text, so lines are matched by count:
+--- with two lines alike and one deleted, the later agent is the one stopped.
 H.synchronize_agents = function()
   local a = H.agents
-  local known, kept, create = {}, {}, {}
+  -- how many listed agents each line can still match
+  local left, create = {}, {}
   for _, g in ipairs(a.agents) do
-    known[g.text] = true
+    left[g.text] = (left[g.text] or 0) + 1
   end
   for _, line in ipairs(vim.api.nvim_buf_get_lines(a.buf, 0, -1, false)) do
     local prompt = vim.trim(line)
-    if known[prompt] then
-      kept[prompt] = true
+    if (left[prompt] or 0) > 0 then
+      left[prompt] = left[prompt] - 1
     elseif prompt ~= '' and not vim.tbl_contains(create, prompt) then
       create[#create + 1] = prompt
     end
   end
+  local removed = {}
+  for i = #a.agents, 1, -1 do
+    local g = a.agents[i]
+    if (left[g.text] or 0) > 0 then
+      left[g.text] = left[g.text] - 1
+      table.insert(removed, 1, g)
+    end
+  end
 
-  local removed = vim.tbl_filter(function(g) return not kept[g.text] end, a.agents)
-  if #removed > 0 then
+  if #create > 0 and not H.can_start_agents() then
     vim.notify(
-      'explorer: stopping agents is not supported; kept '
-        .. table.concat(vim.tbl_map(function(g) return g.text end, removed), ', '),
+      'explorer: agents start in one workspace, open its agents with l; ignored '
+        .. table.concat(create, ', '),
       vim.log.levels.WARN
     )
+    create = {}
   end
 
-  if #create > 0 then
-    local lines = vim.tbl_map(function(p) return '  CREATE │ ' .. p end, create)
-    local msg = ('Start agents in %s?\n\n%s'):format(
-      projects.label(a.project, a.workspace),
-      table.concat(lines, '\n')
-    )
-    if vim.fn.confirm(msg, '&Yes\n&No', 1, 'Question') ~= 1 then return end
-    for _, prompt in ipairs(create) do
-      projects.add_agent(a.project, a.workspace, prompt)
-    end
-    -- the server may have just started
-    if H.is_open(H.workspaces.win) then H.render_workspaces() end
+  local changes = {}
+  for _, g in ipairs(removed) do
+    local where = H.can_start_agents() and ''
+      or ('  (%s)'):format(projects.label(g.project, g.workspace))
+    changes[#changes + 1] = { 'DELETE', g.text .. where }
   end
+  for _, prompt in ipairs(create) do
+    changes[#changes + 1] = { 'CREATE', prompt }
+  end
+  if not H.confirm(('Synchronize agents of %s?'):format(a.label), changes) then
+    return
+  end
+  for _, g in ipairs(removed) do
+    projects.remove_agent(g.project, g.workspace, g.bufnr)
+  end
+  for _, prompt in ipairs(create) do
+    projects.add_agent(a.project, a.workspace, prompt)
+  end
+  -- the server may have just started
+  if #create > 0 and H.is_open(H.workspaces.win) then H.render_workspaces() end
   H.render_agents()
   H.update_preview()
 end
@@ -515,15 +614,15 @@ end
 --- @param workspace string?
 H.open_agents_pane = function(project, workspace)
   local parent = vim.api.nvim_get_current_win()
-  local name = 'huey://agents/'
+  local label
   if workspace then
-    name = name .. projects.label(project, workspace)
+    label = projects.label(project, workspace)
   else
-    name = name .. (project and project .. '/' or '') .. '*'
+    label = (project and project .. '/' or '') .. '*'
   end
 
   local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_name(buf, name)
+  vim.api.nvim_buf_set_name(buf, 'huey://agents/' .. label)
   vim.bo[buf].bufhidden = 'wipe'
   vim.bo[buf].filetype = 'hueyexplorer'
   H.agents = {
@@ -531,6 +630,7 @@ H.open_agents_pane = function(project, workspace)
     parent = parent,
     project = project,
     workspace = workspace,
+    label = label,
     agents = {},
   }
   H.render_agents()
@@ -549,9 +649,7 @@ H.open_agents_pane = function(project, workspace)
   H.open_preview()
 
   H.map(buf, '<CR>', H.open_agent, 'Open agent')
-  if H.agents_editable() then
-    H.map(buf, '=', H.synchronize_agents, 'Synchronize agents')
-  end
+  H.map(buf, '=', H.synchronize_agents, 'Synchronize agents')
   H.map(buf, 'h', H.back_from_agents, 'Back')
   H.map(buf, 'q', H.close, 'Close')
   -- agent panes are the last level; <Tab> would otherwise jump in the jumplist
@@ -624,8 +722,8 @@ Explorer.open = function()
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_name(buf, 'huey://projects')
   vim.bo[buf].bufhidden = 'wipe'
-  vim.bo[buf].undolevels = -1
   vim.bo[buf].filetype = 'hueyexplorer'
+  H.projects.buf = buf
   local width = H.render_projects(buf)
   local count = #H.projects.names
 
@@ -645,10 +743,12 @@ Explorer.open = function()
   )
 
   H.map(buf, '<CR>', H.connect, 'Connect to project')
+  H.map(buf, '=', H.synchronize_projects, 'Synchronize projects')
   H.map(buf, 'l', H.open_workspaces, 'Workspaces')
   H.map(buf, '<Tab>', H.toggle_all_agents, 'Agents of every project')
   H.map(buf, 'q', H.close, 'Close')
   H.map(buf, '<Esc>', H.close, 'Close')
+  H.grow_with_edits(buf, win, function() return H.projects.width or 0 end)
   H.close_on_leave(buf)
 end
 

@@ -79,13 +79,18 @@ one server shows up in the others.
 - `<leader>ep` — project explorer (`lua/huey/explorer.lua`), a floating pane
   in the style of 'mini.files'. A project is `●` when any of its servers is
   running. `<CR>` connects to the default workspace of the project under the
-  cursor; `l` opens its jj workspaces in a pane to the right (`default` first,
+  cursor; delete its line and press `=` to drop it from the list, after a
+  confirm prompt. Its servers stop, taking their agents with them, but nothing
+  on disk is touched. A pinned project and the one this nvim is in stay. `l` opens its jj workspaces in a pane to the right (`default` first,
   `●` when running), and `h` goes back. `<CR>` on a workspace connects to its
   server, starting it if needed. The workspace pane is editable: add a line and press `=`
   to create a workspace by that name, after a confirm prompt. Each one is a
   `jj workspace add` at `<workspace_dir>/<project>/<name>`, outside the repo,
-  sharing the parent of the project's working copy. Deleting or renaming a line
-  does nothing yet; the next sync lists it again.
+  sharing the parent of the project's working copy. Deleting a line and
+  pressing `=` removes that workspace: its server stops, taking its agents with
+  it, then `jj workspace forget` and its folder is deleted. `default` and the
+  workspace this nvim is in are never removed. Renaming a line deletes the old
+  workspace and creates the new one.
 
   `l` on a workspace opens a third pane: the agent terminals in that
   workspace's server, the same ones `<leader>fB` lists (empty when the server
@@ -97,13 +102,13 @@ one server shows up in the others.
   connects to it. Add a line and press `=` to start `agent_cmd` with the line
   as its prompt, after a confirm prompt; it starts the server if needed and
   runs in a new terminal buffer there without changing what that server shows.
-  It is listed with its prompt until it reports a status. Deleting a line does
-  not stop an agent; `h` goes back.
+  It is listed with its prompt until it reports a status. Deleting a line and
+  pressing `=` deletes that agent's terminal buffer, which stops it; `h` goes back.
 
   `<Tab>` in the project pane opens the agents of every running server in
   place of the workspace pane; in the workspace pane, those of every workspace
   of the project. Each row also names the workspace it runs in. These panes
-  span several servers, so they are read-only: start agents from a single
+  span several servers, so they can only stop agents: start them from a single
   workspace's pane. `<Tab>` on the pane it opened from closes it again, and
   `<Tab>` in an agent pane does nothing.
 
