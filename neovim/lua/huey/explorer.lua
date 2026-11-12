@@ -400,16 +400,35 @@ end
 --- lines can still be deleted.
 H.can_start_agents = function() return H.agents.workspace ~= nil end
 
+-- Longest an agent's line and its dimmed prompt get, so a long title or
+-- prompt does not stretch the pane across the screen
+local agent_max_width = 50
+local prompt_max_width = 30
+
+--- `text` cut to `max` display cells, ending in an ellipsis when cut.
+H.truncate = function(text, max)
+  if vim.fn.strdisplaywidth(text) <= max then return text end
+  local cut = text
+  while vim.fn.strdisplaywidth(cut) > max - 1 do
+    cut = vim.fn.strcharpart(cut, 0, vim.fn.strchars(cut) - 1)
+  end
+  return cut .. '…'
+end
+
 --- Lists the pane's agents from their servers, dropping any unsynced edits. A
 --- line shows what the agent says it is working on, or its prompt until it
 --- says. After it come the workspace it runs in, in a pane over several, and
---- the prompt it started with, dimmed, once that differs from the line.
+--- the prompt it started with, dimmed, once that differs from the line. Long
+--- lines and prompts are cut short; `line` is what each agent's line shows.
 H.render_agents = function()
   local a = H.agents
   if a.workspace then
     a.agents = projects.agents(a.project, a.workspace)
   else
     a.agents = projects.all_agents(a.project)
+  end
+  for _, g in ipairs(a.agents) do
+    g.line = H.truncate(g.text, agent_max_width)
   end
   local single = H.can_start_agents()
   vim.api.nvim_buf_clear_namespace(a.buf, H.ns, 0, -1)
@@ -418,7 +437,7 @@ H.render_agents = function()
     0,
     -1,
     false,
-    vim.tbl_map(function(g) return g.text end, a.agents)
+    vim.tbl_map(function(g) return g.line end, a.agents)
   )
   vim.bo[a.buf].modified = false
 
@@ -433,7 +452,7 @@ H.render_agents = function()
       chunks[#chunks + 1] = { '  ' .. projects.label(g.project, g.workspace), 'Directory' }
     end
     if g.prompt and g.prompt ~= g.text then
-      chunks[#chunks + 1] = { '  ' .. g.prompt, 'Comment' }
+      chunks[#chunks + 1] = { '  ' .. H.truncate(g.prompt, prompt_max_width), 'Comment' }
     end
     local detail = table.concat(vim.tbl_map(function(c) return c[1] end, chunks))
     if #chunks > 0 then
@@ -442,7 +461,7 @@ H.render_agents = function()
         virt_text_pos = 'eol',
       })
     end
-    width = math.max(width, 2 + vim.fn.strdisplaywidth(g.text .. detail))
+    width = math.max(width, 2 + vim.fn.strdisplaywidth(g.line .. detail))
   end
   if #a.agents == 0 and not single then
     vim.api.nvim_buf_set_extmark(a.buf, H.ns, 0, 0, {
@@ -467,7 +486,7 @@ H.agent_under_cursor = function()
   local lnum = vim.api.nvim_win_get_cursor(a.win)[1]
   local agent = a.agents[lnum]
   local line = vim.api.nvim_buf_get_lines(a.buf, lnum - 1, lnum, false)[1]
-  if agent and line == agent.text then return agent end
+  if agent and line == agent.line then return agent end
 end
 
 --- Shows the latest output of the agent under the cursor, or nothing.
@@ -545,7 +564,7 @@ H.synchronize_agents = function()
   -- how many listed agents each line can still match
   local left, create = {}, {}
   for _, g in ipairs(a.agents) do
-    left[g.text] = (left[g.text] or 0) + 1
+    left[g.line] = (left[g.line] or 0) + 1
   end
   for _, line in ipairs(vim.api.nvim_buf_get_lines(a.buf, 0, -1, false)) do
     local prompt = vim.trim(line)
@@ -558,8 +577,8 @@ H.synchronize_agents = function()
   local removed = {}
   for i = #a.agents, 1, -1 do
     local g = a.agents[i]
-    if (left[g.text] or 0) > 0 then
-      left[g.text] = left[g.text] - 1
+    if (left[g.line] or 0) > 0 then
+      left[g.line] = left[g.line] - 1
       table.insert(removed, 1, g)
     end
   end

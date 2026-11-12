@@ -582,6 +582,37 @@ T['agents']['shows the prompt after a line once the title differs'] = function()
   eq(details(), { { 0, '  fix the bug' } })
 end
 
+local wordy = {
+  bufnr = 13,
+  icon = '∿',
+  text = ('a'):rep(60),
+  prompt = ('b'):rep(40),
+}
+
+T['agents']['cuts long lines and prompts short'] = function()
+  setup_agents({ beta = { wordy } })
+  open_beta_agents()
+  eq(child.get_lines(), { ('a'):rep(49) .. '…' })
+  eq(details(), { { 0, '  ' .. ('b'):rep(29) .. '…' } })
+end
+
+T['agents']['a cut line still names its agent'] = function()
+  setup_agents({ beta = { wordy, idle } })
+  open_beta_agents()
+  press('<CR>')
+  eq(child.lua_get('_G.opened'), { { 'beta', 13 } })
+end
+
+T['agents']['= leaves an unchanged cut line alone and stops a deleted one'] = function()
+  setup_agents({ beta = { idle, wordy } })
+  open_beta_agents()
+  press('=')
+  eq(child.lua_get('#_G.prompts'), 0)
+  press('jdd=')
+  eq(child.lua_get('_G.added'), {})
+  eq(child.lua_get('_G.removed'), { { 'beta', 13 } })
+end
+
 T['agents']['previews the output of the agent under the cursor'] = function()
   setup_agents({ beta = { working, idle } })
   open_beta_agents()
