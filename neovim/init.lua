@@ -128,7 +128,7 @@ local sysname = vim.uv.os_uname().sysname:lower()
 
 -- nushell sets these variables (env.nu, paths.nu, dotnet/env.nu, install/cmds).
 -- When nvim was not started from nushell, fill in the same values here so
--- LSPs and debuggers still work. Anything already set is left alone.
+-- LSPs still work. Anything already set is left alone.
 do
   local join = vim.fs.joinpath
   local home = vim.uv.os_homedir()
@@ -155,8 +155,6 @@ do
     join(vim.env.PNPM_HOME, 'bin'),
     bin_dir,
     join(bin_dir, 'artempyanykh', 'marksman'),
-    join(bin_dir, 'microsoft', 'vscode-js-debug', 'js-debug', 'src'),
-    join(bin_dir, 'Samsung', 'netcoredbg', 'netcoredbg'),
     roslyn_dir,
     vim.env.DOTNET_ROOT,
     join(vim.env.DOTNET_ROOT, 'tools'),

@@ -225,10 +225,6 @@ vim.o.termguicolors = true
 vim.g.everforest_background = 'hard'
 vim.cmd('color everforest')
 -- end)
-Config.now(function()
-  -- default highlight group for nvim-dap is a bright blue
-  vim.api.nvim_set_hl(0, 'debugPC', { bg = '#341F99' })
-end)
 
 -- Animated cursor trail
 later(function()
@@ -239,31 +235,6 @@ end)
 later(function()
   vim.pack.add({ 'https://github.com/MeanderingProgrammer/render-markdown.nvim' })
   require('render-markdown').setup({})
-end)
-
--- Dap
-later(function()
-  add({
-    'https://codeberg.org/mfussenegger/nvim-dap',
-    'https://github.com/igorlfs/nvim-dap-view',
-    'https://github.com/jbyuki/one-small-step-for-vimkind', -- lua debugger
-  })
-
-  require('dap-view').setup()
-
-  local dap = require('dap')
-  dap.listeners.before.attach['dap-view-config'] = function()
-    require('dap-view').open()
-  end
-  dap.listeners.before.launch['dap-view-config'] = function()
-    require('dap-view').open()
-  end
-  dap.listeners.before.event_terminated['dap-view-config'] = function()
-    require('dap-view').close()
-  end
-  dap.listeners.before.event_exited['dap-view-config'] = function()
-    require('dap-view').close()
-  end
 end)
 
 -- Db

@@ -8,7 +8,6 @@ $env.binDir = $local_tools_path
 
 let local_tools = [
     [artempyanykh marksman],
-    [microsoft vscode-js-debug js-debug src]
     [] # linux places executables in .local/bin
 ] | each {|tool| $local_tools_path | append $tool | path join }
   | where {|| $in | path exists }

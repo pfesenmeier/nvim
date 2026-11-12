@@ -320,7 +320,6 @@ source ~/.zoxide.nu
 export def install [] {}
 
 source install/cmds/roslyn_lsp.nu
-source install/cmds/netcoredbg.nu
 source install/cmds/roslynator.nu
 use jj/cmds.nu *
 use jj/completions.nu *
