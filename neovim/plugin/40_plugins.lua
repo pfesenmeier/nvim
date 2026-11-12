@@ -91,10 +91,6 @@ now_if_args(function()
     'vimdoc',
     'vue',
     'nu',
-    'go',
-    'gomod',
-    'gosum',
-    'gowork',
     -- Add here more languages with which you want to use tree-sitter
     -- To see available languages:
     -- - Execute `:=require('nvim-treesitter').get_available()`
@@ -160,7 +156,6 @@ now_if_args(function()
     'vue_ls',
     'marksman',
     'terraformls',
-    'gopls',
   })
 end)
 
