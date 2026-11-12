@@ -106,11 +106,12 @@ one server shows up in the others.
   pressing `=` deletes that agent's terminal buffer, which stops it; `h` goes back.
 
   `<Tab>` in the project pane opens the agents of every running server in
-  place of the workspace pane; in the workspace pane, those of every workspace
-  of the project. Each row also names the workspace it runs in. These panes
-  span several servers, so they can only stop agents: start them from a single
-  workspace's pane. `<Tab>` on the pane it opened from closes it again, and
-  `<Tab>` in an agent pane does nothing.
+  place of the workspace pane, and `<Tab>` there again closes them. `<Tab>` in
+  the workspace pane swaps it for the agents of every workspace of the project,
+  and `<Tab>` in that pane swaps back, with the cursor where it was. Each row
+  also names the workspace it runs in. These panes span several servers, so
+  they can only stop agents: start them from a single workspace's pane.
+  `<Tab>` in any other agent pane does nothing.
 
 `:detach` (built-in) drops the UI off a project without stopping it.
 

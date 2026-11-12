@@ -9,9 +9,10 @@
 -- pressing `=` removes what it names: a project leaves the list and its
 -- servers stop, a workspace
 -- is forgotten by jj and deleted from disk along with its server, and an
--- agent's terminal is deleted. `<Tab>` opens the agents of every
--- project from the project pane, or of every workspace of the project from the
--- workspace pane; press it there again to close them. A preview right of an
+-- agent's terminal is deleted. `<Tab>` in the project pane opens the agents of
+-- every project, and pressing it there again closes them. In the workspace
+-- pane it swaps the pane for the agents of every workspace of the project, and
+-- `<Tab>` there swaps back. A preview right of an
 -- agent pane shows the latest output of the agent under the cursor. See
 -- 'lua/huey/projects'.
 local projects = require('huey.projects')
@@ -355,7 +356,14 @@ end
 --- the cursor.
 H.open_workspaces = function()
   local name = H.project_under_cursor()
-  if not name then return end
+  if name then H.show_workspaces(name) end
+end
+
+--- Opens the workspace pane of project `name` right of the project pane, in
+--- place of any pane there, with the cursor on line `lnum`.
+--- @param name string
+--- @param lnum integer?
+H.show_workspaces = function(name, lnum)
   H.close_workspaces()
 
   local buf = vim.api.nvim_create_buf(false, true)
@@ -382,11 +390,12 @@ H.open_workspaces = function()
   H.workspaces.win = win
   H.resize(win, H.workspaces.width, #H.workspaces.names)
   H.style(win)
+  vim.api.nvim_win_set_cursor(win, { math.min(lnum or 1, #H.workspaces.names), 0 })
 
   H.map(buf, '<CR>', H.connect_workspace, 'Connect to workspace')
   H.map(buf, '=', H.synchronize, 'Synchronize workspaces')
   H.map(buf, 'l', H.open_agents, 'Agents')
-  H.map(buf, '<Tab>', H.toggle_project_agents, 'Agents of the project')
+  H.map(buf, '<Tab>', H.swap_to_agents, 'Agents of the project')
   H.map(buf, 'h', H.back, 'Back to projects')
   H.map(buf, 'q', H.close, 'Close')
   H.grow_with_edits(buf, win, function() return H.workspaces.width or 0 end)
@@ -652,8 +661,7 @@ H.open_agents_pane = function(project, workspace)
   H.map(buf, '=', H.synchronize_agents, 'Synchronize agents')
   H.map(buf, 'h', H.back_from_agents, 'Back')
   H.map(buf, 'q', H.close, 'Close')
-  -- agent panes are the last level; <Tab> would otherwise jump in the jumplist
-  H.map(buf, '<Tab>', '<Nop>', 'Nothing')
+  H.map(buf, '<Tab>', H.swap_to_workspaces, 'Workspaces of the project')
   H.grow_with_edits(buf, win, function() return H.agents.width or 0 end, H.place_preview)
   vim.api.nvim_create_autocmd('CursorMoved', {
     buffer = buf,
@@ -673,31 +681,36 @@ H.open_agents = function()
   H.open_agents_pane(ws.project, name)
 end
 
---- True when the agent pane is open right of the current window and lists
---- every workspace of `project`, or every project when nil.
-H.is_toggled = function(project)
-  local a = H.agents
-  return H.is_open(a.win)
-    and a.parent == vim.api.nvim_get_current_win()
-    and a.workspace == nil
-    and a.project == project
-end
-
 --- Opens the agents of every project right of the project pane, in place of
 --- the workspace pane, or closes them when they are open.
 H.toggle_all_agents = function()
-  if H.is_toggled(nil) then return H.close_agents() end
+  local a = H.agents
+  if H.is_open(a.win) and a.project == nil and a.workspace == nil then
+    return H.close_agents()
+  end
   H.close_workspaces()
   H.open_agents_pane()
 end
 
---- Opens the agents of every workspace of the pane's project right of the
---- workspace pane, or closes them when they are open.
-H.toggle_project_agents = function()
+--- Swaps the workspace pane for the agents of every workspace of its
+--- project, right of the project pane. `<Tab>` there swaps back.
+H.swap_to_agents = function()
   local project = H.workspaces.project
-  if H.is_toggled(project) then return H.close_agents() end
-  H.close_agents()
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  H.close_workspaces()
+  -- the agent pane opens right of the current window
+  vim.api.nvim_set_current_win(H.projects.win)
   H.open_agents_pane(project)
+  H.agents.workspace_line = lnum
+end
+
+--- Swaps the agents of every workspace of a project back for its workspace
+--- pane, with the cursor where it was. Any other agent pane has no pane to swap
+--- with, so this does nothing there.
+H.swap_to_workspaces = function()
+  local a = H.agents
+  if not a.project or a.workspace then return end
+  H.show_workspaces(a.project, a.workspace_line)
 end
 
 --- Returns to the pane the agent pane opened from, closing it.

@@ -756,14 +756,16 @@ T['tab']['in the projects pane closes the agents when they are open'] = function
   eq(#child.api.nvim_list_wins(), 2)
 end
 
-T['tab']['in the workspace pane lists the agents of the project'] = function()
+T['tab']['in the workspace pane swaps it for the agents of the project'] = function()
   setup_agents({ alpha = { elsewhere }, beta = { working }, ['beta/aaa'] = { other } })
-  open_beta()
-  press('<Tab>')
+  open()
+  local left = child.api.nvim_win_get_config(0)
+  press('jl<Tab>')
   eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta/*')
   eq(child.get_lines(), { 'Fixing the bug', 'needs input' })
-  -- projects, workspaces, agents, preview
-  eq(#child.api.nvim_list_wins(), 5)
+  eq(child.api.nvim_win_get_config(0).col, left.col + left.width + 2)
+  -- projects, agents, preview
+  eq(#child.api.nvim_list_wins(), 4)
 end
 
 T['tab']['in the workspace pane replaces the agents of a workspace'] = function()
@@ -776,10 +778,34 @@ T['tab']['in the workspace pane replaces the agents of a workspace'] = function(
   child.poke_eventloop()
   press('<Tab>')
   eq(child.get_lines(), { 'Fixing the bug', 'needs input' })
+  eq(#child.api.nvim_list_wins(), 4)
+end
+
+T['tab']['in the agents of the project swaps back to the workspaces'] = function()
+  local root, repo = setup_agents({ beta = { working } })
+  helpers.jj(repo, 'workspace', 'add', '--name', 'aaa', root .. '/aaa')
+  open_beta()
+  press('j<Tab>')
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta/*')
+  press('<Tab>')
+  eq(child.api.nvim_buf_get_name(0), 'huey://workspaces/beta')
+  eq(child.get_lines(), { 'default', 'aaa' })
+  eq(cursor_line(), 2)
+  -- projects, workspaces
+  eq(#child.api.nvim_list_wins(), 3)
+end
+
+T['tab']['in the agents of a workspace does nothing'] = function()
+  setup_agents({ beta = { working } })
+  open_beta_agents()
+  local win = child.api.nvim_get_current_win()
+  press('<Tab>')
+  eq(child.api.nvim_get_current_win(), win)
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta')
   eq(#child.api.nvim_list_wins(), 5)
 end
 
-T['tab']['in an agent pane does nothing'] = function()
+T['tab']['in the agents of every project does nothing'] = function()
   setup_agents({ beta = { working } })
   open()
   press('<Tab>')
@@ -841,12 +867,12 @@ T['tab']['= starts no agent for a new line'] = function()
   )
 end
 
-T['tab']['h goes back to the pane it opened from'] = function()
+T['tab']['h from the agents of the project goes back to the projects'] = function()
   setup_agents({ beta = { working } })
   open_beta()
   press('<Tab>h')
-  eq(child.api.nvim_buf_get_name(0), 'huey://workspaces/beta')
-  eq(#child.api.nvim_list_wins(), 3)
+  eq(child.api.nvim_buf_get_name(0), 'huey://projects')
+  eq(#child.api.nvim_list_wins(), 2)
 end
 
 return T
