@@ -313,6 +313,8 @@ end
 
 T['workspaces']['l opens the default workspace right of the projects'] = function()
   setup_jj()
+  -- room for both panes and their long temp paths
+  child.o.columns = 400
   open()
   local left = child.api.nvim_win_get_config(0)
   press('jl')
@@ -569,6 +571,63 @@ T['agents']['l opens the agents of the workspace right of it'] = function()
   eq(child.api.nvim_win_get_config(0).col, left.col + left.width + 2)
   -- projects, workspaces, agents
   eq(#child.api.nvim_list_wins(), 4)
+end
+
+--- Config of every pane window, in the order the panes were opened.
+local pane_configs = function()
+  return child.lua_get([[(function()
+    local wins = vim.tbl_filter(function(win)
+      return vim.api.nvim_win_get_config(win).relative ~= ''
+    end, vim.api.nvim_list_wins())
+    -- window ids grow as windows open
+    table.sort(wins)
+    return vim.tbl_map(function(win)
+      local c = vim.api.nvim_win_get_config(win)
+      return { col = c.col, width = c.width, hide = c.hide }
+    end, wins)
+  end)()]])
+end
+
+--- Sets the screen just one column too narrow for the project, workspace and
+--- agent panes of beta's default workspace, then opens them again.
+local open_beta_agents_squeezed = function()
+  open_beta_agents()
+  local total = 0
+  for _, c in ipairs(pane_configs()) do
+    total = total + c.width + 2
+  end
+  press('hh')
+  child.o.columns = total - 1
+  press('ll')
+end
+
+T['agents']['hides the left panes when they no longer fit'] = function()
+  setup_agents({ beta = { working, idle } })
+  open_beta_agents_squeezed()
+  local projects, workspaces, agents = unpack(pane_configs())
+  eq(projects.hide, true)
+  eq({ workspaces.hide, workspaces.col }, { false, 0 })
+  eq({ agents.hide, agents.col }, { false, workspaces.width + 2 })
+end
+
+T['agents']['h shows the left panes again'] = function()
+  setup_agents({ beta = { working, idle } })
+  open_beta_agents_squeezed()
+  press('h')
+  local projects, workspaces = unpack(pane_configs())
+  eq({ projects.hide, projects.col }, { false, 0 })
+  eq({ workspaces.hide, workspaces.col }, { false, projects.width + 2 })
+end
+
+T['agents']['lays the panes out again when the screen is resized'] = function()
+  setup_agents({ beta = { working, idle } })
+  open_beta_agents_squeezed()
+  child.o.columns = 400
+  child.poke_eventloop()
+  local projects, workspaces, agents = unpack(pane_configs())
+  eq({ projects.hide, projects.col }, { false, 0 })
+  eq(workspaces.col, projects.width + 2)
+  eq(agents.col, workspaces.col + workspaces.width + 2)
 end
 
 T['agents']['shows the prompt after a line once the title differs'] = function()

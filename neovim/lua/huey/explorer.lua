@@ -11,7 +11,9 @@
 -- is forgotten by jj and deleted from disk along with its server, and an
 -- agent's terminal is deleted. `<Tab>` opens the agents of every
 -- project from the project pane, or of every workspace of the project from the
--- workspace pane; press it there again to close them. See 'lua/huey/projects'.
+-- workspace pane; press it there again to close them. When the panes don't all
+-- fit across the screen, the ones on the left are hidden until there is room
+-- again, as in 'mini.files'. See 'lua/huey/projects'.
 local projects = require('huey.projects')
 
 local Explorer = {}
@@ -35,9 +37,50 @@ H.agents = { win = nil, buf = nil, agents = {} }
 
 H.is_open = function(win) return win ~= nil and vim.api.nvim_win_is_valid(win) end
 
+--- Places the open panes side by side from the left edge of the screen. When
+--- they don't all fit, the focused pane stays shown along with as many of its
+--- neighbours as fit, left ones first, and the rest are hidden, the way
+--- 'mini.files' does.
+H.layout = function()
+  local wins = vim.tbl_filter(H.is_open, { H.projects.win, H.workspaces.win, H.agents.win })
+  if #wins == 0 then return end
+  -- the current window, or the rightmost pane when focus is elsewhere
+  local focus = #wins
+  for i, win in ipairs(wins) do
+    if win == vim.api.nvim_get_current_win() then focus = i end
+  end
+  -- each pane's width plus its border
+  local widths = vim.tbl_map(
+    function(win) return vim.api.nvim_win_get_config(win).width + 2 end,
+    wins
+  )
+
+  local from, to, used = focus, focus, widths[focus]
+  while from > 1 and used + widths[from - 1] <= vim.o.columns do
+    from = from - 1
+    used = used + widths[from]
+  end
+  while to < #wins and used + widths[to + 1] <= vim.o.columns do
+    to = to + 1
+    used = used + widths[to]
+  end
+
+  local col = 0
+  for i, win in ipairs(wins) do
+    if i < from or i > to then
+      vim.api.nvim_win_set_config(win, { hide = true })
+    else
+      local row = vim.api.nvim_win_get_config(win).row
+      vim.api.nvim_win_set_config(win, { relative = 'editor', row = row, col = col, hide = false })
+      col = col + widths[i]
+    end
+  end
+end
+
 H.close_agents = function()
   if H.is_open(H.agents.win) then vim.api.nvim_win_close(H.agents.win, true) end
   H.agents = { win = nil, buf = nil, agents = {} }
+  H.layout()
 end
 
 H.close_workspaces = function()
@@ -46,12 +89,14 @@ H.close_workspaces = function()
     vim.api.nvim_win_close(H.workspaces.win, true)
   end
   H.workspaces = { win = nil, buf = nil, project = nil, names = {} }
+  H.layout()
 end
 
 H.close = function()
   H.close_workspaces()
   if H.is_open(H.projects.win) then vim.api.nvim_win_close(H.projects.win, true) end
   H.projects = { win = nil, buf = nil, names = {} }
+  pcall(vim.api.nvim_del_augroup_by_name, 'HueyExplorerLayout')
 end
 
 --- Sets window options shared by both panes.
@@ -98,7 +143,8 @@ H.width = function(name, detail)
   return vim.fn.strdisplaywidth(name) + 2 + vim.fn.strdisplaywidth(detail)
 end
 
---- Fits `win` to its content, keeping it on screen.
+--- Fits `win` to its content, keeping it on screen, and lays the panes out
+--- again for its new width.
 H.resize = function(win, width, height)
   vim.api.nvim_win_set_config(win, {
     width = math.max(math.min(width + 1, vim.o.columns - 4), 20),
@@ -110,6 +156,7 @@ H.resize = function(win, width, height)
   if lines <= vim.api.nvim_win_get_height(win) then
     vim.api.nvim_win_call(win, function() vim.fn.winrestview({ topline = 1 }) end)
   end
+  H.layout()
 end
 
 -- Project pane ---------------------------------------------------------------
@@ -361,8 +408,8 @@ H.open_workspaces = function()
   local win = vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     row = left.row,
-    -- past the left pane and its border
-    col = left.col + left.width + 2,
+    -- `H.layout()` moves it right of the project pane
+    col = 0,
     width = 20,
     height = 1,
   })
@@ -559,7 +606,8 @@ H.open_agents_pane = function(project, workspace)
   local win = vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     row = left.row,
-    col = left.col + left.width + 2,
+    -- `H.layout()` moves it right of its parent
+    col = 0,
     width = 20,
     height = 1,
   })
@@ -631,7 +679,9 @@ end
 --- current project. Focuses it when it is already open.
 Explorer.open = function()
   if H.is_open(H.projects.win) then
-    return vim.api.nvim_set_current_win(H.projects.win)
+    vim.api.nvim_set_current_win(H.projects.win)
+    -- it may have been hidden to make room for panes right of it
+    return H.layout()
   end
 
   local buf = vim.api.nvim_create_buf(false, true)
@@ -665,6 +715,11 @@ Explorer.open = function()
   H.map(buf, '<Esc>', H.close, 'Close')
   H.grow_with_edits(buf, win, function() return H.projects.width or 0 end)
   H.close_on_leave(buf)
+  vim.api.nvim_create_autocmd('VimResized', {
+    group = vim.api.nvim_create_augroup('HueyExplorerLayout', { clear = true }),
+    desc = 'Lay out the explorer panes again',
+    callback = H.layout,
+  })
 end
 
 return Explorer
