@@ -9,9 +9,9 @@
 -- pressing `=` removes what it names: a project leaves the list and its
 -- servers stop, a workspace
 -- is forgotten by jj and deleted from disk along with its server, and an
--- agent's terminal is deleted. `<Tab>` opens the agents of every
--- project from the project pane, or of every workspace of the project from the
--- workspace pane; press it there again to close them. A preview right of an
+-- agent's terminal is deleted. `<Tab>` swaps the project pane for the agents
+-- of every project, or the workspace pane for the agents of every workspace of
+-- the project; press it again to swap back. A preview right of an
 -- agent pane shows the latest output of the agent under the cursor. See
 -- 'lua/huey/projects'.
 local projects = require('huey.projects')
@@ -29,9 +29,11 @@ H.projects = { win = nil, buf = nil, names = {} }
 --- read from jj
 H.workspaces = { win = nil, buf = nil, project = nil, names = {} }
 
---- Agent pane right of the pane in window `parent`, for the agents of
---- `workspace` of `project`, every workspace of `project` when there is no
---- `workspace`, or every project when there is neither. `agents` is the agent
+--- Agent pane for the agents of `workspace` of `project`, every workspace of
+--- `project` when there is no `workspace`, or every project when there is
+--- neither. It opens from the pane in window `parent`: right of it for one
+--- workspace, or in its place for several, hiding it until the agent pane
+--- closes. `agents` is the agent
 --- on each line as last read from the servers. `preview` is the float showing
 --- the output of the one under the cursor, refreshed by `timer`.
 H.agents = { win = nil, buf = nil, agents = {} }
@@ -54,7 +56,12 @@ end
 
 H.close_agents = function()
   H.close_preview()
-  if H.is_open(H.agents.win) then vim.api.nvim_win_close(H.agents.win, true) end
+  local a = H.agents
+  if H.is_open(a.win) then vim.api.nvim_win_close(a.win, true) end
+  -- the pane it stood in for shows again
+  if a.replaced and H.is_open(a.parent) then
+    vim.api.nvim_win_set_config(a.parent, { hide = false })
+  end
   H.agents = { win = nil, buf = nil, agents = {} }
 end
 
@@ -386,7 +393,7 @@ H.open_workspaces = function()
   H.map(buf, '<CR>', H.connect_workspace, 'Connect to workspace')
   H.map(buf, '=', H.synchronize, 'Synchronize workspaces')
   H.map(buf, 'l', H.open_agents, 'Agents')
-  H.map(buf, '<Tab>', H.toggle_project_agents, 'Agents of the project')
+  H.map(buf, '<Tab>', H.show_project_agents, 'Agents of the project')
   H.map(buf, 'h', H.back, 'Back to projects')
   H.map(buf, 'q', H.close, 'Close')
   H.grow_with_edits(buf, win, function() return H.workspaces.width or 0 end)
@@ -627,8 +634,9 @@ H.open_agent = function()
   )
 end
 
---- Opens an agent pane right of the current pane and focuses it. `project`
---- and `workspace` narrow it as described at `H.agents`.
+--- Opens an agent pane from the current pane and focuses it. `project` and
+--- `workspace` narrow it as described at `H.agents`. A pane over one workspace
+--- opens right of the current pane; one over several takes its place.
 --- @param project string?
 --- @param workspace string?
 H.open_agents_pane = function(project, workspace)
@@ -640,6 +648,8 @@ H.open_agents_pane = function(project, workspace)
     label = (project and project .. '/' or '') .. '*'
   end
 
+  local replaced = workspace == nil
+
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_name(buf, 'huey://agents/' .. label)
   vim.bo[buf].bufhidden = 'wipe'
@@ -647,6 +657,7 @@ H.open_agents_pane = function(project, workspace)
   H.agents = {
     buf = buf,
     parent = parent,
+    replaced = replaced,
     project = project,
     workspace = workspace,
     label = label,
@@ -658,10 +669,11 @@ H.open_agents_pane = function(project, workspace)
   local win = vim.api.nvim_open_win(buf, true, {
     relative = 'editor',
     row = left.row,
-    col = left.col + left.width + 2,
+    col = replaced and left.col or left.col + left.width + 2,
     width = 20,
     height = 1,
   })
+  if replaced then vim.api.nvim_win_set_config(parent, { hide = true }) end
   H.agents.win = win
   H.resize(win, H.agents.width, math.max(#H.agents.agents, 1))
   H.style(win)
@@ -671,8 +683,12 @@ H.open_agents_pane = function(project, workspace)
   H.map(buf, '=', H.synchronize_agents, 'Synchronize agents')
   H.map(buf, 'h', H.back_from_agents, 'Back')
   H.map(buf, 'q', H.close, 'Close')
-  -- agent panes are the last level; <Tab> would otherwise jump in the jumplist
-  H.map(buf, '<Tab>', '<Nop>', 'Nothing')
+  if replaced then
+    H.map(buf, '<Tab>', H.back_from_agents, 'Back')
+  else
+    -- agent panes are the last level; <Tab> would otherwise jump in the jumplist
+    H.map(buf, '<Tab>', '<Nop>', 'Nothing')
+  end
   H.grow_with_edits(buf, win, function() return H.agents.width or 0 end, H.place_preview)
   vim.api.nvim_create_autocmd('CursorMoved', {
     buffer = buf,
@@ -692,36 +708,28 @@ H.open_agents = function()
   H.open_agents_pane(ws.project, name)
 end
 
---- True when the agent pane is open right of the current window and lists
---- every workspace of `project`, or every project when nil.
-H.is_toggled = function(project)
-  local a = H.agents
-  return H.is_open(a.win)
-    and a.parent == vim.api.nvim_get_current_win()
-    and a.workspace == nil
-    and a.project == project
-end
-
---- Opens the agents of every project right of the project pane, in place of
---- the workspace pane, or closes them when they are open.
-H.toggle_all_agents = function()
-  if H.is_toggled(nil) then return H.close_agents() end
+--- Swaps the project pane for the agents of every project, closing the
+--- workspace pane.
+H.show_all_agents = function()
   H.close_workspaces()
   H.open_agents_pane()
 end
 
---- Opens the agents of every workspace of the pane's project right of the
---- workspace pane, or closes them when they are open.
-H.toggle_project_agents = function()
-  local project = H.workspaces.project
-  if H.is_toggled(project) then return H.close_agents() end
+--- Swaps the workspace pane for the agents of every workspace of its project,
+--- closing the agents of a single workspace if open.
+H.show_project_agents = function()
   H.close_agents()
-  H.open_agents_pane(project)
+  H.open_agents_pane(H.workspaces.project)
 end
 
 --- Returns to the pane the agent pane opened from, closing it.
 H.back_from_agents = function()
-  if H.is_open(H.agents.parent) then vim.api.nvim_set_current_win(H.agents.parent) end
+  local a = H.agents
+  if H.is_open(a.parent) then
+    -- a hidden window can't take focus
+    if a.replaced then vim.api.nvim_win_set_config(a.parent, { hide = false }) end
+    vim.api.nvim_set_current_win(a.parent)
+  end
   H.close_agents()
 end
 
@@ -764,7 +772,7 @@ Explorer.open = function()
   H.map(buf, '<CR>', H.connect, 'Connect to project')
   H.map(buf, '=', H.synchronize_projects, 'Synchronize projects')
   H.map(buf, 'l', H.open_workspaces, 'Workspaces')
-  H.map(buf, '<Tab>', H.toggle_all_agents, 'Agents of every project')
+  H.map(buf, '<Tab>', H.show_all_agents, 'Agents of every project')
   H.map(buf, 'q', H.close, 'Close')
   H.map(buf, '<Esc>', H.close, 'Close')
   H.grow_with_edits(buf, win, function() return H.projects.width or 0 end)

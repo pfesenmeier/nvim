@@ -759,9 +759,17 @@ T['tab']['in the projects pane lists the agents of every project'] = function()
   eq(child.api.nvim_buf_get_name(0), 'huey://agents/*')
   eq(child.get_lines(), { 'in alpha', 'Fixing the bug', 'needs input' })
   eq(glyphs(), { '∿ ', '∿ ', '⏸ ' })
-  eq(child.api.nvim_win_get_config(0).col, left.col + left.width + 2)
-  -- projects, agents, preview
+  eq(child.api.nvim_win_get_config(0).col, left.col)
+  -- projects (hidden), agents, preview
   eq(#child.api.nvim_list_wins(), 4)
+end
+
+T['tab']['in the projects pane hides it behind the agents'] = function()
+  setup_agents({ beta = { working } })
+  open()
+  local projects_win = child.api.nvim_get_current_win()
+  press('<Tab>')
+  eq(child.api.nvim_win_get_config(projects_win).hide, true)
 end
 
 T['tab']['labels each agent with its workspace'] = function()
@@ -775,15 +783,13 @@ T['tab']['labels each agent with its workspace'] = function()
   )
 end
 
-T['tab']['in the projects pane closes the agents when they are open'] = function()
+T['tab']['again swaps back to the projects pane'] = function()
   setup_agents({ beta = { working } })
   open()
   local projects_win = child.api.nvim_get_current_win()
-  press('<Tab>')
-  child.api.nvim_set_current_win(projects_win)
-  child.poke_eventloop()
-  press('<Tab>')
+  press('<Tab><Tab>')
   eq(child.api.nvim_get_current_win(), projects_win)
+  eq(child.api.nvim_win_get_config(projects_win).hide, false)
   eq(#child.api.nvim_list_wins(), 2)
 end
 
@@ -793,8 +799,23 @@ T['tab']['in the workspace pane lists the agents of the project'] = function()
   press('<Tab>')
   eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta/*')
   eq(child.get_lines(), { 'Fixing the bug', 'needs input' })
-  -- projects, workspaces, agents, preview
+  -- projects, workspaces (hidden), agents, preview
   eq(#child.api.nvim_list_wins(), 5)
+end
+
+T['tab']['in the workspace pane takes its place'] = function()
+  setup_agents({ beta = { working } })
+  open_beta()
+  local ws_win = child.api.nvim_get_current_win()
+  local ws = child.api.nvim_win_get_config(ws_win)
+  press('<Tab>')
+  local agents = child.api.nvim_win_get_config(0)
+  eq({ agents.row, agents.col }, { ws.row, ws.col })
+  eq(child.api.nvim_win_get_config(ws_win).hide, true)
+  press('<Tab>')
+  eq(child.api.nvim_get_current_win(), ws_win)
+  eq(child.api.nvim_win_get_config(ws_win).hide, false)
+  eq(#child.api.nvim_list_wins(), 3)
 end
 
 T['tab']['in the workspace pane replaces the agents of a workspace'] = function()
@@ -810,15 +831,14 @@ T['tab']['in the workspace pane replaces the agents of a workspace'] = function(
   eq(#child.api.nvim_list_wins(), 5)
 end
 
-T['tab']['in an agent pane does nothing'] = function()
+T['tab']['in the agent pane of one workspace does nothing'] = function()
   setup_agents({ beta = { working } })
-  open()
-  press('<Tab>')
+  open_beta_agents()
   local win = child.api.nvim_get_current_win()
   press('<Tab>')
   eq(child.api.nvim_get_current_win(), win)
-  eq(child.api.nvim_buf_get_name(0), 'huey://agents/*')
-  eq(#child.api.nvim_list_wins(), 4)
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta')
+  eq(#child.api.nvim_list_wins(), 5)
 end
 
 T['tab']['<CR> opens the agent in its own workspace'] = function()
@@ -877,6 +897,7 @@ T['tab']['h goes back to the pane it opened from'] = function()
   open_beta()
   press('<Tab>h')
   eq(child.api.nvim_buf_get_name(0), 'huey://workspaces/beta')
+  eq(child.api.nvim_win_get_config(0).hide, false)
   eq(#child.api.nvim_list_wins(), 3)
 end
 
