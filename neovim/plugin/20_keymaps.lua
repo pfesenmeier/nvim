@@ -19,16 +19,19 @@ end
 nmap('[p', '<Cmd>exe "iput! " . v:register<CR>', 'Paste Above')
 nmap(']p', '<Cmd>ee "iput "  . v:register<CR>', 'Paste Below')
 
--- Project navigation, in the style of 'mini.bracketed' targets. That plugin
--- has no way to register a custom target, so these are mapped by hand; the
--- module drives `MiniBracketed.advance()` underneath. See 'lua/huey/projects'.
-local project_nav = function(direction)
-  return ("<Cmd>lua require('huey.projects').bracketed('%s')<CR>"):format(direction)
+-- Workspace navigation, in the style of 'mini.bracketed' targets: `:cd`
+-- through this project's jj workspaces. That plugin has no way to register a
+-- custom target, so these are mapped by hand; the module drives
+-- `MiniBracketed.advance()` underneath. See 'lua/huey/projects'.
+local workspace_nav = function(direction)
+  return ("<Cmd>lua require('huey.projects').workspace_bracketed('%s')<CR>"):format(
+    direction
+  )
 end
-nmap('[W', project_nav('first'), 'Project first')
-nmap(']W', project_nav('last'), 'Project last')
-nmap('[w', project_nav('backward'), 'Project backward')
-nmap(']w', project_nav('forward'), 'Project forward')
+nmap('[W', workspace_nav('first'), 'Workspace first')
+nmap(']W', workspace_nav('last'), 'Workspace last')
+nmap('[w', workspace_nav('backward'), 'Workspace backward')
+nmap(']w', workspace_nav('forward'), 'Workspace forward')
 
 -- Spell motions, displaced from `[s`/`]s` by 'mini.bracketed's `window` target.
 -- Non-recursive on purpose: the RHS must reach the built-in, not that mapping.
@@ -120,7 +123,7 @@ nmap_leader('bo', '<Cmd>%bd | e #<CR>', 'Buf only')
 -- - `<Leader>ef` - open directory of current file (needs to be present on disk)
 -- - `<Leader>ei` - edit 'init.lua'
 -- - `<Leader>el` - open explorer at the plugin install directory
--- - `<Leader>ep` - explore projects; `<CR>` connects to one. See 'lua/huey/explorer.lua'
+-- - `<Leader>ep` - explore projects; `<CR>` connects, `l` lists jj workspaces (`<CR>` there `:cd`s). See 'lua/huey/explorer.lua'
 -- - `<Leader>eP` - edit the most recent plan in '~/.claude/plans'
 -- - `<Leader>er` - edit the most recent PR review in '~/Documents/pr-reviews'
 -- - All mappings that use `edit_plugin_file` - edit 'plugin/' config files
@@ -337,7 +340,7 @@ nmap_leader('vL', '<Cmd>lua MiniVisits.remove_label()<CR>', 'Remove label')
 nmap_leader('vx', '<Cmd>lua HueyVisits.clear_label("")<CR>', 'Clear label (all)')
 nmap_leader('vX', '<Cmd>lua HueyVisits.clear_label()<CR>', 'Clear label (cwd)')
 
--- p is for 'Project'. See 'lua/huey/projects'; `[w`/`]w` navigate between them.
+-- p is for 'Project'. See 'lua/huey/projects'.
 nmap_leader('pa', '<Cmd>lua require("huey.projects").pick_add()<CR>', 'Add project')
 
 -- w is for 'Project server'. `wq` stops this project's server and lands on

@@ -164,7 +164,8 @@ end)
 -- Statusline. Sets `:h 'statusline'` to show more info in a line below window.
 -- Example usage:
 -- - Left most section indicates current mode (text + highlighting).
--- - Second from left section shows "developer info": Git, diff, diagnostics, LSP.
+-- - Second from left section shows "developer info": project/workspace, Git,
+--   diff, diagnostics, LSP.
 -- - Center section shows the name of displayed buffer.
 -- - Second to right section shows more buffer info.
 -- - Right most section shows current cursor coordinates and search results.
@@ -196,7 +197,11 @@ now(function()
         local location = MiniStatusline.section_location({ trunc_width = 75 })
         local search = MiniStatusline.section_searchcount({ trunc_width = 75 })
 
-        local project = require('huey.projects').current_name()
+        -- Project and the jj workspace `[w`/`]w` landed in, e.g. 'nvim/one'
+        local projects = require('huey.projects')
+        local project = projects.current_name()
+        local workspace = projects.current_workspace()
+        if workspace then project = project .. '/' .. workspace end
         return MiniStatusline.combine_groups({
           { hl = mode_hl, strings = { mode } },
           {
@@ -212,6 +217,13 @@ now(function()
       end,
     },
   })
+  -- `:cd` alone doesn't redraw the statusline
+  Config.new_autocmd(
+    'DirChanged',
+    '*',
+    function() vim.cmd.redrawstatus({ bang = true }) end,
+    'Redraw statusline workspace'
+  )
 end)
 
 -- Tabline. Sets `:h 'tabline'` to show all listed buffers in a line at the top.
@@ -448,7 +460,7 @@ end)
 --
 -- See also:
 -- - `:h MiniBracketed` - overall mapping design and list of targets
--- `window` moves off `w` to `s` (split); `[w`/`]w` navigate projects instead
+-- `window` moves off `w` to `s` (split); `[w`/`]w` navigate workspaces instead
 -- (see 'plugin/20_keymaps.lua'). Vim's `[s`/`]s` spell motions move to `[e`/`]e`.
 later(function() require('mini.bracketed').setup({ window = { suffix = 's' } }) end)
 

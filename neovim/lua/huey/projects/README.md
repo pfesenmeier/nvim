@@ -5,6 +5,9 @@ servers via the 0.12 built-in `:connect`. The lib spawns each project's
 `nvim --listen <sock> --headless` on demand and runs `:connect <sock>` from the
 TUI.
 
+One server per project serves every jj workspace of that project: moving
+between workspaces is a `:cd` inside the server, not a new server.
+
 ## Setup
 
 ```lua
@@ -12,6 +15,7 @@ require("huey.projects").setup({
   -- store = vim.fn.stdpath("data") .. "/projects.json",  -- default
   -- pinned = { { name = "nvim", path = "~/nvim" } },       -- default
   -- server_dir = vim.fn.stdpath("run") .. "/projects",     -- default
+  -- workspace_dir = vim.fn.stdpath("data") .. "/workspaces", -- default
 })
 ```
 
@@ -30,12 +34,18 @@ one server shows up in the others.
   without a picker.
 - `<leader>fw` — pick a project (MiniPick). Confirming spawns the server if
   needed, then `:connect`s the current UI.
-- `[w` / `]w` — connect to the previous / next **running** project, skipping
-  stopped ones; `[W` / `]W` jump to the first / last running one. Counts and
-  wrap-around work as in 'mini.bracketed', whose `MiniBracketed.advance()` this
-  drives. Note 'mini.bracketed' has no way to register a custom target, so the
-  mappings live in `plugin/20_keymaps.lua` rather than in its config; its own
-  `window` target was moved to `[s`/`]s` to free `w`.
+- `[w` / `]w` — `:cd` to the previous / next jj workspace of this server's
+  project, `default` first. From a cwd in none of them, `]w` goes to the first
+  and `[w` to the last. `[W` / `]W` go to the first / last workspace. Counts
+  and wrap-around work as in 'mini.bracketed', whose `MiniBracketed.advance()`
+  this drives. Note 'mini.bracketed' has no way to
+  register a custom target, so the mappings live in `plugin/20_keymaps.lua`
+  rather than in its config; its own `window` target was moved to `[s`/`]s` to
+  free `w`.
+- The current project is the one whose socket this server listens on, so it
+  stays the same whichever workspace the cwd is in. An nvim that is no project
+  server (the TUI's own) goes by cwd: a project's folder or a workspace under
+  `<workspace_dir>/<project>/`.
 - `<leader>wq` / `:ProjectQuit` — stop **this** project's server and land on
   the next running project (`]w` order, wrapping). One `:connect!`, whose bang
   stops the server it detaches from; ordering rules out anything else, since the
@@ -56,6 +66,17 @@ one server shows up in the others.
 - `:ProjectStop <name>` — RPC-quit the project's server and clean up the
   socket. Unlike `<leader>wq`, this can target a project other than the
   current one, and leaves the UI where it is.
+
+- `<leader>ep` — project explorer (`lua/huey/explorer.lua`), a floating pane
+  in the style of 'mini.files'. `<CR>` connects to the project under the
+  cursor; `l` opens its jj workspaces in a pane to the right (`default` first),
+  and `h` goes back. `<CR>` on a workspace `:cd`s to it; for another project's
+  workspace, its server is started if needed, `:cd`s there, and the UI
+  connects to it. The workspace pane is editable: add a line and press `=`
+  to create a workspace by that name, after a confirm prompt. Each one is a
+  `jj workspace add` at `<workspace_dir>/<project>/<name>`, outside the repo,
+  sharing the parent of the project's working copy. Deleting or renaming a line
+  does nothing yet; the next sync lists it again.
 
 `:detach` (built-in) drops the UI off a project without stopping it.
 

@@ -7,18 +7,24 @@ local new_set = MiniTest.new_set
 local project_names = { 'alpha', 'beta', 'gamma' }
 
 local temp_roots = {}
+-- jj repos from `helpers.new_jj_repo()`, deleted after each case
+local repos = {}
 
 --- Loads the explorer in the child over a store listing `project_names`, with
 --- `status` stubbed (no sockets probed) and `connect` recording its target.
 --- @param running table<string, boolean> which projects report 'running'
 --- @param cwd string? project to chdir into first
-local setup = function(running, cwd)
+--- @param paths table<string, string>? project name -> path, for projects that
+---   must be somewhere other than a fresh empty folder
+--- @return string root holding the store and the workspace dir
+local setup = function(running, cwd, paths)
   local root = vim.fn.tempname()
   table.insert(temp_roots, root)
   local spec = {}
   for _, name in ipairs(project_names) do
-    vim.fn.mkdir(root .. '/' .. name, 'p')
-    spec[#spec + 1] = { name = name, path = root .. '/' .. name }
+    local path = (paths or {})[name] or (root .. '/' .. name)
+    vim.fn.mkdir(path, 'p')
+    spec[#spec + 1] = { name = name, path = path }
   end
   vim.fn.writefile({ vim.json.encode(spec) }, root .. '/projects.json')
 
@@ -33,11 +39,17 @@ local setup = function(running, cwd)
     _G.explorer = require('huey.explorer')
   ]],
     {
-      { store = root .. '/projects.json', pinned = {}, server_dir = root .. '/servers' },
-      running,
+      {
+        store = root .. '/projects.json',
+        pinned = {},
+        server_dir = root .. '/servers',
+        workspace_dir = root .. '/workspaces',
+      },
+      running or {},
     }
   )
-  if cwd then child.fn.chdir(root .. '/' .. cwd) end
+  if cwd then child.fn.chdir((paths or {})[cwd] or (root .. '/' .. cwd)) end
+  return root
 end
 
 local open = function() child.lua('_G.explorer.open()') end
@@ -57,7 +69,10 @@ local T = new_set({
       for _, root in ipairs(temp_roots) do
         vim.fn.delete(root, 'rf')
       end
-      temp_roots = {}
+      for _, repo in ipairs(repos) do
+        vim.fn.delete(repo, 'rf')
+      end
+      temp_roots, repos = {}, {}
     end,
     post_once = child.stop,
   },
@@ -115,11 +130,14 @@ T['keys']['<CR> connects to the project under the cursor'] = function()
   eq(is_float(), false)
 end
 
-T['keys']['l connects too'] = function()
+T['keys']['l on a project that is not a jj repo stays put'] = function()
   setup({})
   open()
-  press('jjl')
-  eq(child.lua_get('_G.connected'), { 'gamma' })
+  local win = child.api.nvim_get_current_win()
+  press('l')
+  eq(child.api.nvim_get_current_win(), win)
+  eq(#child.api.nvim_list_wins(), 2)
+  eq(child.lua_get('_G.connected'), {})
 end
 
 T['keys']['<CR> on the current project only closes'] = function()
@@ -145,6 +163,163 @@ T['keys']['leaving the pane closes it'] = function()
   setup({})
   open()
   child.cmd('wincmd p')
+  child.poke_eventloop()
+  eq(#child.api.nvim_list_wins(), 1)
+end
+
+T['workspaces'] = new_set()
+
+--- Like `setup()`, with project `beta` at a fresh jj repo. Confirm prompts
+--- answer `answer` (1 is yes) and record their message in `_G.prompts`;
+--- notifications are recorded in `_G.notes` rather than shown.
+--- @param answer integer?
+--- @return string root, string repo
+local setup_jj = function(answer)
+  helpers.skip_if_no_jj()
+  local repo = helpers.new_jj_repo({ ['a.txt'] = { 'a' } })
+  table.insert(repos, repo)
+  local root = setup({}, nil, { beta = repo })
+  child.lua(
+    [[
+    local answer = ...
+    _G.prompts, _G.notes = {}, {}
+    vim.notify = function(msg) table.insert(_G.notes, msg) end
+    vim.fn.confirm = function(msg)
+      table.insert(_G.prompts, msg)
+      return answer
+    end
+  ]],
+    { answer or 1 }
+  )
+  return root, repo
+end
+
+--- Opens the workspace pane of `beta`.
+local open_beta = function()
+  open()
+  press('jl')
+end
+
+--- Workspace names jj itself knows about in `repo`.
+local jj_workspaces = function(repo)
+  local out = helpers.jj(repo, 'workspace', 'list', '-T', 'name ++ "\\n"')
+  return vim.split(vim.trim(out), '\n')
+end
+
+T['workspaces']['l opens the default workspace right of the projects'] = function()
+  setup_jj()
+  open()
+  local left = child.api.nvim_win_get_config(0)
+  press('jl')
+  eq(is_float(), true)
+  eq(#child.api.nvim_list_wins(), 3)
+  eq(child.get_lines(), { 'default' })
+  eq(child.bo.modifiable, true)
+  eq(child.api.nvim_win_get_config(0).col, left.col + left.width + 2)
+end
+
+T['workspaces']['= creates a workspace for a new line'] = function()
+  local root, repo = setup_jj()
+  open_beta()
+  press('ofeature<Esc>=')
+  eq(jj_workspaces(repo), { 'default', 'feature' })
+  local path = root .. '/workspaces/beta/feature'
+  eq(vim.fn.filereadable(path .. '/a.txt'), 1)
+  eq(child.get_lines(), { 'default', 'feature' })
+  eq(child.lua_get('_G.prompts[1]'):find('CREATE │ feature', 1, true) ~= nil, true)
+end
+
+T['workspaces']['= creates nothing when declined'] = function()
+  local _, repo = setup_jj(2)
+  open_beta()
+  press('ofeature<Esc>=')
+  eq(jj_workspaces(repo), { 'default' })
+  -- the edit stays, to fix or confirm again
+  eq(child.get_lines(), { 'default', 'feature' })
+end
+
+T['workspaces']['= keeps a deleted workspace'] = function()
+  local _, repo = setup_jj()
+  open_beta()
+  press('dd=')
+  eq(jj_workspaces(repo), { 'default' })
+  eq(child.get_lines(), { 'default' })
+  eq(child.lua_get('#_G.prompts'), 0)
+  eq(
+    child.lua_get('_G.notes'),
+    { 'explorer: removing workspaces is not supported; kept default' }
+  )
+end
+
+T['workspaces']['= rejects a name that is not a folder name'] = function()
+  local _, repo = setup_jj()
+  open_beta()
+  press('oa/b<Esc>=')
+  eq(jj_workspaces(repo), { 'default' })
+  eq(child.get_lines(), { 'default' })
+  eq(child.lua_get('_G.notes'), { "projects: 'a/b' is not a valid workspace name" })
+end
+
+T['workspaces']['lists other workspaces after the default one'] = function()
+  local root, repo = setup_jj()
+  helpers.jj(repo, 'workspace', 'add', '--name', 'aaa', root .. '/aaa')
+  open_beta()
+  eq(child.get_lines(), { 'default', 'aaa' })
+end
+
+--- Records `projects.cd()` calls in `_G.cds` rather than changing directory.
+local stub_cd = function()
+  child.lua([[
+    _G.cds = {}
+    require('huey.projects').cd = function(name, path)
+      table.insert(_G.cds, { name, vim.fn.resolve(path) })
+    end
+  ]])
+end
+
+T['workspaces']['<CR> changes directory to the workspace under the cursor'] = function()
+  local root, repo = setup_jj()
+  helpers.jj(repo, 'workspace', 'add', '--name', 'aaa', root .. '/aaa')
+  child.fn.chdir(repo)
+  open()
+  press('l')
+  press('j<CR>')
+  eq(vim.fn.resolve(child.fn.getcwd()), vim.fn.resolve(root .. '/aaa'))
+  eq(#child.api.nvim_list_wins(), 1)
+  eq(child.lua_get('_G.connected'), {})
+end
+
+T['workspaces']['<CR> hands a workspace of another project to projects.cd()'] = function()
+  local _, repo = setup_jj()
+  stub_cd()
+  open_beta()
+  press('<CR>')
+  eq(child.lua_get('_G.cds'), { { 'beta', vim.fn.resolve(repo) } })
+  eq(#child.api.nvim_list_wins(), 1)
+end
+
+T['workspaces']['<CR> on an unsynced line does nothing'] = function()
+  setup_jj()
+  stub_cd()
+  open_beta()
+  press('ofeature<Esc><CR>')
+  eq(child.lua_get('_G.cds'), {})
+  eq(#child.api.nvim_list_wins(), 3)
+end
+
+T['workspaces']['h goes back to the projects'] = function()
+  setup_jj()
+  open_beta()
+  press('h')
+  eq(#child.api.nvim_list_wins(), 2)
+  eq(child.api.nvim_buf_get_name(0), 'huey://projects')
+  eq(cursor_line(), 2)
+end
+
+T['workspaces']['leaving for another window closes both panes'] = function()
+  setup_jj()
+  open_beta()
+  child.cmd('wincmd t')
   child.poke_eventloop()
   eq(#child.api.nvim_list_wins(), 1)
 end

@@ -65,9 +65,6 @@ local setup_ws = function(running, cwd)
   return root
 end
 
-local bracketed = function(direction, o)
-  child.lua('_G.projects.bracketed(...)', { direction, o or {} })
-end
 local connected = function() return child.lua_get('_G.connected') end
 local stop_current = function() return child.lua_get('_G.stop_current') end
 
@@ -287,88 +284,6 @@ T['M.current_index()']['is nil outside any project'] = function()
   eq(child.lua_get('_G.projects.current_index()'), vim.NIL)
 end
 
-T['M.bracketed()'] = new_set()
-
-T['M.bracketed()']['skips stopped going forward'] = function()
-  -- alpha(cur) beta[stopped] gamma delta[stopped]
-  setup_ws({ alpha = true, gamma = true }, 'alpha')
-  bracketed('forward')
-  eq(connected(), { 'gamma' })
-end
-
-T['M.bracketed()']['skips stopped going backward'] = function()
-  setup_ws({ alpha = true, delta = true }, 'delta')
-  bracketed('backward')
-  eq(connected(), { 'alpha' })
-end
-
-T['M.bracketed()']['wraps forward past the end'] = function()
-  setup_ws({ alpha = true, delta = true }, 'delta')
-  bracketed('forward')
-  eq(connected(), { 'alpha' })
-end
-
-T['M.bracketed()']['wraps backward past the start'] = function()
-  setup_ws({ alpha = true, delta = true }, 'alpha')
-  bracketed('backward')
-  eq(connected(), { 'delta' })
-end
-
-T['M.bracketed()']['respects `wrap = false`'] = function()
-  setup_ws({ alpha = true, delta = true }, 'delta')
-  bracketed('forward', { wrap = false })
-  eq(connected(), {})
-end
-
-T['M.bracketed()']['goes to the first running'] = function()
-  setup_ws({ beta = true, gamma = true, delta = true }, 'delta')
-  bracketed('first')
-  eq(connected(), { 'beta' })
-end
-
-T['M.bracketed()']['goes to the last running'] = function()
-  setup_ws({ alpha = true, beta = true, gamma = true }, 'alpha')
-  bracketed('last')
-  eq(connected(), { 'gamma' })
-end
-
-T['M.bracketed()']['advances `n_times`'] = function()
-  setup_ws({ alpha = true, beta = true, gamma = true, delta = true }, 'alpha')
-  bracketed('forward', { n_times = 2 })
-  eq(connected(), { 'gamma' })
-end
-
-T['M.bracketed()']['takes a count from `v:count1`'] = function()
-  setup_ws({ alpha = true, beta = true, gamma = true, delta = true }, 'alpha')
-  child.lua(
-    [[vim.keymap.set('n', ']w', "<Cmd>lua _G.projects.bracketed('forward')<CR>")]]
-  )
-  child.type_keys('3]w')
-  eq(connected(), { 'delta' })
-end
-
-T['M.bracketed()']['does nothing when alone'] = function()
-  setup_ws({ beta = true }, 'beta')
-  bracketed('forward')
-  bracketed('backward')
-  bracketed('first')
-  bracketed('last')
-  eq(connected(), {})
-end
-
-T['M.bracketed()']['does nothing when none are running'] = function()
-  setup_ws({}, 'beta')
-  bracketed('forward')
-  eq(connected(), {})
-end
-
-T['M.bracketed()']['steps off a stopped current project'] = function()
-  -- the TUI can sit in a project directory whose server was never spawned
-  setup_ws({ gamma = true }, 'alpha')
-  bracketed('forward')
-  eq(connected(), { 'gamma' })
-end
-
 T['M.quit()'] = new_set()
 
 T['M.quit()']['connects to the next running, stopping the current'] = function()
@@ -417,17 +332,186 @@ T['M.quit()']['leaves a project whose server never started'] = function()
   eq(stop_current(), { true })
 end
 
--- `alpha` (index 1) must be running here: it is the only arrangement where a
--- start state of 0 differs from 1, which is what pins the `or 0` fallback.
-T['M.bracketed()']['starts from the edges outside any project'] = new_set({
-  parametrize = { { 'forward', 'alpha' }, { 'backward', 'gamma' } },
-}, {
-  test = function(direction, want)
-    setup_ws({ alpha = true, gamma = true }, 'elsewhere')
-    bracketed(direction)
-    eq(connected(), { want })
-  end,
-})
+T['M.current_index()']['is its own project in any cwd'] = function()
+  local root = setup_live()
+  child_listen_as(root, 'beta')
+  child.fn.chdir(root .. '/elsewhere')
+  eq(child.lua_get('_G.projects.current_index()'), 2)
+  eq(child.lua_get('_G.projects.current_name()'), 'beta')
+end
+
+T['M.current_index()']['resolves a cwd in a workspace of the project'] = function()
+  local root = new_projects()
+  local o = setup_opts(root)
+  o.workspace_dir = root .. '/workspaces'
+  vim.fn.mkdir(o.workspace_dir .. '/gamma/feature', 'p')
+  child.lua('_G.projects = require("huey.projects"); _G.projects.setup(...)', { o })
+  child.fn.chdir(o.workspace_dir .. '/gamma/feature')
+  eq(child.lua_get('_G.projects.current_index()'), 3)
+end
+
+--- Like `setup_ws()`, with `alpha` at a jj repo that has workspaces `one` and
+--- `two` under the workspace dir. Notifications go to `_G.notes`.
+--- @return string root, string repo
+local setup_jj = function()
+  helpers.skip_if_no_jj()
+  local root = setup_ws({})
+  local repo = helpers.new_jj_repo({ ['a.txt'] = { 'a' } })
+  table.insert(temp_roots, repo)
+  local o = setup_opts(root)
+  o.workspace_dir = root .. '/workspaces'
+  local spec = vim.json.decode(vim.fn.readfile(o.store)[1])
+  spec[1].path = repo
+  vim.fn.writefile({ vim.json.encode(spec) }, o.store)
+  for _, ws in ipairs({ 'one', 'two' }) do
+    vim.fn.mkdir(o.workspace_dir .. '/alpha', 'p')
+    helpers.jj(
+      repo,
+      'workspace',
+      'add',
+      '--name',
+      ws,
+      o.workspace_dir .. '/alpha/' .. ws
+    )
+  end
+  child.lua(
+    [[
+    _G.projects.setup(...)
+    _G.notes = {}
+    vim.notify = function(msg) table.insert(_G.notes, msg) end
+  ]],
+    { o }
+  )
+  return root, repo
+end
+
+local ws_bracketed = function(direction, o)
+  child.lua('_G.projects.workspace_bracketed(...)', { direction, o or {} })
+end
+local cwd = function() return vim.fn.resolve(child.fn.getcwd()) end
+local ws_path = function(root, ws)
+  return vim.fn.resolve(root .. '/workspaces/alpha/' .. ws)
+end
+
+T['M.workspace_bracketed()'] = new_set()
+
+T['M.workspace_bracketed()']['cds forward through workspaces, wrapping'] = function()
+  local root, repo = setup_jj()
+  child.fn.chdir(repo)
+  ws_bracketed('forward')
+  eq(cwd(), ws_path(root, 'one'))
+  ws_bracketed('forward')
+  eq(cwd(), ws_path(root, 'two'))
+  ws_bracketed('forward')
+  eq(cwd(), vim.fn.resolve(repo))
+  eq(connected(), {})
+end
+
+T['M.workspace_bracketed()']['wraps backward from default'] = function()
+  local root, repo = setup_jj()
+  child.fn.chdir(repo)
+  ws_bracketed('backward')
+  eq(cwd(), ws_path(root, 'two'))
+end
+
+T['M.workspace_bracketed()']['advances `n_times`'] = function()
+  local root, repo = setup_jj()
+  child.fn.chdir(repo)
+  ws_bracketed('forward', { n_times = 2 })
+  eq(cwd(), ws_path(root, 'two'))
+end
+
+T['M.workspace_bracketed()']['goes to the first and last'] = function()
+  local root, repo = setup_jj()
+  child.fn.chdir(root .. '/workspaces/alpha/one')
+  ws_bracketed('last')
+  eq(cwd(), ws_path(root, 'two'))
+  ws_bracketed('first')
+  eq(cwd(), vim.fn.resolve(repo))
+end
+
+T['M.workspace_bracketed()']['takes a count from `v:count1`'] = function()
+  local root, repo = setup_jj()
+  child.fn.chdir(repo)
+  child.lua(
+    [[vim.keymap.set('n', ']w', "<Cmd>lua _G.projects.workspace_bracketed('forward')<CR>")]]
+  )
+  child.type_keys('2]w')
+  eq(cwd(), ws_path(root, 'two'))
+end
+
+T['M.workspace_bracketed()']['starts from the first outside any workspace'] = function()
+  local root, repo = setup_jj()
+  child_listen_as(root, 'alpha')
+  child.fn.chdir(root .. '/elsewhere')
+  ws_bracketed('forward')
+  eq(cwd(), vim.fn.resolve(repo))
+end
+
+T['M.workspace_bracketed()']['warns outside a jj repo'] = function()
+  local root = setup_jj()
+  child.fn.chdir(root .. '/beta')
+  ws_bracketed('forward')
+  eq(cwd(), vim.fn.resolve(root .. '/beta'))
+  eq(child.lua_get('_G.notes'), { 'projects: beta is not a jj repo' })
+end
+
+T['M.workspace_bracketed()']['warns outside any project'] = function()
+  local root = setup_jj()
+  child.fn.chdir(root .. '/elsewhere')
+  ws_bracketed('forward')
+  eq(cwd(), vim.fn.resolve(root .. '/elsewhere'))
+  eq(child.lua_get('_G.notes'), { 'projects: not in a project' })
+end
+
+T['M.current_workspace()'] = new_set()
+
+T['M.current_workspace()']['is default in the project folder'] = function()
+  local _, repo = setup_jj()
+  child.fn.chdir(repo)
+  eq(child.lua_get('_G.projects.current_workspace()'), 'default')
+end
+
+T['M.current_workspace()']['names the workspace cwd is in'] = function()
+  local root = setup_jj()
+  child.fn.chdir(root .. '/workspaces/alpha/two')
+  eq(child.lua_get('_G.projects.current_workspace()'), 'two')
+end
+
+T['M.current_workspace()']['is nil in a project that is not a jj repo'] = function()
+  local root = setup_jj()
+  child.fn.chdir(root .. '/beta')
+  eq(child.lua_get('_G.projects.current_workspace()'), vim.NIL)
+end
+
+T['M.current_workspace()']['is nil outside any project'] = function()
+  local root = setup_jj()
+  child.fn.chdir(root .. '/elsewhere')
+  eq(child.lua_get('_G.projects.current_workspace()'), vim.NIL)
+end
+
+T['M.cd()'] = new_set()
+
+T['M.cd()']['cds in place for its own project'] = function()
+  local root = setup_live()
+  child_listen_as(root, 'alpha')
+  child.lua('_G.projects.cd(...)', { 'alpha', root .. '/elsewhere' })
+  eq(cwd(), vim.fn.resolve(root .. '/elsewhere'))
+  eq(child.lua_get('_G.connected'), {})
+end
+
+T['M.cd()']["cds in another project's server, then connects to it"] = function()
+  local root = setup_live()
+  child_listen_as(root, 'alpha')
+  local chan = start_server(root, 'gamma')
+  child.lua('_G.projects.cd(...)', { 'gamma', root .. '/elsewhere' })
+  eq(
+    vim.fn.resolve(vim.rpcrequest(chan, 'nvim_call_function', 'getcwd', {})),
+    vim.fn.resolve(root .. '/elsewhere')
+  )
+  eq(child.lua_get('_G.connected'), { 'gamma' })
+  eq(cwd() ~= vim.fn.resolve(root .. '/elsewhere'), true)
+end
 
 T['M.collect()'] = new_set()
 

@@ -30,6 +30,9 @@ local defaults = {
   -- Always listed first, whatever the store holds
   pinned = { { name = 'nvim', path = vim.fs.joinpath(vim.uv.os_homedir(), 'nvim') } },
   server_dir = default_server_dir(),
+  -- New jj workspaces go in `<workspace_dir>/<project>/<workspace>`, outside
+  -- the repo, so they never show up in its own file listings
+  workspace_dir = vim.fn.stdpath('data') .. '/workspaces',
 }
 
 local opts = defaults
@@ -417,20 +420,118 @@ function M.pick_bots()
   })
 end
 
-function M.current_name()
-  local cwd = vim.fn.resolve(vim.fn.getcwd())
-  for _, p in ipairs(list()) do
-    if vim.fn.resolve(p.path) == cwd then return p.name end
-  end
-  return vim.fn.fnamemodify(cwd, ':t')
+-- Runs jj in `cwd`. Returns stdout, or nil and the error when it fails or
+-- jj is not installed.
+local function jj(cwd, args)
+  local cmd = vim.list_extend({ 'jj', '--no-pager' }, args)
+  local ok, out = pcall(
+    function() return vim.system(cmd, { cwd = cwd, text = true }):wait() end
+  )
+  if not ok then return nil, out end
+  if out.code ~= 0 then return nil, vim.trim(out.stderr) end
+  return out.stdout
 end
 
---- Position of the cwd's project in `M.names()`, or nil when cwd is not one.
+local function jj_failed(args, err)
+  vim.notify(('projects: jj %s: %s'):format(args[1], err), vim.log.levels.ERROR)
+end
+
+--- jj workspaces of project `name`, the default one first. Nil when the
+--- project is unknown or not a jj repo.
+--- @param name string
+--- @return { name: string, path: string }[]?
+function M.workspaces(name)
+  local project = find(name)
+  if not project then return end
+  -- quietly nil for a plain folder or git repo
+  if not jj(project.path, { 'root' }) then return end
+  -- --ignore-working-copy: listing should not snapshot the working copy
+  local args = {
+    'workspace',
+    'list',
+    '--ignore-working-copy',
+    '-T',
+    [[name ++ "\t" ++ self.root() ++ "\n"]],
+  }
+  local out, err = jj(project.path, args)
+  if not out then return jj_failed(args, err) end
+  local list = {}
+  for line in vim.gsplit(out, '\n', { trimempty = true }) do
+    local ws, path = line:match('^(.-)\t(.*)$')
+    if ws then
+      local entry = { name = ws, path = vim.fs.normalize(path) }
+      table.insert(list, ws == 'default' and 1 or #list + 1, entry)
+    end
+  end
+  return list
+end
+
+--- Creates jj workspace `ws` for project `name` at
+--- `<workspace_dir>/<name>/<ws>`. Its working copy sits on the same parent as
+--- the project's own.
+--- @param name string
+--- @param ws string
+--- @return string? path of the new workspace
+function M.add_workspace(name, ws)
+  local project = find(name)
+  if not project then
+    vim.notify(("projects: unknown name '%s'"):format(name), vim.log.levels.ERROR)
+    return
+  end
+  -- the name is also a folder name, so it can't nest or hide
+  if ws == '' or ws:find('[/\\]') or ws:find('^%.') then
+    vim.notify(
+      ("projects: '%s' is not a valid workspace name"):format(ws),
+      vim.log.levels.ERROR
+    )
+    return
+  end
+  local path = vim.fs.joinpath(opts.workspace_dir, name, ws)
+  vim.fn.mkdir(vim.fs.dirname(path), 'p')
+  local args = { 'workspace', 'add', '--name', ws, path }
+  local out, err = jj(project.path, args)
+  if not out then return jj_failed(args, err) end
+  return path
+end
+
+--- Position of this server's project in `M.names()`, or nil when it is none.
+--- A project server knows by its own socket, whatever workspace its cwd is in.
+--- Any other nvim goes by cwd: a project's folder, or one of its workspaces
+--- under `workspace_dir`.
 --- @return number?
 function M.current_index()
+  local all = list()
+  for i, p in ipairs(all) do
+    if is_self(sock_for(p.name)) then return i end
+  end
   local cwd = vim.fn.resolve(vim.fn.getcwd())
-  for i, p in ipairs(list()) do
+  for i, p in ipairs(all) do
     if vim.fn.resolve(p.path) == cwd then return i end
+    local ws_root = vim.fn.resolve(vim.fs.joinpath(opts.workspace_dir, p.name))
+    if vim.fs.dirname(cwd) == ws_root then return i end
+  end
+end
+
+function M.current_name()
+  local i = M.current_index()
+  if i then return list()[i].name end
+  return vim.fn.fnamemodify(vim.fn.getcwd(), ':t')
+end
+
+--- Name of the jj workspace the editor's cwd is in: 'default' in the project's
+--- own folder when it is a jj repo, the folder name under `workspace_dir`
+--- otherwise. Nil outside a project or a jj repo. Read from the filesystem
+--- rather than jj, so it is cheap enough for the statusline.
+--- @return string?
+function M.current_workspace()
+  local i = M.current_index()
+  if not i then return end
+  local p = list()[i]
+  local cwd = vim.fn.resolve(vim.fn.getcwd())
+  local ws_root = vim.fn.resolve(vim.fs.joinpath(opts.workspace_dir, p.name))
+  if vim.fs.dirname(cwd) == ws_root then return vim.fs.basename(cwd) end
+  if cwd == vim.fn.resolve(p.path) and vim.uv.fs_stat(cwd .. '/.jj') then
+    return 'default'
   end
 end
 
@@ -459,7 +560,8 @@ function M.paths()
 end
 
 --- Name of the next/previous *running* project, skipping stopped ones, or nil
---- when there is none to move to. Shaped after `MiniBracketed.window()`.
+--- when there is none to move to. Used by `M.quit()` to pick where to land.
+--- Shaped after `MiniBracketed.window()`.
 --- @param direction string 'first' | 'backward' | 'forward' | 'last'
 --- @param o table? { n_times = v:count1, wrap = true }
 --- @return string?
@@ -480,7 +582,7 @@ local function advance(direction, o)
     end,
     -- The origin need not be running: the TUI can sit in a project directory
     -- whose server was never spawned. 0 (== `start_edge`) when cwd is no
-    -- project at all, so `]w` lands on the first running one and `[w` wraps.
+    -- project at all, so 'forward' lands on the first running one.
     state = M.current_index() or 0,
     start_edge = 0,
     end_edge = #all + 1,
@@ -492,21 +594,70 @@ local function advance(direction, o)
   return all[res]
 end
 
---- Connect to the next/previous *running* project; bound to `[w` / `]w` /
---- `[W` / `]W`.
+--- Change the editor's directory to `path`, a workspace of project `name`.
+--- In that project's server this is a plain `:cd`. From anywhere else the
+--- project's server is started if needed, changes directory, and then the UI
+--- connects to it.
+--- @param name string
+--- @param path string
+function M.cd(name, path)
+  local i = M.current_index()
+  if i and list()[i].name == name then
+    return vim.cmd.cd(vim.fn.fnameescape(path))
+  end
+  local addr = M.ensure(name)
+  if not addr then return end
+  rpc_lua(addr, 'vim.cmd.cd(vim.fn.fnameescape(...))', { path })
+  M.connect(name)
+end
+
+--- `:cd` to the next/previous jj workspace of this server's project, in
+--- `M.workspaces()` order; bound to `[w` / `]w` / `[W` / `]W`. Shaped after
+--- `MiniBracketed.window()`.
 --- @param direction string 'first' | 'backward' | 'forward' | 'last'
 --- @param o table? { n_times = v:count1, wrap = true }
-function M.bracketed(direction, o)
-  local name = advance(direction, o)
-  if name then M.connect(name) end
+function M.workspace_bracketed(direction, o)
+  o = vim.tbl_deep_extend('force', { n_times = vim.v.count1, wrap = true }, o or {})
+
+  local i = M.current_index()
+  if not i then
+    return vim.notify('projects: not in a project', vim.log.levels.WARN)
+  end
+  local name = list()[i].name
+  local all = M.workspaces(name)
+  if not all then
+    return vim.notify(
+      ('projects: %s is not a jj repo'):format(name),
+      vim.log.levels.WARN
+    )
+  end
+
+  local cwd = vim.fn.resolve(vim.fn.getcwd())
+  local state = 0
+  for j, w in ipairs(all) do
+    if vim.fn.resolve(w.path) == cwd then state = j end
+  end
+  local iterator = {
+    next = function(j) return j < #all and j + 1 or nil end,
+    prev = function(j) return j > 1 and j - 1 or nil end,
+    -- 0 (== `start_edge`) when cwd is in no workspace, so `]w` lands on the
+    -- first one and `[w` wraps to the last
+    state = state,
+    start_edge = 0,
+    end_edge = #all + 1,
+  }
+
+  local res = require('mini.bracketed').advance(iterator, direction, o)
+  if res == state or not all[res] then return end
+  vim.cmd.cd(vim.fn.fnameescape(all[res].path))
 end
 
 --- Close this project's server, moving the UI to the next running project
 --- when there is one: `:connect!` stops the server it detaches from. With no
 --- other project running there is nowhere to land, so just quit.
 function M.quit()
-  -- `n_times` is pinned to 1 on purpose: unlike `]w`, this closes a server, so
-  -- a stray count must not skip past projects.
+  -- `n_times` is pinned to 1 on purpose: this closes a server, so a stray
+  -- count must not skip past projects.
   local target = advance('forward', { n_times = 1 })
   if not target then return vim.cmd('qa') end
   M.connect(target, true)
