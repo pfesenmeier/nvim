@@ -89,13 +89,7 @@ View.header = function()
 end
 
 --- Highlight group for each state.
-View.state_hl = {
-  working = 'DiagnosticInfo',
-  blocked = 'DiagnosticWarn',
-  error = 'DiagnosticError',
-  done = 'DiagnosticOk',
-  idle = 'Comment',
-}
+View.state_hl = proto.hl
 
 --- The state, with why it is blocked or how far along it is, e.g.
 --- `blocked(permission)` or `working 40%`.

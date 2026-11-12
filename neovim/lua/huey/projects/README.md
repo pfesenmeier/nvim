@@ -105,22 +105,29 @@ one server shows up in the others.
   been running. After it come the message it is blocked on and the prompt it
   started with, dimmed, once that differs from the line. The pane re-reads its
   agents every second, keeping the cursor on the same agent, except while it
-  has unsynced edits. A float right of the pane shows the latest output of the
-  agent under the cursor, refreshed every second, and is left out when the
-  screen has no room. `<CR>` switches that server to the agent's terminal and
+  has unsynced edits. Long lines and prompts are cut short with `…`. `<CR>` switches that server to the agent's terminal and
   connects to it. Add a line and press `=` to start `agent_cmd` with the line
   as its prompt, after a confirm prompt; it starts the server if needed and
   runs in a new terminal buffer there without changing what that server shows.
   It is listed with its prompt until it reports a status. Deleting a line and
   pressing `=` deletes that agent's terminal buffer, which stops it; `h` goes back.
 
-  `<Tab>` in the project pane opens the agents of every running server in
-  place of the workspace pane; in the workspace pane, those of every workspace
-  of the project. Each row also names the workspace it runs in, in a column
-  ahead of the line. These panes
-  span several servers, so they can only stop agents: start them from a single
-  workspace's pane. `<Tab>` on the pane it opened from closes it again, and
-  `<Tab>` in an agent pane does nothing.
+  `<Tab>` in the project pane swaps it for the agents of every running server;
+  in the workspace pane, for those of every workspace of the project. Each row
+  also names the workspace it runs in, in a column ahead of the line. These
+  panes span several servers, so they can only stop agents: start them from a
+  single workspace's pane. `<Tab>` or `h` there swaps back to the pane it
+  replaced. `<Tab>` in a single workspace's agent pane does nothing.
+
+  Every project and workspace line counts its agents by state after its name,
+  most urgent first and coloured by state, e.g. `⏸1 ∿2` for one agent waiting
+  on the user and two working; an agent with no status yet counts as idle.
+  While the explorer is open it re-reads the agents every second and redraws
+  the tallies and the agent pane. A pane with unsynced edits, or one being
+  typed in, is left alone until they are synced.
+
+  When the panes don't all fit across the screen, the ones on the left are
+  hidden until there is room again, as in 'mini.files'.
 
 `:detach` (built-in) drops the UI off a project without stopping it.
 
