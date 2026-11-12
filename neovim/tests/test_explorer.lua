@@ -334,6 +334,14 @@ T['workspaces']['= creates a workspace for a new line'] = function()
   eq(child.lua_get('_G.prompts[1]'):find('CREATE │ feature', 1, true) ~= nil, true)
 end
 
+T['workspaces']['a new line keeps the first line in view'] = function()
+  setup_jj()
+  open_beta()
+  press('o')
+  eq(child.fn.line('w0'), 1)
+  eq(child.api.nvim_win_get_height(0), 2)
+end
+
 T['workspaces']['= creates nothing when declined'] = function()
   local _, repo = setup_jj(2)
   open_beta()
@@ -480,13 +488,12 @@ T['agents'] = new_set()
 --- the labels in sorted order. `add_agent` appends one that shows its prompt
 --- and records `{ label, prompt }` in `_G.added`; `open_agent` records
 --- `{ label, bufnr }` in `_G.opened`; `remove_agent` drops one and records
---- `{ label, bufnr }` in `_G.removed`; an agent's output is
---- `{ 'output of <bufnr>' }`.
+--- `{ label, bufnr }` in `_G.removed`.
 --- @param agents table<string, table[]>? initial agents per label
 --- @param answer integer? confirm answer, 1 is yes
 local setup_agents = function(agents, answer)
   local root, repo = setup_jj(answer)
-  -- room for the preview past the long temp paths in the other panes
+  -- room for the long temp paths in the panes
   child.o.columns = 400
   child.lua(
     [[
@@ -524,7 +531,6 @@ local setup_agents = function(agents, answer)
       table.insert(_G.removed, { label, bufnr })
       return true
     end
-    projects.agent_lines = function(_, _, bufnr) return { 'output of ' .. bufnr } end
     projects.open_agent = function(name, ws, bufnr)
       table.insert(_G.opened, { projects.label(name, ws), bufnr })
     end
@@ -541,17 +547,6 @@ local idle = { bufnr = 9, icon = '·', text = 'review the diff', prompt = 'revie
 local open_beta_agents = function()
   open_beta()
   press('l')
-end
-
---- Lines of the preview float.
-local preview_lines = function()
-  return child.lua_get([[(function()
-    for _, w in ipairs(vim.api.nvim_list_wins()) do
-      if not vim.api.nvim_win_get_config(w).focusable then
-        return vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(w), 0, -1, false)
-      end
-    end
-  end)()]])
 end
 
 --- Text of every end-of-line detail in the current pane, in line order.
@@ -572,8 +567,8 @@ T['agents']['l opens the agents of the workspace right of it'] = function()
   eq(child.get_lines(), { 'Fixing the bug', 'review the diff' })
   eq(glyphs(), { '∿ ', '· ' })
   eq(child.api.nvim_win_get_config(0).col, left.col + left.width + 2)
-  -- projects, workspaces, agents, preview
-  eq(#child.api.nvim_list_wins(), 5)
+  -- projects, workspaces, agents
+  eq(#child.api.nvim_list_wins(), 4)
 end
 
 T['agents']['shows the prompt after a line once the title differs'] = function()
@@ -582,32 +577,11 @@ T['agents']['shows the prompt after a line once the title differs'] = function()
   eq(details(), { { 0, '  fix the bug' } })
 end
 
-T['agents']['previews the output of the agent under the cursor'] = function()
-  setup_agents({ beta = { working, idle } })
-  open_beta_agents()
-  eq(preview_lines(), { 'output of 7' })
-  press('j')
-  eq(preview_lines(), { 'output of 9' })
-end
-
-T['agents']['leaves out the preview when there is no room'] = function()
-  setup_agents({ beta = { working } })
-  child.o.columns = 80
-  open_beta_agents()
-  eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta')
-  eq(preview_lines(), vim.NIL)
-  -- comes back on the next resize once the screen has room
-  child.o.columns = 400
-  press('ix<Esc>u')
-  eq(preview_lines(), { 'output of 7' })
-end
-
 T['agents']['an empty pane is ready for a prompt'] = function()
   setup_agents()
   open_beta_agents()
   eq(child.get_lines(), { '' })
   eq(child.bo.modifiable, true)
-  eq(preview_lines(), { '' })
 end
 
 T['agents']['= starts an agent for a new line'] = function()
@@ -681,7 +655,8 @@ T['agents']['<CR> on an unsynced line does nothing'] = function()
   open_beta_agents()
   press('ofix it<Esc><CR>')
   eq(child.lua_get('_G.opened'), {})
-  eq(#child.api.nvim_list_wins(), 5)
+  -- projects, workspaces, agents
+  eq(#child.api.nvim_list_wins(), 4)
 end
 
 T['agents']['l on an unsynced workspace does nothing'] = function()
@@ -729,8 +704,8 @@ T['tab']['in the projects pane lists the agents of every project'] = function()
   eq(child.get_lines(), { 'in alpha', 'Fixing the bug', 'needs input' })
   eq(glyphs(), { '∿ ', '∿ ', '⏸ ' })
   eq(child.api.nvim_win_get_config(0).col, left.col + left.width + 2)
-  -- projects, agents, preview
-  eq(#child.api.nvim_list_wins(), 4)
+  -- projects, agents
+  eq(#child.api.nvim_list_wins(), 3)
 end
 
 T['tab']['labels each agent with its workspace'] = function()
@@ -762,8 +737,8 @@ T['tab']['in the workspace pane lists the agents of the project'] = function()
   press('<Tab>')
   eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta/*')
   eq(child.get_lines(), { 'Fixing the bug', 'needs input' })
-  -- projects, workspaces, agents, preview
-  eq(#child.api.nvim_list_wins(), 5)
+  -- projects, workspaces, agents
+  eq(#child.api.nvim_list_wins(), 4)
 end
 
 T['tab']['in the workspace pane replaces the agents of a workspace'] = function()
@@ -776,7 +751,7 @@ T['tab']['in the workspace pane replaces the agents of a workspace'] = function(
   child.poke_eventloop()
   press('<Tab>')
   eq(child.get_lines(), { 'Fixing the bug', 'needs input' })
-  eq(#child.api.nvim_list_wins(), 5)
+  eq(#child.api.nvim_list_wins(), 4)
 end
 
 T['tab']['in an agent pane does nothing'] = function()
@@ -787,7 +762,7 @@ T['tab']['in an agent pane does nothing'] = function()
   press('<Tab>')
   eq(child.api.nvim_get_current_win(), win)
   eq(child.api.nvim_buf_get_name(0), 'huey://agents/*')
-  eq(#child.api.nvim_list_wins(), 4)
+  eq(#child.api.nvim_list_wins(), 3)
 end
 
 T['tab']['<CR> opens the agent in its own workspace'] = function()
@@ -796,16 +771,6 @@ T['tab']['<CR> opens the agent in its own workspace'] = function()
   press('<Tab>j<CR>')
   eq(child.lua_get('_G.opened'), { { 'beta/aaa', 3 } })
   eq(#child.api.nvim_list_wins(), 1)
-end
-
-T['tab']['previews the agent in its own workspace'] = function()
-  setup_agents({ beta = { working }, ['beta/aaa'] = { other } })
-  child.lua([[require('huey.projects').agent_lines = function(name, ws, bufnr)
-    return { name .. '/' .. ws .. ' ' .. bufnr }
-  end]])
-  open()
-  press('<Tab>j')
-  eq(preview_lines(), { 'beta/aaa 3' })
 end
 
 T['tab']['says so when no agent is running'] = function()

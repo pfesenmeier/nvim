@@ -96,9 +96,7 @@ one server shows up in the others.
   workspace's server, the same ones `<leader>fB` lists (empty when the server
   is stopped). Each line shows the agent's status icon and what its terminal
   title says it is working on, with the prompt it started with dimmed after it
-  once the two differ. A float right of the pane shows the latest output of the
-  agent under the cursor, refreshed every second, and is left out when the
-  screen has no room. `<CR>` switches that server to the agent's terminal and
+  once the two differ. `<CR>` switches that server to the agent's terminal and
   connects to it. Add a line and press `=` to start `agent_cmd` with the line
   as its prompt, after a confirm prompt; it starts the server if needed and
   runs in a new terminal buffer there without changing what that server shows.

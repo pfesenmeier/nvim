@@ -11,9 +11,7 @@
 -- is forgotten by jj and deleted from disk along with its server, and an
 -- agent's terminal is deleted. `<Tab>` opens the agents of every
 -- project from the project pane, or of every workspace of the project from the
--- workspace pane; press it there again to close them. A preview right of an
--- agent pane shows the latest output of the agent under the cursor. See
--- 'lua/huey/projects'.
+-- workspace pane; press it there again to close them. See 'lua/huey/projects'.
 local projects = require('huey.projects')
 
 local Explorer = {}
@@ -32,28 +30,12 @@ H.workspaces = { win = nil, buf = nil, project = nil, names = {} }
 --- Agent pane right of the pane in window `parent`, for the agents of
 --- `workspace` of `project`, every workspace of `project` when there is no
 --- `workspace`, or every project when there is neither. `agents` is the agent
---- on each line as last read from the servers. `preview` is the float showing
---- the output of the one under the cursor, refreshed by `timer`.
+--- on each line as last read from the servers.
 H.agents = { win = nil, buf = nil, agents = {} }
-H.preview = { win = nil, buf = nil, timer = nil }
 
 H.is_open = function(win) return win ~= nil and vim.api.nvim_win_is_valid(win) end
 
-H.close_preview = function()
-  local p = H.preview
-  if p.timer and not p.timer:is_closing() then
-    p.timer:stop()
-    p.timer:close()
-  end
-  if H.is_open(p.win) then vim.api.nvim_win_close(p.win, true) end
-  if p.buf and vim.api.nvim_buf_is_valid(p.buf) then
-    vim.api.nvim_buf_delete(p.buf, { force = true })
-  end
-  H.preview = { win = nil, buf = nil, timer = nil }
-end
-
 H.close_agents = function()
-  H.close_preview()
   if H.is_open(H.agents.win) then vim.api.nvim_win_close(H.agents.win, true) end
   H.agents = { win = nil, buf = nil, agents = {} }
 end
@@ -122,6 +104,12 @@ H.resize = function(win, width, height)
     width = math.max(math.min(width + 1, vim.o.columns - 4), 20),
     height = math.max(math.min(height, vim.o.lines - 6), 1),
   })
+  -- an edit that adds a line scrolls the window before it grows to fit, which
+  -- hides the first line; show it again once every line fits
+  local lines = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(win))
+  if lines <= vim.api.nvim_win_get_height(win) then
+    vim.api.nvim_win_call(win, function() vim.fn.winrestview({ topline = 1 }) end)
+  end
 end
 
 -- Project pane ---------------------------------------------------------------
@@ -336,7 +324,7 @@ end
 
 --- Grows `win` with the lines of `buf` as they are typed, so new lines are not
 --- scrolled out of view. Never narrower than `min_width()`.
-H.grow_with_edits = function(buf, win, min_width, on_resize)
+H.grow_with_edits = function(buf, win, min_width)
   vim.api.nvim_create_autocmd({ 'TextChanged', 'TextChangedI' }, {
     buffer = buf,
     callback = function()
@@ -346,7 +334,6 @@ H.grow_with_edits = function(buf, win, min_width, on_resize)
         width = math.max(width, vim.fn.strdisplaywidth(l))
       end
       H.resize(win, width, vim.api.nvim_buf_line_count(buf))
-      if on_resize then on_resize() end
     end,
   })
 end
@@ -454,7 +441,6 @@ H.render_agents = function()
   a.width = math.max(width, 30)
   if H.is_open(a.win) then
     H.resize(a.win, a.width, math.max(#a.agents, 1))
-    H.place_preview()
   end
 end
 
@@ -468,71 +454,6 @@ H.agent_under_cursor = function()
   local agent = a.agents[lnum]
   local line = vim.api.nvim_buf_get_lines(a.buf, lnum - 1, lnum, false)[1]
   if agent and line == agent.text then return agent end
-end
-
---- Shows the latest output of the agent under the cursor, or nothing.
-H.update_preview = function()
-  local p = H.preview
-  if not (p.buf and vim.api.nvim_buf_is_valid(p.buf)) then return end
-  local agent = H.agent_under_cursor()
-  local lines = agent
-      and projects.agent_lines(agent.project, agent.workspace, agent.bufnr)
-    or {}
-  vim.api.nvim_buf_set_lines(p.buf, 0, -1, false, lines)
-  -- the latest output is the interesting part of a terminal
-  if H.is_open(p.win) then
-    pcall(vim.api.nvim_win_set_cursor, p.win, { math.max(#lines, 1), 0 })
-  end
-end
-
-local preview_min_width = 20
-local refresh_ms = 1000
-
---- Puts the preview right of the agent pane, filling the rest of the screen.
---- Hidden when there is no room for it.
-H.place_preview = function()
-  local p, a = H.preview, H.agents
-  if not H.is_open(a.win) then return end
-  local left = vim.api.nvim_win_get_config(a.win)
-  local col = left.col + left.width + 2
-  local width = vim.o.columns - col - 2
-  if width < preview_min_width then
-    if H.is_open(p.win) then vim.api.nvim_win_close(p.win, true) end
-    p.win = nil
-    return
-  end
-  local config = {
-    relative = 'editor',
-    row = left.row,
-    col = col,
-    width = width,
-    height = math.max(math.min(vim.o.lines - 6, 20), left.height),
-  }
-  if H.is_open(p.win) then
-    vim.api.nvim_win_set_config(p.win, config)
-  else
-    config.focusable = false
-    p.win = vim.api.nvim_open_win(p.buf, false, config)
-    H.style(p.win)
-    vim.wo[p.win][0].cursorline = false
-  end
-end
-
---- Opens the preview, refreshing it while the agent pane is open so it tracks
---- the agent's output.
-H.open_preview = function()
-  -- kept while its window closes for lack of room; `H.close_preview()` wipes it
-  local buf = vim.api.nvim_create_buf(false, true)
-  H.preview = { buf = buf, timer = assert(vim.uv.new_timer()) }
-  H.place_preview()
-  H.update_preview()
-  H.preview.timer:start(
-    refresh_ms,
-    refresh_ms,
-    vim.schedule_wrap(function()
-      if H.is_open(H.agents.win) then H.update_preview() end
-    end)
-  )
 end
 
 --- Starts an agent for every line that matches none listed, with the line as
@@ -594,7 +515,6 @@ H.synchronize_agents = function()
   -- the server may have just started
   if #create > 0 and H.is_open(H.workspaces.win) then H.render_workspaces() end
   H.render_agents()
-  H.update_preview()
 end
 
 --- Shows the terminal of the agent under the cursor, connecting to its server
@@ -646,7 +566,6 @@ H.open_agents_pane = function(project, workspace)
   H.agents.win = win
   H.resize(win, H.agents.width, math.max(#H.agents.agents, 1))
   H.style(win)
-  H.open_preview()
 
   H.map(buf, '<CR>', H.open_agent, 'Open agent')
   H.map(buf, '=', H.synchronize_agents, 'Synchronize agents')
@@ -654,11 +573,7 @@ H.open_agents_pane = function(project, workspace)
   H.map(buf, 'q', H.close, 'Close')
   -- agent panes are the last level; <Tab> would otherwise jump in the jumplist
   H.map(buf, '<Tab>', '<Nop>', 'Nothing')
-  H.grow_with_edits(buf, win, function() return H.agents.width or 0 end, H.place_preview)
-  vim.api.nvim_create_autocmd('CursorMoved', {
-    buffer = buf,
-    callback = H.update_preview,
-  })
+  H.grow_with_edits(buf, win, function() return H.agents.width or 0 end)
   H.close_on_leave(buf)
 end
 
