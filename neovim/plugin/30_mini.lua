@@ -141,10 +141,8 @@ now(function()
     header = function() return 'Workspace: ' .. require('workspace').current_name() end,
     items = {
       function() return require('workspace').starter_items() end,
-      function()
-        if _G.MiniSessions == nil then return {} end
-        return starter.sections.sessions(5, true)()
-      end,
+      { name = 'jjui', action = 'term jjui', section = 'Tools' },
+      { name = 'claude', action = 'term claude', section = 'Tools' },
       starter.sections.recent_files(5, true, false),
       starter.sections.builtin_actions(),
     },

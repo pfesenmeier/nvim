@@ -1,5 +1,4 @@
-let home = $env.HOME? | $env.Home? | $env.USERPROFILE
-let dotnet = $home | path join .dotnet
+let dotnet = $nu.home-dir | path join .dotnet
 $env.DOTNET_ROOT = $dotnet
 
 # something is setting this, and messing up Microsoft.CodeAnalysis.LanguageServer

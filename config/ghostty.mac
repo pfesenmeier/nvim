@@ -9,3 +9,5 @@ font-family = 0xProto Nerd Font Mono
 font-size = 24
 
 bell-features = attention,title
+
+theme = Everforest Light Med
