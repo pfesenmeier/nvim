@@ -100,6 +100,13 @@ one server shows up in the others.
   It is listed with its prompt until it reports a status. Deleting a line does
   not stop an agent; `h` goes back.
 
+  `<Tab>` in the project pane opens the agents of every running server in
+  place of the workspace pane; in the workspace pane, those of every workspace
+  of the project. Each row also names the workspace it runs in. These panes
+  span several servers, so they are read-only: start agents from a single
+  workspace's pane. `<Tab>` on the pane it opened from closes it again, and
+  `<Tab>` in an agent pane does nothing.
+
 `:detach` (built-in) drops the UI off a project without stopping it.
 
 There is no `home` entry. The TUI's own server is not registered in

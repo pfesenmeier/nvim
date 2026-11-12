@@ -351,9 +351,10 @@ end
 T['agents'] = new_set()
 
 --- Like `setup_jj()`, with the agent functions of 'huey.projects' stubbed over
---- `_G.agents`, a list of agents per server label. `add_agent` appends one that
---- shows its prompt and records `{ label, prompt }` in `_G.added`;
---- `open_agent` records `{ label, bufnr }` in `_G.opened`; an agent's output is
+--- `_G.agents`, a list of agents per server label. `all_agents` goes through
+--- the labels in sorted order. `add_agent` appends one that shows its prompt
+--- and records `{ label, prompt }` in `_G.added`; `open_agent` records
+--- `{ label, bufnr }` in `_G.opened`; an agent's output is
 --- `{ 'output of <bufnr>' }`.
 --- @param agents table<string, table[]>? initial agents per label
 --- @param answer integer? confirm answer, 1 is yes
@@ -365,8 +366,23 @@ local setup_agents = function(agents, answer)
     [[
     local projects = require('huey.projects')
     _G.agents, _G.added, _G.opened = ..., {}, {}
-    projects.agents = function(name, ws)
-      return vim.deepcopy(_G.agents[projects.label(name, ws)] or {})
+    local rows = function(label)
+      local name, ws = label:match('^([^/]+)/(.+)$')
+      return vim.tbl_map(function(g)
+        return vim.tbl_extend('force', g, { project = name or label, workspace = ws or 'default' })
+      end, _G.agents[label] or {})
+    end
+    projects.agents = function(name, ws) return rows(projects.label(name, ws)) end
+    projects.all_agents = function(name)
+      local labels = vim.tbl_keys(_G.agents)
+      table.sort(labels)
+      local out = {}
+      for _, label in ipairs(labels) do
+        if not name or label == name or vim.startswith(label, name .. '/') then
+          vim.list_extend(out, rows(label))
+        end
+      end
+      return out
     end
     projects.add_agent = function(name, ws, prompt)
       local label = projects.label(name, ws)
@@ -551,6 +567,117 @@ T['agents']['q closes every pane'] = function()
   open_beta_agents()
   press('q')
   eq(#child.api.nvim_list_wins(), 1)
+end
+
+T['tab'] = new_set()
+
+local other = { bufnr = 3, icon = '⏸', text = 'needs input', prompt = 'needs input' }
+local elsewhere = { bufnr = 4, icon = '∿', text = 'in alpha' }
+
+T['tab']['in the projects pane lists the agents of every project'] = function()
+  setup_agents({ alpha = { elsewhere }, beta = { working }, ['beta/aaa'] = { other } })
+  open()
+  local left = child.api.nvim_win_get_config(0)
+  press('<Tab>')
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/*')
+  eq(child.get_lines(), { 'in alpha', 'Fixing the bug', 'needs input' })
+  eq(glyphs(), { '∿ ', '∿ ', '⏸ ' })
+  eq(child.api.nvim_win_get_config(0).col, left.col + left.width + 2)
+  eq(child.bo.modifiable, false)
+  -- projects, agents, preview
+  eq(#child.api.nvim_list_wins(), 4)
+end
+
+T['tab']['labels each agent with its workspace'] = function()
+  setup_agents({ beta = { working }, ['beta/aaa'] = { other } })
+  open()
+  press('<Tab>')
+  eq(details(), { { 0, '  beta' }, { 1, '  beta/aaa' } })
+  eq(
+    child.lua_get([[vim.api.nvim_buf_get_extmarks(0, -1, 0, 0, { details = true })[2][4].virt_text]]),
+    { { '  beta', 'Directory' }, { '  fix the bug', 'Comment' } }
+  )
+end
+
+T['tab']['in the projects pane closes the agents when they are open'] = function()
+  setup_agents({ beta = { working } })
+  open()
+  local projects_win = child.api.nvim_get_current_win()
+  press('<Tab>')
+  child.api.nvim_set_current_win(projects_win)
+  child.poke_eventloop()
+  press('<Tab>')
+  eq(child.api.nvim_get_current_win(), projects_win)
+  eq(#child.api.nvim_list_wins(), 2)
+end
+
+T['tab']['in the workspace pane lists the agents of the project'] = function()
+  setup_agents({ alpha = { elsewhere }, beta = { working }, ['beta/aaa'] = { other } })
+  open_beta()
+  press('<Tab>')
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta/*')
+  eq(child.get_lines(), { 'Fixing the bug', 'needs input' })
+  eq(child.bo.modifiable, false)
+  -- projects, workspaces, agents, preview
+  eq(#child.api.nvim_list_wins(), 5)
+end
+
+T['tab']['in the workspace pane replaces the agents of a workspace'] = function()
+  setup_agents({ beta = { working }, ['beta/aaa'] = { other } })
+  open_beta()
+  local ws_win = child.api.nvim_get_current_win()
+  press('l')
+  eq(child.get_lines(), { 'Fixing the bug' })
+  child.api.nvim_set_current_win(ws_win)
+  child.poke_eventloop()
+  press('<Tab>')
+  eq(child.get_lines(), { 'Fixing the bug', 'needs input' })
+  eq(#child.api.nvim_list_wins(), 5)
+end
+
+T['tab']['in an agent pane does nothing'] = function()
+  setup_agents({ beta = { working } })
+  open()
+  press('<Tab>')
+  local win = child.api.nvim_get_current_win()
+  press('<Tab>')
+  eq(child.api.nvim_get_current_win(), win)
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/*')
+  eq(#child.api.nvim_list_wins(), 4)
+end
+
+T['tab']['<CR> opens the agent in its own workspace'] = function()
+  setup_agents({ beta = { working }, ['beta/aaa'] = { other } })
+  open()
+  press('<Tab>j<CR>')
+  eq(child.lua_get('_G.opened'), { { 'beta/aaa', 3 } })
+  eq(#child.api.nvim_list_wins(), 1)
+end
+
+T['tab']['previews the agent in its own workspace'] = function()
+  setup_agents({ beta = { working }, ['beta/aaa'] = { other } })
+  child.lua([[require('huey.projects').agent_lines = function(name, ws, bufnr)
+    return { name .. '/' .. ws .. ' ' .. bufnr }
+  end]])
+  open()
+  press('<Tab>j')
+  eq(preview_lines(), { 'beta/aaa 3' })
+end
+
+T['tab']['says so when no agent is running'] = function()
+  setup_agents()
+  open()
+  press('<Tab>')
+  eq(child.get_lines(), { '' })
+  eq(details(), { { 0, 'no agents running' } })
+end
+
+T['tab']['h goes back to the pane it opened from'] = function()
+  setup_agents({ beta = { working } })
+  open_beta()
+  press('<Tab>h')
+  eq(child.api.nvim_buf_get_name(0), 'huey://workspaces/beta')
+  eq(#child.api.nvim_list_wins(), 3)
 end
 
 return T

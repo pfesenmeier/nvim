@@ -583,24 +583,52 @@ function M.pick_bots()
   })
 end
 
+--- @class huey.ProjectAgent
+--- @field project string
+--- @field workspace string
+--- @field bufnr integer terminal buffer in that workspace's server
+--- @field icon string
+--- @field text string what it says it is working on, else its prompt
+--- @field prompt string? what `M.add_agent()` started it with
+
+--- Appends the agents `list_bots` found in a server to `out`.
+--- @return huey.ProjectAgent[]
+local function add_agent_rows(out, name, ws, bots)
+  for _, b in ipairs(bots) do
+    out[#out + 1] = {
+      project = name,
+      workspace = ws,
+      bufnr = b.bufnr,
+      icon = b.icon,
+      text = summary(b.title) or b.prompt or vim.fn.fnamemodify(b.name, ':~'),
+      prompt = b.prompt,
+    }
+  end
+  return out
+end
+
 --- Agent terminals in the server of workspace `ws` of project `name`, as
 --- `M.pick_bots()` lists them. Empty when the server is not running.
 --- @param name string
 --- @param ws string
---- @return { bufnr: integer, icon: string, text: string, prompt: string? }[]
+--- @return huey.ProjectAgent[]
 function M.agents(name, ws)
   if not probe(sock_for(name, ws)) then return {} end
-  return vim.tbl_map(
-    function(b)
-      return {
-        bufnr = b.bufnr,
-        icon = b.icon,
-        text = summary(b.title) or b.prompt or vim.fn.fnamemodify(b.name, ':~'),
-        prompt = b.prompt,
-      }
-    end,
-    run_in(name, ws, list_bots) or {}
-  )
+  return add_agent_rows({}, name, ws, run_in(name, ws, list_bots) or {})
+end
+
+--- Agent terminals in every running server of project `name`, or of every
+--- project when `name` is nil, in `M.servers()` order.
+--- @param name string?
+--- @return huey.ProjectAgent[]
+function M.all_agents(name)
+  local out = {}
+  for _, s in ipairs(M.servers()) do
+    if not name or s.project == name then
+      add_agent_rows(out, s.project, s.workspace, run_in(s.project, s.workspace, list_bots) or {})
+    end
+  end
+  return out
 end
 
 -- Starts `cmd` in a new terminal buffer without showing it, so the UI on that

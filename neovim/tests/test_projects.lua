@@ -872,7 +872,14 @@ T['M.add_agent()']['starts a terminal in a workspace server, leaving its UI be']
     'terminal'
   )
   eq(agents_of('beta/feature'), {
-    { bufnr = buf, icon = '·', text = 'fix the bug', prompt = 'fix the bug' },
+    {
+      project = 'beta',
+      workspace = 'feature',
+      bufnr = buf,
+      icon = '·',
+      text = 'fix the bug',
+      prompt = 'fix the bug',
+    },
   })
   eq(
     child.wait_for(([[_G.projects.agent_lines('beta', 'feature', %d)[1] == 'fix the bug']]):format(buf)),
@@ -910,6 +917,30 @@ T['M.add_agent()']['drops an agent whose process exited'] = function()
   local buf = child.lua_get([[_G.projects.add_agent('beta', 'default', 'fix it')]])
   vim.rpcrequest(beta, 'nvim_exec_lua', 'vim.fn.jobstop(vim.bo[...].channel)', { buf })
   eq(child.wait_for([[#_G.projects.agents('beta', 'default') == 0]]), true)
+end
+
+T['M.all_agents()'] = new_set()
+
+T['M.all_agents()']['lists agents of every running server, or of one project'] = function()
+  local root = setup_live()
+  child_listen_as(root, 'alpha')
+  start_server(root, 'beta')
+  start_server(root, 'beta/feature')
+  start_server(root, 'delta')
+  local a = child.lua_get([[_G.projects.add_agent('alpha', 'default', 'one')]])
+  local f = child.lua_get([[_G.projects.add_agent('beta', 'feature', 'two')]])
+  local d = child.lua_get([[_G.projects.add_agent('delta', 'default', 'three')]])
+  local where = function(list)
+    return vim.tbl_map(function(g) return { g.project, g.workspace, g.bufnr, g.text } end, list)
+  end
+  eq(where(child.lua_get('_G.projects.all_agents()')), {
+    { 'alpha', 'default', a, 'one' },
+    { 'beta', 'feature', f, 'two' },
+    { 'delta', 'default', d, 'three' },
+  })
+  eq(where(child.lua_get([[_G.projects.all_agents('beta')]])), {
+    { 'beta', 'feature', f, 'two' },
+  })
 end
 
 return T
