@@ -33,6 +33,8 @@ local defaults = {
   -- New jj workspaces go in `<workspace_dir>/<project>/<workspace>`, outside
   -- the repo, so they never show up in its own file listings
   workspace_dir = vim.fn.stdpath('data') .. '/workspaces',
+  -- What `M.add_agent()` runs, with the prompt appended as the last argument
+  agent_cmd = { 'claude' },
 }
 
 local opts = defaults
@@ -444,24 +446,43 @@ function M.collect(code, args)
   return out
 end
 
+--- Run a Lua chunk in the server of workspace `ws` of project `name`, in
+--- process when that is this one. Nil when the server is unreachable or the
+--- chunk errors.
+--- @param name string
+--- @param ws string
+--- @param code string Lua chunk; receives `args` as `...`
+--- @param args any[]?
+--- @return any
+local function run_in(name, ws, code, args)
+  args = args or {}
+  local sock = sock_for(name, ws)
+  if not is_self(sock) then return rpc_lua(sock, code, args) end
+  local ok, res = pcall(assert(loadstring(code)), unpack(args))
+  if ok then return res end
+end
+
 -- Terminals with a tabline status icon (see 'huey/term.lua'), plus running ones
--- that reported a status before but have none now, shown as idle. Empty in
--- a server that never set up HueyTerm.
+-- that reported a status before but have none now, shown as idle, and running
+-- ones `M.add_agent()` started that have not reported yet.
 local list_bots = [[
   local term = rawget(_G, 'HueyTerm')
-  if not term then return {} end
   local out = {}
   for _, b in ipairs(vim.api.nvim_list_bufs()) do
-    local icon = vim.api.nvim_buf_is_valid(b)
-      and vim.bo[b].buftype == 'terminal'
-      and (term.get_icon(b) or (term.is_bot and term.is_bot(b) and '·'))
-    if icon then
-      out[#out + 1] = {
-        bufnr = b,
-        name = vim.api.nvim_buf_get_name(b),
-        icon = icon,
-        title = vim.b[b].term_title,
-      }
+    if vim.api.nvim_buf_is_valid(b) and vim.bo[b].buftype == 'terminal' then
+      local prompt = vim.b[b].huey_prompt
+      local running = vim.fn.jobwait({ vim.bo[b].channel }, 0)[1] == -1
+      local icon = term and (term.get_icon(b) or (term.is_bot and term.is_bot(b) and '·'))
+        or (prompt and running and '·')
+      if icon then
+        out[#out + 1] = {
+          bufnr = b,
+          name = vim.api.nvim_buf_get_name(b),
+          icon = icon,
+          title = vim.b[b].term_title,
+          prompt = prompt,
+        }
+      end
     end
   end
   return out
@@ -496,7 +517,7 @@ function M.bot_items()
         text = ('%s  %-12s %s'):format(
           b.icon,
           M.label(r.project, r.workspace),
-          summary(b.title) or vim.fn.fnamemodify(b.name, ':~')
+          summary(b.title) or b.prompt or vim.fn.fnamemodify(b.name, ':~')
         ),
       }
     end
@@ -539,28 +560,12 @@ function M.pick_bots()
     callback = stop,
   })
 
-  -- Run in the item's server, locally when that is this one
-  local run = function(item, code)
-    local sock = sock_for(item.project, item.workspace)
-    if not is_self(sock) then return rpc_lua(sock, code, { item.remote_buf }) end
-    -- the buffer may be gone by now; fail quietly like the RPC path does
-    local ok, res = pcall(assert(loadstring(code)), item.remote_buf)
-    if ok then return res end
-  end
-
   MiniPick.start({
     source = {
       name = 'Bots (projects)',
       items = items,
       preview = function(buf_id, item)
-        local lines = run(
-          item,
-          'return vim.api.nvim_buf_get_lines(..., 0, -1, false)'
-        ) or {}
-        -- terminal buffers pad the end with blank lines
-        while #lines > 0 and lines[#lines] == '' do
-          lines[#lines] = nil
-        end
+        local lines = M.agent_lines(item.project, item.workspace, item.remote_buf)
         vim.api.nvim_buf_set_lines(buf_id, 0, -1, false, lines)
         -- the latest output is the interesting part of a terminal
         local win = vim.fn.bufwinid(buf_id)
@@ -570,15 +575,91 @@ function M.pick_bots()
       end,
       choose = function(item)
         if not item then return end
-        vim.schedule(function()
-          run(item, 'vim.cmd.buffer(...)')
-          if not is_self(sock_for(item.project, item.workspace)) then
-            M.connect(item.project, item.workspace)
-          end
-        end)
+        vim.schedule(
+          function() M.open_agent(item.project, item.workspace, item.remote_buf) end
+        )
       end,
     },
   })
+end
+
+--- Agent terminals in the server of workspace `ws` of project `name`, as
+--- `M.pick_bots()` lists them. Empty when the server is not running.
+--- @param name string
+--- @param ws string
+--- @return { bufnr: integer, icon: string, text: string, prompt: string? }[]
+function M.agents(name, ws)
+  if not probe(sock_for(name, ws)) then return {} end
+  return vim.tbl_map(
+    function(b)
+      return {
+        bufnr = b.bufnr,
+        icon = b.icon,
+        text = summary(b.title) or b.prompt or vim.fn.fnamemodify(b.name, ':~'),
+        prompt = b.prompt,
+      }
+    end,
+    run_in(name, ws, list_bots) or {}
+  )
+end
+
+-- Starts `cmd` in a new terminal buffer without showing it, so the UI on that
+-- server stays where it is. The prompt is kept so the agent can be listed
+-- before it reports a status.
+local start_agent = [[
+  local cmd, prompt = ...
+  local buf = vim.api.nvim_create_buf(true, false)
+  vim.api.nvim_buf_call(buf, function() vim.fn.jobstart(cmd, { term = true }) end)
+  vim.b[buf].huey_prompt = prompt
+  return buf
+]]
+
+--- Starts an agent (`agent_cmd` with `prompt`) in a terminal of the server of
+--- workspace `ws` of project `name`, starting the server if needed.
+--- @param name string
+--- @param ws string
+--- @param prompt string
+--- @return integer? bufnr of the terminal in that server
+function M.add_agent(name, ws, prompt)
+  if not M.ensure(name, ws) then return end
+  local cmd = vim.list_extend(vim.deepcopy(opts.agent_cmd), { prompt })
+  local buf = run_in(name, ws, start_agent, { cmd, prompt })
+  if not buf then
+    vim.notify(
+      ('projects: failed to start an agent in %s'):format(M.label(name, ws)),
+      vim.log.levels.ERROR
+    )
+  end
+  return buf
+end
+
+--- Lines of terminal `bufnr` in the server of workspace `ws` of project
+--- `name`, without the blank lines a terminal pads its end with.
+--- @param name string
+--- @param ws string
+--- @param bufnr integer
+--- @return string[]
+function M.agent_lines(name, ws, bufnr)
+  local lines = run_in(
+    name,
+    ws,
+    'return vim.api.nvim_buf_get_lines(..., 0, -1, false)',
+    { bufnr }
+  ) or {}
+  while #lines > 0 and lines[#lines] == '' do
+    lines[#lines] = nil
+  end
+  return lines
+end
+
+--- Switches the server of workspace `ws` of project `name` to terminal
+--- `bufnr`, then connects the UI to it when it is another server.
+--- @param name string
+--- @param ws string
+--- @param bufnr integer
+function M.open_agent(name, ws, bufnr)
+  run_in(name, ws, 'vim.cmd.buffer(...)', { bufnr })
+  if not is_self(sock_for(name, ws)) then M.connect(name, ws) end
 end
 
 -- Runs jj in `cwd`. Returns stdout, or nil and the error when it fails or

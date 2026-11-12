@@ -20,6 +20,7 @@ require("huey.projects").setup({
   -- pinned = { { name = "nvim", path = "~/nvim" } },       -- default
   -- server_dir = vim.fn.stdpath("run") .. "/projects",     -- default
   -- workspace_dir = vim.fn.stdpath("data") .. "/workspaces", -- default
+  -- agent_cmd = { "claude" },  -- default; the prompt is appended
 })
 ```
 
@@ -85,6 +86,19 @@ one server shows up in the others.
   `jj workspace add` at `<workspace_dir>/<project>/<name>`, outside the repo,
   sharing the parent of the project's working copy. Deleting or renaming a line
   does nothing yet; the next sync lists it again.
+
+  `l` on a workspace opens a third pane: the agent terminals in that
+  workspace's server, the same ones `<leader>fB` lists (empty when the server
+  is stopped). Each line shows the agent's status icon and what its terminal
+  title says it is working on, with the prompt it started with dimmed after it
+  once the two differ. A float right of the pane shows the latest output of the
+  agent under the cursor, refreshed every second, and is left out when the
+  screen has no room. `<CR>` switches that server to the agent's terminal and
+  connects to it. Add a line and press `=` to start `agent_cmd` with the line
+  as its prompt, after a confirm prompt; it starts the server if needed and
+  runs in a new terminal buffer there without changing what that server shows.
+  It is listed with its prompt until it reports a status. Deleting a line does
+  not stop an agent; `h` goes back.
 
 `:detach` (built-in) drops the UI off a project without stopping it.
 

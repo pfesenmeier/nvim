@@ -30,6 +30,8 @@ local setup_opts = function(root)
     store = root .. '/projects.json',
     pinned = {},
     server_dir = root .. '/servers',
+    -- an agent that prints its prompt and stays running
+    agent_cmd = { 'sh', '-c', 'echo "$0"; sleep 30' },
   }
 end
 
@@ -847,6 +849,67 @@ T['M.pick_bots()']['opens a local terminal without connecting'] = function()
   choose(here.name)
   eq(child.api.nvim_get_current_buf(), here.bufnr)
   eq(connected(), {})
+end
+
+T['M.add_agent()'] = new_set()
+
+--- Agents `M.agents()` lists in the server labelled `label`.
+local agents_of = function(label)
+  return child.lua_get(
+    '_G.projects.agents(...)',
+    { label:match('^[^/]+'), label:match('/(.+)$') or 'default' }
+  )
+end
+
+T['M.add_agent()']['starts a terminal in a workspace server, leaving its UI be'] = function()
+  local root = setup_live()
+  local feature = start_server(root, 'beta/feature')
+  local before = vim.rpcrequest(feature, 'nvim_get_current_buf')
+  local buf = child.lua_get([[_G.projects.add_agent('beta', 'feature', 'fix the bug')]])
+  eq(vim.rpcrequest(feature, 'nvim_get_current_buf'), before)
+  eq(
+    vim.rpcrequest(feature, 'nvim_exec_lua', 'return vim.bo[...].buftype', { buf }),
+    'terminal'
+  )
+  eq(agents_of('beta/feature'), {
+    { bufnr = buf, icon = '·', text = 'fix the bug', prompt = 'fix the bug' },
+  })
+  eq(
+    child.wait_for(([[_G.projects.agent_lines('beta', 'feature', %d)[1] == 'fix the bug']]):format(buf)),
+    true
+  )
+end
+
+T['M.add_agent()']['starts a terminal in its own server in process'] = function()
+  local root = setup_live()
+  child_listen_as(root, 'alpha')
+  local before = child.api.nvim_get_current_buf()
+  local buf = child.lua_get([[_G.projects.add_agent('alpha', 'default', 'hi')]])
+  eq(child.api.nvim_get_current_buf(), before)
+  eq(child.lua_get('vim.b[...].huey_prompt', { buf }), 'hi')
+  eq(#agents_of('alpha'), 1)
+end
+
+T['M.add_agent()']['lists no agents of a stopped server'] = function()
+  setup_live()
+  eq(agents_of('beta'), {})
+end
+
+T['M.add_agent()']['shows the title over the prompt once the agent sets one'] = function()
+  local root = setup_live()
+  local beta = start_server(root, 'beta')
+  local buf = child.lua_get([[_G.projects.add_agent('beta', 'default', 'fix it')]])
+  vim.rpcrequest(beta, 'nvim_exec_lua', 'vim.b[...].term_title = "✳ Fixing it"', { buf })
+  eq(agents_of('beta')[1].text, 'Fixing it')
+  eq(agents_of('beta')[1].prompt, 'fix it')
+end
+
+T['M.add_agent()']['drops an agent whose process exited'] = function()
+  local root = setup_live()
+  local beta = start_server(root, 'beta')
+  local buf = child.lua_get([[_G.projects.add_agent('beta', 'default', 'fix it')]])
+  vim.rpcrequest(beta, 'nvim_exec_lua', 'vim.fn.jobstop(vim.bo[...].channel)', { buf })
+  eq(child.wait_for([[#_G.projects.agents('beta', 'default') == 0]]), true)
 end
 
 return T

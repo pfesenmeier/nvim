@@ -3,8 +3,10 @@
 -- workspace of the one under the cursor and `l` opens its jj workspaces in a
 -- pane to the right. Every workspace has its own server, and there `<CR>`
 -- connects the UI to the one under the cursor. That pane is editable: add a
--- line and press `=` to create a workspace by that name. See
--- 'lua/huey/projects'.
+-- line and press `=` to create a workspace by that name. `l` there opens the
+-- agent terminals of that workspace's server, where a new line and `=` start
+-- an agent with that line as its prompt. A preview right of it shows the
+-- latest output of the agent under the cursor. See 'lua/huey/projects'.
 local projects = require('huey.projects')
 
 local Explorer = {}
@@ -19,9 +21,35 @@ H.projects = { win = nil, names = {} }
 --- read from jj
 H.workspaces = { win = nil, buf = nil, project = nil, names = {} }
 
+--- Agent pane for `workspace` of `project`; `agents` is the agent on each line
+--- as last read from its server. `preview` is the float showing the output of
+--- the one under the cursor, refreshed by `timer`.
+H.agents = { win = nil, buf = nil, agents = {} }
+H.preview = { win = nil, buf = nil, timer = nil }
+
 H.is_open = function(win) return win ~= nil and vim.api.nvim_win_is_valid(win) end
 
+H.close_preview = function()
+  local p = H.preview
+  if p.timer and not p.timer:is_closing() then
+    p.timer:stop()
+    p.timer:close()
+  end
+  if H.is_open(p.win) then vim.api.nvim_win_close(p.win, true) end
+  if p.buf and vim.api.nvim_buf_is_valid(p.buf) then
+    vim.api.nvim_buf_delete(p.buf, { force = true })
+  end
+  H.preview = { win = nil, buf = nil, timer = nil }
+end
+
+H.close_agents = function()
+  H.close_preview()
+  if H.is_open(H.agents.win) then vim.api.nvim_win_close(H.agents.win, true) end
+  H.agents = { win = nil, buf = nil, agents = {} }
+end
+
 H.close_workspaces = function()
+  H.close_agents()
   if H.is_open(H.workspaces.win) then
     vim.api.nvim_win_close(H.workspaces.win, true)
   end
@@ -56,7 +84,8 @@ H.close_on_leave = function(buf)
     callback = function()
       vim.schedule(function()
         local cur = vim.api.nvim_get_current_win()
-        if cur ~= H.projects.win and cur ~= H.workspaces.win then H.close() end
+        local panes = { H.projects.win, H.workspaces.win, H.agents.win }
+        if not vim.tbl_contains(panes, cur) then H.close() end
       end)
     end,
   })
@@ -218,6 +247,23 @@ H.connect_workspace = function()
   vim.schedule(function() projects.connect(project, name) end)
 end
 
+--- Grows `win` with the lines of `buf` as they are typed, so new lines are not
+--- scrolled out of view. Never narrower than `min_width()`.
+H.grow_with_edits = function(buf, win, min_width, on_resize)
+  vim.api.nvim_create_autocmd({ 'TextChanged', 'TextChangedI' }, {
+    buffer = buf,
+    callback = function()
+      if not H.is_open(win) then return end
+      local width = min_width()
+      for _, l in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
+        width = math.max(width, vim.fn.strdisplaywidth(l))
+      end
+      H.resize(win, width, vim.api.nvim_buf_line_count(buf))
+      if on_resize then on_resize() end
+    end,
+  })
+end
+
 --- Opens the workspace pane right of the project pane, for the project under
 --- the cursor.
 H.open_workspaces = function()
@@ -252,21 +298,230 @@ H.open_workspaces = function()
 
   H.map(buf, '<CR>', H.connect_workspace, 'Connect to workspace')
   H.map(buf, '=', H.synchronize, 'Synchronize workspaces')
+  H.map(buf, 'l', H.open_agents, 'Agents')
   H.map(buf, 'h', H.back, 'Back to projects')
   H.map(buf, 'q', H.close, 'Close')
-  -- grow with new lines, so they are not scrolled out of view
-  vim.api.nvim_create_autocmd({ 'TextChanged', 'TextChangedI' }, {
+  H.grow_with_edits(buf, win, function() return H.workspaces.width or 0 end)
+  H.close_on_leave(buf)
+end
+
+-- Agent pane -----------------------------------------------------------------
+
+--- Lists the agents of the pane's workspace from its server, dropping any
+--- unsynced edits. A line shows what the agent says it is working on, or its
+--- prompt until it says; the prompt it started with follows, dimmed, once the
+--- two differ.
+H.render_agents = function()
+  local a = H.agents
+  a.agents = projects.agents(a.project, a.workspace)
+  vim.api.nvim_buf_clear_namespace(a.buf, H.ns, 0, -1)
+  vim.api.nvim_buf_set_lines(
+    a.buf,
+    0,
+    -1,
+    false,
+    vim.tbl_map(function(g) return g.text end, a.agents)
+  )
+  vim.bo[a.buf].modified = false
+
+  local width = 0
+  for i, g in ipairs(a.agents) do
+    vim.api.nvim_buf_set_extmark(a.buf, H.ns, i - 1, 0, {
+      virt_text = { { g.icon .. ' ', 'Special' } },
+      virt_text_pos = 'inline',
+    })
+    local detail = (g.prompt and g.prompt ~= g.text) and g.prompt or ''
+    if detail ~= '' then
+      vim.api.nvim_buf_set_extmark(a.buf, H.ns, i - 1, 0, {
+        virt_text = { { '  ' .. detail, 'Comment' } },
+        virt_text_pos = 'eol',
+      })
+    end
+    width = math.max(width, 2 + H.width(g.text, detail))
+  end
+  -- room to type a prompt in an empty pane
+  a.width = math.max(width, 30)
+  if H.is_open(a.win) then
+    H.resize(a.win, a.width, math.max(#a.agents, 1))
+    H.place_preview()
+  end
+end
+
+--- The agent on the cursor line, unless the line was edited since it was
+--- listed.
+--- @return table?
+H.agent_under_cursor = function()
+  local a = H.agents
+  if not H.is_open(a.win) then return end
+  local lnum = vim.api.nvim_win_get_cursor(a.win)[1]
+  local agent = a.agents[lnum]
+  local line = vim.api.nvim_buf_get_lines(a.buf, lnum - 1, lnum, false)[1]
+  if agent and line == agent.text then return agent end
+end
+
+--- Shows the latest output of the agent under the cursor, or nothing.
+H.update_preview = function()
+  local p, a = H.preview, H.agents
+  if not (p.buf and vim.api.nvim_buf_is_valid(p.buf)) then return end
+  local agent = H.agent_under_cursor()
+  local lines = agent and projects.agent_lines(a.project, a.workspace, agent.bufnr)
+    or {}
+  vim.api.nvim_buf_set_lines(p.buf, 0, -1, false, lines)
+  -- the latest output is the interesting part of a terminal
+  if H.is_open(p.win) then
+    pcall(vim.api.nvim_win_set_cursor, p.win, { math.max(#lines, 1), 0 })
+  end
+end
+
+local preview_min_width = 20
+local refresh_ms = 1000
+
+--- Puts the preview right of the agent pane, filling the rest of the screen.
+--- Hidden when there is no room for it.
+H.place_preview = function()
+  local p, a = H.preview, H.agents
+  if not H.is_open(a.win) then return end
+  local left = vim.api.nvim_win_get_config(a.win)
+  local col = left.col + left.width + 2
+  local width = vim.o.columns - col - 2
+  if width < preview_min_width then
+    if H.is_open(p.win) then vim.api.nvim_win_close(p.win, true) end
+    p.win = nil
+    return
+  end
+  local config = {
+    relative = 'editor',
+    row = left.row,
+    col = col,
+    width = width,
+    height = math.max(math.min(vim.o.lines - 6, 20), left.height),
+  }
+  if H.is_open(p.win) then
+    vim.api.nvim_win_set_config(p.win, config)
+  else
+    config.focusable = false
+    p.win = vim.api.nvim_open_win(p.buf, false, config)
+    H.style(p.win)
+    vim.wo[p.win][0].cursorline = false
+  end
+end
+
+--- Opens the preview, refreshing it while the agent pane is open so it tracks
+--- the agent's output.
+H.open_preview = function()
+  -- kept while its window closes for lack of room; `H.close_preview()` wipes it
+  local buf = vim.api.nvim_create_buf(false, true)
+  H.preview = { buf = buf, timer = assert(vim.uv.new_timer()) }
+  H.place_preview()
+  H.update_preview()
+  H.preview.timer:start(
+    refresh_ms,
+    refresh_ms,
+    vim.schedule_wrap(function()
+      if H.is_open(H.agents.win) then H.update_preview() end
+    end)
+  )
+end
+
+--- Starts an agent for every line that matches none listed, with the line as
+--- its prompt, after asking. Then re-lists from the server, which is started
+--- if it was not running.
+H.synchronize_agents = function()
+  local a = H.agents
+  local known, kept, create = {}, {}, {}
+  for _, g in ipairs(a.agents) do
+    known[g.text] = true
+  end
+  for _, line in ipairs(vim.api.nvim_buf_get_lines(a.buf, 0, -1, false)) do
+    local prompt = vim.trim(line)
+    if known[prompt] then
+      kept[prompt] = true
+    elseif prompt ~= '' and not vim.tbl_contains(create, prompt) then
+      create[#create + 1] = prompt
+    end
+  end
+
+  local removed = vim.tbl_filter(function(g) return not kept[g.text] end, a.agents)
+  if #removed > 0 then
+    vim.notify(
+      'explorer: stopping agents is not supported; kept '
+        .. table.concat(vim.tbl_map(function(g) return g.text end, removed), ', '),
+      vim.log.levels.WARN
+    )
+  end
+
+  if #create > 0 then
+    local lines = vim.tbl_map(function(p) return '  CREATE │ ' .. p end, create)
+    local msg = ('Start agents in %s?\n\n%s'):format(
+      projects.label(a.project, a.workspace),
+      table.concat(lines, '\n')
+    )
+    if vim.fn.confirm(msg, '&Yes\n&No', 1, 'Question') ~= 1 then return end
+    for _, prompt in ipairs(create) do
+      projects.add_agent(a.project, a.workspace, prompt)
+    end
+    -- the server may have just started
+    if H.is_open(H.workspaces.win) then H.render_workspaces() end
+  end
+  H.render_agents()
+  H.update_preview()
+end
+
+--- Shows the terminal of the agent under the cursor, connecting to its server
+--- when it is another one. A line that is not synced yet does nothing.
+H.open_agent = function()
+  local agent = H.agent_under_cursor()
+  if not agent then return end
+  local project, ws = H.agents.project, H.agents.workspace
+  H.close()
+  vim.schedule(function() projects.open_agent(project, ws, agent.bufnr) end)
+end
+
+--- Opens the agent pane right of the workspace pane, for the workspace under
+--- the cursor. Unsynced lines name no workspace yet, so they do nothing.
+H.open_agents = function()
+  local ws = H.workspaces
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  local name = ws.names[lnum]
+  if not name or vim.trim(vim.api.nvim_get_current_line()) ~= name then return end
+  H.close_agents()
+
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_name(buf, 'huey://agents/' .. projects.label(ws.project, name))
+  vim.bo[buf].bufhidden = 'wipe'
+  vim.bo[buf].filetype = 'hueyexplorer'
+  H.agents = { buf = buf, project = ws.project, workspace = name, agents = {} }
+  H.render_agents()
+
+  local left = vim.api.nvim_win_get_config(ws.win)
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = 'editor',
+    row = left.row,
+    col = left.col + left.width + 2,
+    width = 20,
+    height = 1,
+  })
+  H.agents.win = win
+  H.resize(win, H.agents.width, math.max(#H.agents.agents, 1))
+  H.style(win)
+  H.open_preview()
+
+  H.map(buf, '<CR>', H.open_agent, 'Open agent')
+  H.map(buf, '=', H.synchronize_agents, 'Synchronize agents')
+  H.map(buf, 'h', H.back_to_workspaces, 'Back to workspaces')
+  H.map(buf, 'q', H.close, 'Close')
+  H.grow_with_edits(buf, win, function() return H.agents.width or 0 end, H.place_preview)
+  vim.api.nvim_create_autocmd('CursorMoved', {
     buffer = buf,
-    callback = function()
-      if not H.is_open(win) then return end
-      local width = H.workspaces.width or 0
-      for _, l in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
-        width = math.max(width, vim.fn.strdisplaywidth(l))
-      end
-      H.resize(win, width, vim.api.nvim_buf_line_count(buf))
-    end,
+    callback = H.update_preview,
   })
   H.close_on_leave(buf)
+end
+
+--- Returns to the workspace pane, closing the agent pane.
+H.back_to_workspaces = function()
+  if H.is_open(H.workspaces.win) then vim.api.nvim_set_current_win(H.workspaces.win) end
+  H.close_agents()
 end
 
 --- Returns to the project pane, closing the workspace pane.

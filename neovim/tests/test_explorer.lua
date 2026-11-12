@@ -348,4 +348,209 @@ T['workspaces']['leaving for another window closes both panes'] = function()
   eq(#child.api.nvim_list_wins(), 1)
 end
 
+T['agents'] = new_set()
+
+--- Like `setup_jj()`, with the agent functions of 'huey.projects' stubbed over
+--- `_G.agents`, a list of agents per server label. `add_agent` appends one that
+--- shows its prompt and records `{ label, prompt }` in `_G.added`;
+--- `open_agent` records `{ label, bufnr }` in `_G.opened`; an agent's output is
+--- `{ 'output of <bufnr>' }`.
+--- @param agents table<string, table[]>? initial agents per label
+--- @param answer integer? confirm answer, 1 is yes
+local setup_agents = function(agents, answer)
+  local root, repo = setup_jj(answer)
+  -- room for the preview past the long temp paths in the other panes
+  child.o.columns = 400
+  child.lua(
+    [[
+    local projects = require('huey.projects')
+    _G.agents, _G.added, _G.opened = ..., {}, {}
+    projects.agents = function(name, ws)
+      return vim.deepcopy(_G.agents[projects.label(name, ws)] or {})
+    end
+    projects.add_agent = function(name, ws, prompt)
+      local label = projects.label(name, ws)
+      _G.agents[label] = _G.agents[label] or {}
+      local buf = 100 + #_G.added
+      table.insert(_G.agents[label], { bufnr = buf, icon = '·', text = prompt, prompt = prompt })
+      table.insert(_G.added, { label, prompt })
+      return buf
+    end
+    projects.agent_lines = function(_, _, bufnr) return { 'output of ' .. bufnr } end
+    projects.open_agent = function(name, ws, bufnr)
+      table.insert(_G.opened, { projects.label(name, ws), bufnr })
+    end
+  ]],
+    { agents or {} }
+  )
+  return root, repo
+end
+
+local working = { bufnr = 7, icon = '∿', text = 'Fixing the bug', prompt = 'fix the bug' }
+local idle = { bufnr = 9, icon = '·', text = 'review the diff', prompt = 'review the diff' }
+
+--- Opens the agent pane of beta's default workspace.
+local open_beta_agents = function()
+  open_beta()
+  press('l')
+end
+
+--- Lines of the preview float.
+local preview_lines = function()
+  return child.lua_get([[(function()
+    for _, w in ipairs(vim.api.nvim_list_wins()) do
+      if not vim.api.nvim_win_get_config(w).focusable then
+        return vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(w), 0, -1, false)
+      end
+    end
+  end)()]])
+end
+
+--- Text of every end-of-line detail in the current pane, in line order.
+local details = function()
+  return child.lua_get([[vim.tbl_map(function(m)
+    return { m[2], m[4].virt_text[1][1] }
+  end, vim.tbl_filter(function(m)
+    return m[4].virt_text_pos == 'eol'
+  end, vim.api.nvim_buf_get_extmarks(0, -1, 0, -1, { details = true })))]])
+end
+
+T['agents']['l opens the agents of the workspace right of it'] = function()
+  setup_agents({ beta = { working, idle } })
+  open_beta()
+  local left = child.api.nvim_win_get_config(0)
+  press('l')
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta')
+  eq(child.get_lines(), { 'Fixing the bug', 'review the diff' })
+  eq(glyphs(), { '∿ ', '· ' })
+  eq(child.api.nvim_win_get_config(0).col, left.col + left.width + 2)
+  -- projects, workspaces, agents, preview
+  eq(#child.api.nvim_list_wins(), 5)
+end
+
+T['agents']['shows the prompt after a line once the title differs'] = function()
+  setup_agents({ beta = { working, idle } })
+  open_beta_agents()
+  eq(details(), { { 0, '  fix the bug' } })
+end
+
+T['agents']['previews the output of the agent under the cursor'] = function()
+  setup_agents({ beta = { working, idle } })
+  open_beta_agents()
+  eq(preview_lines(), { 'output of 7' })
+  press('j')
+  eq(preview_lines(), { 'output of 9' })
+end
+
+T['agents']['leaves out the preview when there is no room'] = function()
+  setup_agents({ beta = { working } })
+  child.o.columns = 80
+  open_beta_agents()
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta')
+  eq(preview_lines(), vim.NIL)
+  -- comes back on the next resize once the screen has room
+  child.o.columns = 400
+  press('ix<Esc>u')
+  eq(preview_lines(), { 'output of 7' })
+end
+
+T['agents']['an empty pane is ready for a prompt'] = function()
+  setup_agents()
+  open_beta_agents()
+  eq(child.get_lines(), { '' })
+  eq(child.bo.modifiable, true)
+  eq(preview_lines(), { '' })
+end
+
+T['agents']['= starts an agent for a new line'] = function()
+  setup_agents({ beta = { working } })
+  open_beta_agents()
+  press('oadd tests<Esc>=')
+  eq(child.lua_get('_G.added'), { { 'beta', 'add tests' } })
+  eq(child.get_lines(), { 'Fixing the bug', 'add tests' })
+  eq(
+    child.lua_get('_G.prompts[1]'):find('Start agents in beta?', 1, true) ~= nil,
+    true
+  )
+  eq(child.lua_get('_G.prompts[1]'):find('CREATE │ add tests', 1, true) ~= nil, true)
+end
+
+T['agents']['= starts an agent in a workspace that is not default'] = function()
+  local root, repo = setup_agents()
+  helpers.jj(repo, 'workspace', 'add', '--name', 'aaa', root .. '/aaa')
+  open_beta()
+  press('jl')
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta/aaa')
+  press('ifix it<Esc>=')
+  eq(child.lua_get('_G.added'), { { 'beta/aaa', 'fix it' } })
+end
+
+T['agents']['= starts nothing when declined'] = function()
+  setup_agents({}, 2)
+  open_beta_agents()
+  press('ifix it<Esc>=')
+  eq(child.lua_get('_G.added'), {})
+  -- the edit stays, to fix or confirm again
+  eq(child.get_lines(), { 'fix it' })
+end
+
+T['agents']['= keeps a deleted agent'] = function()
+  setup_agents({ beta = { working } })
+  open_beta_agents()
+  press('dd=')
+  eq(child.get_lines(), { 'Fixing the bug' })
+  eq(child.lua_get('#_G.prompts'), 0)
+  eq(
+    child.lua_get('_G.notes'),
+    { 'explorer: stopping agents is not supported; kept Fixing the bug' }
+  )
+end
+
+T['agents']['<CR> opens the agent under the cursor'] = function()
+  setup_agents({ beta = { working, idle } })
+  open_beta_agents()
+  press('j<CR>')
+  eq(child.lua_get('_G.opened'), { { 'beta', 9 } })
+  eq(#child.api.nvim_list_wins(), 1)
+end
+
+T['agents']['<CR> on an unsynced line does nothing'] = function()
+  setup_agents({ beta = { working } })
+  open_beta_agents()
+  press('ofix it<Esc><CR>')
+  eq(child.lua_get('_G.opened'), {})
+  eq(#child.api.nvim_list_wins(), 5)
+end
+
+T['agents']['l on an unsynced workspace does nothing'] = function()
+  setup_agents()
+  open_beta()
+  press('ofeature<Esc>l')
+  eq(child.api.nvim_buf_get_name(0), 'huey://workspaces/beta')
+  eq(#child.api.nvim_list_wins(), 3)
+end
+
+T['agents']['h goes back to the workspaces'] = function()
+  setup_agents({ beta = { working } })
+  open_beta_agents()
+  press('h')
+  eq(child.api.nvim_buf_get_name(0), 'huey://workspaces/beta')
+  eq(#child.api.nvim_list_wins(), 3)
+end
+
+T['agents']['leaving for another window closes every pane'] = function()
+  setup_agents({ beta = { working } })
+  open_beta_agents()
+  child.cmd('wincmd t')
+  child.poke_eventloop()
+  eq(#child.api.nvim_list_wins(), 1)
+end
+
+T['agents']['q closes every pane'] = function()
+  setup_agents({ beta = { working } })
+  open_beta_agents()
+  press('q')
+  eq(#child.api.nvim_list_wins(), 1)
+end
+
 return T
