@@ -164,12 +164,15 @@ H.close_on_leave = function(buf)
 end
 
 --- Shows whether a server is running, ahead of the text on line `lnum`.
+--- Marks on a line are hidden when it is deleted, rather than moving to the
+--- next line, and come back if the delete is undone.
 H.glyph = function(buf, lnum, running)
   vim.api.nvim_buf_set_extmark(buf, H.ns, lnum, 0, {
     virt_text = {
       { running and '● ' or '○ ', running and 'DiagnosticOk' or 'Comment' },
     },
     virt_text_pos = 'inline',
+    invalidate = true,
   })
 end
 
@@ -220,6 +223,7 @@ H.decorate = function(buf, lnum, text, running, current, agents, path)
     hl_group = current and 'Title' or nil,
     virt_text = virt_text,
     virt_text_pos = 'eol',
+    invalidate = true,
   })
   local detail = table.concat(vim.tbl_map(function(c) return c[1] end, virt_text))
   return 2 + vim.fn.strdisplaywidth(text .. detail)
@@ -607,6 +611,7 @@ H.render_agents = function()
     vim.api.nvim_buf_set_extmark(a.buf, H.ns, i - 1, 0, {
       virt_text = columns,
       virt_text_pos = 'inline',
+      invalidate = true,
     })
     local chunks = {}
     if g.state == 'blocked' and g.msg and g.msg ~= '' then
@@ -619,6 +624,7 @@ H.render_agents = function()
       vim.api.nvim_buf_set_extmark(a.buf, H.ns, i - 1, 0, {
         virt_text = chunks,
         virt_text_pos = 'eol',
+        invalidate = true,
       })
     end
     local all = vim.list_extend(vim.list_extend({}, columns), chunks)

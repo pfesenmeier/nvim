@@ -112,12 +112,23 @@ T['open()']['starts on the first project outside any project'] = function()
   eq(cursor_line(), 1)
 end
 
---- Running glyph on each line of the current pane.
+--- Running glyph on each line of the current pane. Marks hidden with their
+--- deleted line are skipped.
 local glyphs = function()
   return child.lua_get([[vim.tbl_map(function(m)
     return m[4].virt_text[1][1]
   end, vim.tbl_filter(function(m)
-    return m[4].virt_text_pos == 'inline'
+    return m[4].virt_text_pos == 'inline' and not m[4].invalid
+  end, vim.api.nvim_buf_get_extmarks(0, -1, 0, -1, { details = true })))]])
+end
+
+--- Text of every end-of-line detail in the current pane, in line order.
+--- Marks hidden with their deleted line are skipped.
+local details = function()
+  return child.lua_get([[vim.tbl_map(function(m)
+    return { m[2], m[4].virt_text[1][1] }
+  end, vim.tbl_filter(function(m)
+    return m[4].virt_text_pos == 'eol' and not m[4].invalid
   end, vim.api.nvim_buf_get_extmarks(0, -1, 0, -1, { details = true })))]])
 end
 
@@ -227,6 +238,15 @@ T['projects']['= removes a project from the list, not from disk'] = function()
   eq(child.get_lines(), { 'alpha', 'gamma' })
   eq(vim.fn.isdirectory(root .. '/beta'), 1)
   eq(child.lua_get('_G.prompts[1]'):find('DELETE │ beta', 1, true) ~= nil, true)
+end
+
+T['projects']['a deleted line takes its marks with it'] = function()
+  setup({ beta = true })
+  open()
+  press('jdd')
+  eq(child.get_lines(), { 'alpha', 'gamma' })
+  eq(glyphs(), { '○ ', '○ ' })
+  eq(#details(), 2)
 end
 
 T['projects']['= keeps the current project'] = function()
@@ -553,15 +573,6 @@ local open_beta_agents = function()
   press('l')
 end
 
---- Text of every end-of-line detail in the current pane, in line order.
-local details = function()
-  return child.lua_get([[vim.tbl_map(function(m)
-    return { m[2], m[4].virt_text[1][1] }
-  end, vim.tbl_filter(function(m)
-    return m[4].virt_text_pos == 'eol'
-  end, vim.api.nvim_buf_get_extmarks(0, -1, 0, -1, { details = true })))]])
-end
-
 T['agents']['l opens the agents of the workspace right of it'] = function()
   setup_agents({ beta = { working, idle } })
   open_beta()
@@ -791,6 +802,15 @@ T['agents']['= stops an agent whose line was deleted'] = function()
   eq(child.lua_get('_G.removed'), { { 'beta', 7 } })
   eq(child.get_lines(), { 'review the diff' })
   eq(child.lua_get('_G.prompts[1]'):find('DELETE │ Fixing the bug', 1, true) ~= nil, true)
+end
+
+T['agents']['a deleted line takes its marks with it'] = function()
+  setup_agents({ beta = { working, idle } })
+  open_beta_agents()
+  press('dd')
+  eq(child.get_lines(), { 'review the diff' })
+  eq(glyphs(), { '· ' })
+  eq(details(), {})
 end
 
 T['agents']['= stops nothing when declined'] = function()
