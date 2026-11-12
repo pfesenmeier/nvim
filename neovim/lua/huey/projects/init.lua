@@ -1,7 +1,7 @@
 local M = {}
 
 -- A stable, per-user socket directory shared by every nvim process (the TUI
--- and all headless workspace servers). It MUST be identical across processes
+-- and all headless project servers). It MUST be identical across processes
 -- so they can discover each other's sockets via probe().
 --
 -- On Linux, stdpath("run") is $XDG_RUNTIME_DIR/nvim.user and is stable. On
@@ -15,17 +15,20 @@ local M = {}
 local is_win = vim.fn.has('win32') == 1
 local function default_server_dir()
   if is_win then
-    return [[\\.\pipe\nvim-workspaces-]] .. (vim.env.USERNAME or 'user')
+    return [[\\.\pipe\nvim-projects-]] .. (vim.env.USERNAME or 'user')
   end
   if vim.env.XDG_RUNTIME_DIR and vim.env.XDG_RUNTIME_DIR ~= '' then
-    return vim.fn.stdpath('run') .. '/workspaces'
+    return vim.fn.stdpath('run') .. '/projects'
   end
   local tmp = (vim.env.TMPDIR or '/tmp'):gsub('/+$', '')
-  return tmp .. '/nvim-workspaces-' .. (vim.env.USER or vim.env.LOGNAME or 'user')
+  return tmp .. '/nvim-projects-' .. (vim.env.USER or vim.env.LOGNAME or 'user')
 end
 
 local defaults = {
-  workspaces = {}, -- list of { name = string, path = string }
+  -- JSON list of { name = string, path = string }; `<Leader>wa` appends to it
+  store = vim.fn.stdpath('data') .. '/projects.json',
+  -- Always listed first, whatever the store holds
+  pinned = { { name = 'nvim', path = vim.fs.joinpath(vim.uv.os_homedir(), 'nvim') } },
   server_dir = default_server_dir(),
 }
 
@@ -33,9 +36,53 @@ local opts = defaults
 
 local function sock_for(name) return opts.server_dir .. '/' .. name .. '.sock' end
 
-local function find_ws(name)
-  for _, ws in ipairs(opts.workspaces) do
-    if ws.name == name then return ws end
+local function same_path(a, b) return vim.fn.resolve(a) == vim.fn.resolve(b) end
+
+-- The store is re-read only when the file changes. Every server reads it, so a
+-- project added in one shows up in the others.
+local cache = {}
+
+local function read_store()
+  local stat = vim.uv.fs_stat(opts.store)
+  if not stat then return {} end
+  local key = ('%d:%d:%d'):format(stat.mtime.sec, stat.mtime.nsec, stat.size)
+  if cache.key == key then return cache.list end
+  local ok, decoded =
+    pcall(vim.json.decode, table.concat(vim.fn.readfile(opts.store), '\n'))
+  if not ok or type(decoded) ~= 'table' then
+    vim.notify('projects: failed to decode ' .. opts.store, vim.log.levels.WARN)
+    decoded = {}
+  end
+  cache.key, cache.list = key, decoded
+  return decoded
+end
+
+local function write_store(list)
+  vim.fn.mkdir(vim.fs.dirname(opts.store), 'p')
+  local json = vim.json.encode(list, { indent = '  ' })
+  vim.fn.writefile(vim.split(json, '\n'), opts.store)
+  cache = {}
+end
+
+--- Pinned projects, then stored ones, skipping any path already listed.
+--- @return { name: string, path: string }[]
+local function list()
+  local out = {}
+  local add = function(p)
+    local path = vim.fs.normalize(p.path)
+    for _, o in ipairs(out) do
+      if same_path(o.path, path) then return end
+    end
+    out[#out + 1] = { name = p.name, path = path }
+  end
+  vim.iter(opts.pinned):each(add)
+  vim.iter(read_store()):each(add)
+  return out
+end
+
+local function find(name)
+  for _, p in ipairs(list()) do
+    if p.name == name then return p end
   end
 end
 
@@ -66,8 +113,8 @@ local function is_self(sock) return vim.tbl_contains(vim.fn.serverlist(), sock) 
 
 function M.status(name) return probe(sock_for(name)) and 'running' or 'stopped' end
 
-local function spawn(ws)
-  local sock = sock_for(ws.name)
+local function spawn(project)
+  local sock = sock_for(project.name)
   -- progpath, not 'nvim': run the same nvim binary as this one
   vim.fn.jobstart({
     vim.v.progpath ~= '' and vim.v.progpath or 'nvim',
@@ -75,11 +122,15 @@ local function spawn(ws)
     sock,
     '--headless',
     '--cmd',
-    'cd ' .. vim.fn.fnameescape(ws.path),
+    'cd ' .. vim.fn.fnameescape(project.path),
+    -- A headless server has no terminal to ask for its background color, so
+    -- it would default to dark. Copy this one's, which came from the terminal.
+    '--cmd',
+    'set background=' .. vim.o.background,
   }, { detach = true })
   if not vim.wait(2000, function() return probe(sock) end, 50) then
     vim.notify(
-      ('workspace: timed out waiting for %s'):format(sock),
+      ('projects: timed out waiting for %s'):format(sock),
       vim.log.levels.ERROR
     )
     return false
@@ -92,13 +143,13 @@ end
 --- @param name string
 --- @return string?
 function M.ensure(name)
-  local ws = find_ws(name)
-  if not ws then
-    vim.notify(("workspace: unknown name '%s'"):format(name), vim.log.levels.ERROR)
+  local project = find(name)
+  if not project then
+    vim.notify(("projects: unknown name '%s'"):format(name), vim.log.levels.ERROR)
     return
   end
   local addr = sock_for(name)
-  if not probe(addr) and not spawn(ws) then return end
+  if not probe(addr) and not spawn(project) then return end
   return addr
 end
 
@@ -113,7 +164,7 @@ end
 function M.stop(name)
   local sock = sock_for(name)
   if not probe(sock) then
-    vim.notify(('workspace: %s is not running'):format(name), vim.log.levels.WARN)
+    vim.notify(('projects: %s is not running'):format(name), vim.log.levels.WARN)
     return
   end
   local ok, chan = pcall(vim.fn.sockconnect, 'pipe', sock, { rpc = true })
@@ -130,15 +181,15 @@ function M.pick()
     return ('%s  %-20s  %s'):format(glyph(status), name, trailing)
   end
   local items = {}
-  for _, ws in ipairs(opts.workspaces) do
+  for _, p in ipairs(list()) do
     items[#items + 1] = {
-      name = ws.name,
-      text = row(M.status(ws.name), ws.name, ws.path),
+      name = p.name,
+      text = row(M.status(p.name), p.name, p.path),
     }
   end
   MiniPick.start({
     source = {
-      name = 'Workspaces',
+      name = 'Projects',
       items = items,
       choose = function(item)
         if not item then return end
@@ -148,23 +199,86 @@ function M.pick()
   })
 end
 
---- Run a Lua chunk in every running workspace server, in configuration order.
+--- Add the folder at `path` to the stored projects, named after the folder. A
+--- name already in use gets the parent folder prefixed, e.g. 'work-api'.
+--- @param path string
+--- @return string? name of the new or existing project
+function M.add(path)
+  path = vim.fs.normalize(vim.fn.fnamemodify(path, ':p'))
+  for _, p in ipairs(list()) do
+    if same_path(p.path, path) then
+      vim.notify(("projects: '%s' is already a project"):format(p.name))
+      return p.name
+    end
+  end
+
+  local name = vim.fs.basename(path)
+  if find(name) then name = vim.fs.basename(vim.fs.dirname(path)) .. '-' .. name end
+  if find(name) then
+    vim.notify(("projects: name '%s' is taken"):format(name), vim.log.levels.ERROR)
+    return
+  end
+
+  local stored = vim.deepcopy(read_store())
+  stored[#stored + 1] = { name = name, path = path }
+  write_store(stored)
+  vim.notify(("projects: added '%s'"):format(name))
+  return name
+end
+
+--- Pick a folder under home and add it as a project. Hidden folders, Library
+--- and anything gitignored are left out.
+function M.pick_add()
+  local home = vim.uv.os_homedir()
+  MiniPick.builtin.cli({
+    command = {
+      'fd',
+      '--type=directory',
+      '--max-depth=4',
+      '--exclude=Library',
+      '--exclude=node_modules',
+    },
+    postprocess = function(lines)
+      local items = {}
+      for _, l in ipairs(lines) do
+        if l ~= '' then
+          local rel = l:gsub('/$', '')
+          items[#items + 1] =
+            { text = '~/' .. rel, path = vim.fs.joinpath(home, rel) }
+        end
+      end
+      return items
+    end,
+    spawn_opts = { cwd = home },
+  }, {
+    source = {
+      name = 'Add project',
+      cwd = home,
+      choose = function(item)
+        if not item then return end
+        vim.schedule(function() M.add(item.path) end)
+      end,
+    },
+  })
+end
+
+--- Run a Lua chunk in every running project server, in configuration order.
 --- This server runs it in-process rather than over RPC.
 --- @param code string Lua chunk; receives `args` as `...`
 --- @param args any[]?
---- @return { ws: string, result: any }[] nil results are skipped
+--- @return { project: string, result: any }[] nil results are skipped
 function M.collect(code, args)
   args = args or {}
   local out = {}
-  for _, ws in ipairs(opts.workspaces) do
-    local sock = sock_for(ws.name)
+  for _, p in ipairs(list()) do
+    local sock = sock_for(p.name)
     local res
     if is_self(sock) then
       res = assert(loadstring(code))(unpack(args))
-    elseif M.status(ws.name) == 'running' then
+    elseif M.status(p.name) == 'running' then
       res = rpc_lua(sock, code, args)
     end
-    if res ~= nil then out[#out + 1] = { ws = ws.name, result = res } end
+    if res ~= nil then out[#out + 1] = { project = p.name, result = res } end
   end
   return out
 end
@@ -205,7 +319,7 @@ local function summary(title)
   return title
 end
 
---- Picker rows for every terminal with a status in a running workspace. Read
+--- Picker rows for every terminal with a status in a running project. Read
 --- live from each server on every call; nothing is cached.
 --- @return table[]
 function M.bot_items()
@@ -213,13 +327,13 @@ function M.bot_items()
   for _, r in ipairs(M.collect(list_bots)) do
     for _, b in ipairs(r.result) do
       items[#items + 1] = {
-        ws = r.ws,
+        project = r.project,
         -- not `bufnr`: MiniPick would treat it as a buffer in this process
         remote_buf = b.bufnr,
         name = b.name,
         text = ('%s  %-12s %s'):format(
           b.icon,
-          r.ws,
+          r.project,
           summary(b.title) or vim.fn.fnamemodify(b.name, ':~')
         ),
       }
@@ -230,7 +344,7 @@ end
 
 local refresh_ms = 1000
 
---- Pick a terminal with a status from any running workspace. Rows refresh
+--- Pick a terminal with a status from any running project. Rows refresh
 --- while the picker is open so the icons track the terminals.
 function M.pick_bots()
   local items = M.bot_items()
@@ -265,7 +379,7 @@ function M.pick_bots()
 
   -- Run in the item's server, locally when that is this one
   local run = function(item, code)
-    local sock = sock_for(item.ws)
+    local sock = sock_for(item.project)
     if not is_self(sock) then return rpc_lua(sock, code, { item.remote_buf }) end
     -- the buffer may be gone by now; fail quietly like the RPC path does
     local ok, res = pcall(assert(loadstring(code)), item.remote_buf)
@@ -274,7 +388,7 @@ function M.pick_bots()
 
   MiniPick.start({
     source = {
-      name = 'Bots (workspaces)',
+      name = 'Bots (projects)',
       items = items,
       preview = function(buf_id, item)
         local lines = run(
@@ -296,7 +410,7 @@ function M.pick_bots()
         if not item then return end
         vim.schedule(function()
           run(item, 'vim.cmd.buffer(...)')
-          if not is_self(sock_for(item.ws)) then M.connect(item.ws) end
+          if not is_self(sock_for(item.project)) then M.connect(item.project) end
         end)
       end,
     },
@@ -305,44 +419,46 @@ end
 
 function M.current_name()
   local cwd = vim.fn.resolve(vim.fn.getcwd())
-  for _, ws in ipairs(opts.workspaces) do
-    if vim.fn.resolve(vim.fn.expand(ws.path)) == cwd then return ws.name end
+  for _, p in ipairs(list()) do
+    if vim.fn.resolve(p.path) == cwd then return p.name end
   end
   return vim.fn.fnamemodify(cwd, ':t')
 end
 
---- Position of the cwd's workspace in `M.names()`, or nil when cwd is not one.
+--- Position of the cwd's project in `M.names()`, or nil when cwd is not one.
 --- @return number?
 function M.current_index()
   local cwd = vim.fn.resolve(vim.fn.getcwd())
-  for i, ws in ipairs(opts.workspaces) do
-    if vim.fn.resolve(vim.fn.expand(ws.path)) == cwd then return i end
+  for i, p in ipairs(list()) do
+    if vim.fn.resolve(p.path) == cwd then return i end
   end
 end
 
 function M.starter_items()
   local items = {}
-  for _, ws in ipairs(opts.workspaces) do
+  for _, p in ipairs(list()) do
     items[#items + 1] = {
-      name = ws.name,
-      action = ("lua require('workspace').connect('%s')"):format(ws.name),
-      section = 'Workspaces',
+      name = p.name,
+      action = ("lua require('huey.projects').connect('%s')"):format(p.name),
+      section = 'Projects',
     }
   end
   return items
 end
 
---- Configured workspace names, in configuration order.
+--- Project names: pinned first, then in the order they were added.
 --- @return string[]
 function M.names()
-  local out = {}
-  for _, ws in ipairs(opts.workspaces) do
-    out[#out + 1] = ws.name
-  end
-  return out
+  return vim.tbl_map(function(p) return p.name end, list())
 end
 
---- Name of the next/previous *running* workspace, skipping stopped ones, or nil
+--- Project paths, in the same order as `M.names()`.
+--- @return string[]
+function M.paths()
+  return vim.tbl_map(function(p) return p.path end, list())
+end
+
+--- Name of the next/previous *running* project, skipping stopped ones, or nil
 --- when there is none to move to. Shaped after `MiniBracketed.window()`.
 --- @param direction string 'first' | 'backward' | 'forward' | 'last'
 --- @param o table? { n_times = v:count1, wrap = true }
@@ -362,9 +478,9 @@ local function advance(direction, o)
         if M.status(all[j]) == 'running' then return j end
       end
     end,
-    -- The origin need not be running: the TUI can sit in a workspace directory
+    -- The origin need not be running: the TUI can sit in a project directory
     -- whose server was never spawned. 0 (== `start_edge`) when cwd is no
-    -- workspace at all, so `]w` lands on the first running one and `[w` wraps.
+    -- project at all, so `]w` lands on the first running one and `[w` wraps.
     state = M.current_index() or 0,
     start_edge = 0,
     end_edge = #all + 1,
@@ -376,7 +492,7 @@ local function advance(direction, o)
   return all[res]
 end
 
---- Connect to the next/previous *running* workspace; bound to `[w` / `]w` /
+--- Connect to the next/previous *running* project; bound to `[w` / `]w` /
 --- `[W` / `]W`.
 --- @param direction string 'first' | 'backward' | 'forward' | 'last'
 --- @param o table? { n_times = v:count1, wrap = true }
@@ -385,57 +501,55 @@ function M.bracketed(direction, o)
   if name then M.connect(name) end
 end
 
---- Close this workspace's server, moving the UI to the next running workspace
+--- Close this project's server, moving the UI to the next running project
 --- when there is one: `:connect!` stops the server it detaches from. With no
---- other workspace running there is nowhere to land, so just quit.
+--- other project running there is nowhere to land, so just quit.
 function M.quit()
   -- `n_times` is pinned to 1 on purpose: unlike `]w`, this closes a server, so
-  -- a stray count must not skip past workspaces.
+  -- a stray count must not skip past projects.
   local target = advance('forward', { n_times = 1 })
   if not target then return vim.cmd('qa') end
   M.connect(target, true)
 end
 
-local function workspaces_from_env()
-  local raw = vim.env.WORKSPACES
-  if not raw or raw == '' then return nil end
-  local ok, decoded = pcall(vim.json.decode, raw)
-  if not ok or type(decoded) ~= 'table' then
-    vim.notify('workspace: failed to decode $WORKSPACES', vim.log.levels.WARN)
-    return nil
-  end
-  return decoded
-end
-
 function M.setup(user)
-  user = user or {}
-  if not user.workspaces then user.workspaces = workspaces_from_env() end
-  opts = vim.tbl_deep_extend('force', defaults, user)
+  opts = vim.tbl_extend('force', defaults, user or {})
+  cache = {}
   if not is_win then vim.fn.mkdir(opts.server_dir, 'p') end
 
   vim.api.nvim_create_user_command(
-    'WorkspaceConnect',
+    'ProjectConnect',
     function(o) M.connect(o.args) end,
     {
       nargs = 1,
       complete = function() return M.names() end,
-      desc = "Connect UI to a workspace's nvim server (spawn if needed)",
+      desc = "Connect UI to a project's nvim server (spawn if needed)",
     }
   )
 
-  vim.api.nvim_create_user_command('WorkspaceStop', function(o) M.stop(o.args) end, {
+  vim.api.nvim_create_user_command('ProjectStop', function(o) M.stop(o.args) end, {
     nargs = 1,
     complete = function() return M.names() end,
-    desc = "Stop a workspace's nvim server",
+    desc = "Stop a project's nvim server",
   })
 
-  vim.api.nvim_create_user_command('WorkspaceQuit', M.quit, {
-    desc = "Stop this workspace's server, connecting the UI to the next running one",
+  vim.api.nvim_create_user_command('ProjectQuit', M.quit, {
+    desc = "Stop this project's server, connecting the UI to the next running one",
   })
 
-  vim.api.nvim_create_user_command('WorkspaceBots', M.pick_bots, {
-    desc = 'Pick a terminal with a status from any running workspace',
+  vim.api.nvim_create_user_command('ProjectBots', M.pick_bots, {
+    desc = 'Pick a terminal with a status from any running project',
   })
+
+  vim.api.nvim_create_user_command(
+    'ProjectAdd',
+    function(o) return o.args == '' and M.pick_add() or M.add(o.args) end,
+    {
+      nargs = '?',
+      complete = 'dir',
+      desc = 'Add a folder as a project; picks one under home when none is given',
+    }
+  )
 end
 
 return M

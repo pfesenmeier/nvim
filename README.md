@@ -5,10 +5,10 @@
 - [x] jj pickers
 - [x] jj bracketed
 - [x] jj diff? (color line numbers)
-- [x] workspace bracketed
+- [x] project bracketed
 - [x] clickable links (Claude)
 - [x] :Jj
-- [x] close and go to next workspace
+- [x] close and go to next project
 - [ ] JJ lines history
 - [ ] :Jj diff -f @- %
 - [ ] :Jj command -> instead of dump to second buffer, invoke Jjui

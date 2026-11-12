@@ -4,21 +4,33 @@ local child = helpers.new_child_neovim()
 local eq = helpers.expect.equality
 local new_set = MiniTest.new_set
 
-local ws_names = { 'alpha', 'beta', 'gamma', 'delta' }
+local project_names = { 'alpha', 'beta', 'gamma', 'delta' }
 
 local temp_roots = {}
---- Real directories, so `M.current_index()` can resolve a cwd against them.
-local new_workspaces = function()
+--- Real directories, so `M.current_index()` can resolve a cwd against them,
+--- listed in a store file at `<root>/projects.json`.
+local new_projects = function()
   local root = vim.fn.tempname()
   local spec = {}
-  for _, name in ipairs(ws_names) do
+  for _, name in ipairs(project_names) do
     local path = root .. '/' .. name
     vim.fn.mkdir(path, 'p')
     spec[#spec + 1] = { name = name, path = path }
   end
   vim.fn.mkdir(root .. '/elsewhere', 'p')
+  vim.fn.writefile({ vim.json.encode(spec) }, root .. '/projects.json')
   table.insert(temp_roots, root)
-  return root, spec
+  return root
+end
+
+--- Options for `setup()` that read the store of `new_projects()`, with nothing
+--- pinned so the list is exactly `project_names`.
+local setup_opts = function(root)
+  return {
+    store = root .. '/projects.json',
+    pinned = {},
+    server_dir = root .. '/servers',
+  }
 end
 
 local cleanup_temp_roots = function()
@@ -28,33 +40,33 @@ local cleanup_temp_roots = function()
   temp_roots = {}
 end
 
---- Loads the module in the child with a synthetic workspace list, stubbing
+--- Loads the module in the child with a synthetic project list, stubbing
 --- `status` (so no sockets are probed) and `connect` (so no `:connect` runs).
---- @param running table<string, boolean> which workspaces report 'running'
+--- @param running table<string, boolean> which projects report 'running'
 --- @param cwd string? directory to chdir into first
 local setup_ws = function(running, cwd)
-  local root, spec = new_workspaces()
+  local root = new_projects()
   child.lua(
     [[
-    local spec, server_dir, running = ...
-    _G.ws = require('workspace')
-    _G.ws.setup({ workspaces = spec, server_dir = server_dir })
-    _G.ws.status = function(name) return running[name] and 'running' or 'stopped' end
+    local o, running = ...
+    _G.projects = require('huey.projects')
+    _G.projects.setup(o)
+    _G.projects.status = function(name) return running[name] and 'running' or 'stopped' end
     _G.connected, _G.stop_current = {}, {}
-    _G.ws.connect = function(name, stop)
+    _G.projects.connect = function(name, stop)
       table.insert(_G.connected, name)
       -- `or false`: a nil hole would truncate the list on the way out
       table.insert(_G.stop_current, stop or false)
     end
   ]],
-    { spec, root .. '/servers', running }
+    { setup_opts(root), running }
   )
   if cwd ~= nil then child.fn.chdir(root .. '/' .. cwd) end
   return root
 end
 
 local bracketed = function(direction, o)
-  child.lua('_G.ws.bracketed(...)', { direction, o or {} })
+  child.lua('_G.projects.bracketed(...)', { direction, o or {} })
 end
 local connected = function() return child.lua_get('_G.connected') end
 local stop_current = function() return child.lua_get('_G.stop_current') end
@@ -68,7 +80,7 @@ local cmds = function() return child.lua_get('_G.cmds') end
 
 local servers = {}
 
---- Starts a real headless nvim as workspace `name`'s server, with `vim.g.tag`
+--- Starts a real headless nvim as project `name`'s server, with `vim.g.tag`
 --- set to `name` and each of `bufs` added (listed unless `listed = false`).
 --- @param root string from `setup_live()`
 --- @param bufs { name: string, listed: boolean? }[]?
@@ -112,35 +124,34 @@ end
 --- `connect` is stubbed, and `MiniPick.start` records its source in `_G.source`.
 --- @return string root
 local setup_live = function()
-  local root, spec = new_workspaces()
+  local root = new_projects()
   child.lua(
     [[
-    local spec, server_dir = ...
-    _G.ws = require('workspace')
-    _G.ws.setup({ workspaces = spec, server_dir = server_dir })
+    _G.projects = require('huey.projects')
+    _G.projects.setup(...)
     _G.connected = {}
-    _G.ws.connect = function(name) table.insert(_G.connected, name) end
+    _G.projects.connect = function(name) table.insert(_G.connected, name) end
     _G.MiniPick = {
       start = function(o) _G.source = o.source end,
       -- inactive, so the bots picker's refresh timer stops on its first tick
       is_picker_active = function() return false end,
     }
   ]],
-    { spec, root .. '/servers' }
+    { setup_opts(root) }
   )
   return root
 end
 
---- Makes the child itself answer as workspace `name`, the way a workspace
+--- Makes the child itself answer as project `name`, the way a project
 --- server sees its own socket.
 local child_listen_as = function(root, name)
   child.fn.serverstart(root .. '/servers/' .. name .. '.sock')
 end
 
---- `{ ws, name }` of every item the picker was given, in order.
+--- `{ project, name }` of every item the picker was given, in order.
 local picked = function()
   return child.lua_get([[vim.tbl_map(
-    function(i) return { i.ws, i.name } end,
+    function(i) return { i.project, i.name } end,
     _G.source.items
   )]])
 end
@@ -175,24 +186,105 @@ T['M.names()'] = new_set()
 
 T['M.names()']['returns configured order'] = function()
   setup_ws({})
-  eq(child.lua_get('_G.ws.names()'), ws_names)
+  eq(child.lua_get('_G.projects.names()'), project_names)
 end
 
 T['M.names()']['has no `home` entry'] = function()
   setup_ws({})
-  eq(child.lua_get('vim.tbl_contains(_G.ws.names(), "home")'), false)
+  eq(child.lua_get('vim.tbl_contains(_G.projects.names(), "home")'), false)
+end
+
+--- Loads the module with `pinned(root)` as its pinned projects.
+local setup_pinned = function(pinned)
+  local root = new_projects()
+  local o = setup_opts(root)
+  o.pinned = pinned(root)
+  child.lua('_G.projects = require("huey.projects"); _G.projects.setup(...)', { o })
+end
+
+T['M.names()']['lists pinned projects first'] = function()
+  setup_pinned(
+    function(root) return { { name = 'pin', path = root .. '/elsewhere' } } end
+  )
+  eq(
+    child.lua_get('_G.projects.names()'),
+    { 'pin', 'alpha', 'beta', 'gamma', 'delta' }
+  )
+end
+
+T['M.names()']['skips a stored path that is already pinned'] = function()
+  setup_pinned(
+    function(root) return { { name = 'pinned-beta', path = root .. '/beta' } } end
+  )
+  eq(
+    child.lua_get('_G.projects.names()'),
+    { 'pinned-beta', 'alpha', 'gamma', 'delta' }
+  )
+end
+
+T['M.names()']['is empty without a store file'] = function()
+  child.lua(
+    'require("huey.projects").setup(...)',
+    { { store = vim.fn.tempname(), pinned = {} } }
+  )
+  eq(child.lua_get('require("huey.projects").names()'), {})
+end
+
+T['M.add()'] = new_set()
+
+--- Stored projects as written to disk.
+local stored = function(root)
+  return vim.json.decode(
+    table.concat(vim.fn.readfile(root .. '/projects.json'), '\n')
+  )
+end
+
+T['M.add()']['appends the folder to the store'] = function()
+  local root = setup_ws({})
+  vim.fn.mkdir(root .. '/new', 'p')
+  eq(child.lua_get('_G.projects.add(...)', { root .. '/new' }), 'new')
+  eq(
+    child.lua_get('_G.projects.names()'),
+    { 'alpha', 'beta', 'gamma', 'delta', 'new' }
+  )
+  eq(stored(root)[5], { name = 'new', path = root .. '/new' })
+end
+
+T['M.add()']['prefixes the parent folder when the name is taken'] = function()
+  local root = setup_ws({})
+  vim.fn.mkdir(root .. '/other/alpha', 'p')
+  eq(
+    child.lua_get('_G.projects.add(...)', { root .. '/other/alpha' }),
+    'other-alpha'
+  )
+end
+
+T['M.add()']['does not add a path twice'] = function()
+  local root = setup_ws({})
+  -- trailing slash, as a picker or `:ProjectAdd` might give it
+  eq(child.lua_get('_G.projects.add(...)', { root .. '/beta/' }), 'beta')
+  eq(#stored(root), 4)
+end
+
+T['M.add()']['sees projects another server added'] = function()
+  local root = setup_ws({})
+  -- what a second server's `add()` leaves on disk
+  local list = stored(root)
+  list[#list + 1] = { name = 'elsewhere', path = root .. '/elsewhere' }
+  vim.fn.writefile({ vim.json.encode(list) }, root .. '/projects.json')
+  eq(child.lua_get('_G.projects.names()')[5], 'elsewhere')
 end
 
 T['M.current_index()'] = new_set()
 
 T['M.current_index()']['resolves cwd to its position'] = function()
   setup_ws({}, 'gamma')
-  eq(child.lua_get('_G.ws.current_index()'), 3)
+  eq(child.lua_get('_G.projects.current_index()'), 3)
 end
 
-T['M.current_index()']['is nil outside any workspace'] = function()
+T['M.current_index()']['is nil outside any project'] = function()
   setup_ws({}, 'elsewhere')
-  eq(child.lua_get('_G.ws.current_index()'), vim.NIL)
+  eq(child.lua_get('_G.projects.current_index()'), vim.NIL)
 end
 
 T['M.bracketed()'] = new_set()
@@ -248,7 +340,9 @@ end
 
 T['M.bracketed()']['takes a count from `v:count1`'] = function()
   setup_ws({ alpha = true, beta = true, gamma = true, delta = true }, 'alpha')
-  child.lua([[vim.keymap.set('n', ']w', "<Cmd>lua _G.ws.bracketed('forward')<CR>")]])
+  child.lua(
+    [[vim.keymap.set('n', ']w', "<Cmd>lua _G.projects.bracketed('forward')<CR>")]]
+  )
   child.type_keys('3]w')
   eq(connected(), { 'delta' })
 end
@@ -268,8 +362,8 @@ T['M.bracketed()']['does nothing when none are running'] = function()
   eq(connected(), {})
 end
 
-T['M.bracketed()']['steps off a stopped current workspace'] = function()
-  -- the TUI can sit in a workspace directory whose server was never spawned
+T['M.bracketed()']['steps off a stopped current project'] = function()
+  -- the TUI can sit in a project directory whose server was never spawned
   setup_ws({ gamma = true }, 'alpha')
   bracketed('forward')
   eq(connected(), { 'gamma' })
@@ -280,14 +374,14 @@ T['M.quit()'] = new_set()
 T['M.quit()']['connects to the next running, stopping the current'] = function()
   -- alpha(cur) beta[stopped] gamma delta[stopped]
   setup_ws({ alpha = true, gamma = true }, 'alpha')
-  child.lua('_G.ws.quit()')
+  child.lua('_G.projects.quit()')
   eq(connected(), { 'gamma' })
   eq(stop_current(), { true })
 end
 
 T['M.quit()']['wraps to the first running'] = function()
   setup_ws({ alpha = true, delta = true }, 'delta')
-  child.lua('_G.ws.quit()')
+  child.lua('_G.projects.quit()')
   eq(connected(), { 'alpha' })
   eq(stop_current(), { true })
 end
@@ -295,7 +389,7 @@ end
 T['M.quit()']['ignores a count'] = function()
   setup_ws({ alpha = true, beta = true, gamma = true, delta = true }, 'alpha')
   -- `<Space>` rather than `<Leader>`: 'scripts/minimal_init.lua' sets no mapleader
-  child.lua([[vim.keymap.set('n', '<Space>wq', '<Cmd>lua _G.ws.quit()<CR>')]])
+  child.lua([[vim.keymap.set('n', '<Space>wq', '<Cmd>lua _G.projects.quit()<CR>')]])
   child.type_keys('3 wq')
   eq(connected(), { 'beta' })
 end
@@ -303,7 +397,7 @@ end
 T['M.quit()']['quits when it is the only running one'] = function()
   setup_ws({ beta = true }, 'beta')
   stub_cmd()
-  child.lua('_G.ws.quit()')
+  child.lua('_G.projects.quit()')
   eq(cmds(), { 'qa' })
   eq(connected(), {})
 end
@@ -311,21 +405,21 @@ end
 T['M.quit()']['quits when none are running'] = function()
   setup_ws({}, 'beta')
   stub_cmd()
-  child.lua('_G.ws.quit()')
+  child.lua('_G.projects.quit()')
   eq(cmds(), { 'qa' })
   eq(connected(), {})
 end
 
-T['M.quit()']['leaves a workspace whose server never started'] = function()
+T['M.quit()']['leaves a project whose server never started'] = function()
   setup_ws({ gamma = true }, 'alpha')
-  child.lua('_G.ws.quit()')
+  child.lua('_G.projects.quit()')
   eq(connected(), { 'gamma' })
   eq(stop_current(), { true })
 end
 
 -- `alpha` (index 1) must be running here: it is the only arrangement where a
 -- start state of 0 differs from 1, which is what pins the `or 0` fallback.
-T['M.bracketed()']['starts from the edges outside any workspace'] = new_set({
+T['M.bracketed()']['starts from the edges outside any project'] = new_set({
   parametrize = { { 'forward', 'alpha' }, { 'backward', 'gamma' } },
 }, {
   test = function(direction, want)
@@ -342,9 +436,9 @@ T['M.collect()']['gathers from running servers in configured order'] = function(
   -- started out of order on purpose
   start_server(root, 'delta')
   start_server(root, 'beta')
-  eq(child.lua_get('_G.ws.collect("return vim.g.tag")'), {
-    { ws = 'beta', result = 'beta' },
-    { ws = 'delta', result = 'delta' },
+  eq(child.lua_get('_G.projects.collect("return vim.g.tag")'), {
+    { project = 'beta', result = 'beta' },
+    { project = 'delta', result = 'delta' },
   })
 end
 
@@ -352,19 +446,19 @@ T['M.collect()']['passes args to the chunk'] = function()
   local root = setup_live()
   start_server(root, 'beta')
   eq(
-    child.lua_get([[_G.ws.collect('return vim.g.tag .. ...', { '!' })]]),
-    { { ws = 'beta', result = 'beta!' } }
+    child.lua_get([[_G.projects.collect('return vim.g.tag .. ...', { '!' })]]),
+    { { project = 'beta', result = 'beta!' } }
   )
 end
 
-T['M.collect()']['runs in-process for its own workspace'] = function()
+T['M.collect()']['runs in-process for its own project'] = function()
   local root = setup_live()
   child_listen_as(root, 'alpha')
   child.g.tag = 'child'
   start_server(root, 'gamma')
-  eq(child.lua_get('_G.ws.collect("return vim.g.tag")'), {
-    { ws = 'alpha', result = 'child' },
-    { ws = 'gamma', result = 'gamma' },
+  eq(child.lua_get('_G.projects.collect("return vim.g.tag")'), {
+    { project = 'alpha', result = 'child' },
+    { project = 'gamma', result = 'gamma' },
   })
 end
 
@@ -410,7 +504,7 @@ local set_icon = function(chan, bufnr, icon)
   )
 end
 
---- Text after the icon and workspace of every row the picker was given.
+--- Text after the icon and project of every row the picker was given.
 local row_details = function()
   return child.lua_get([[vim.tbl_map(
     function(i) return i.text:match('^%S+%s+%S+%s+(.*)$') end,
@@ -428,14 +522,14 @@ end
 
 T['M.pick_bots()'] = new_set()
 
-T['M.pick_bots()']['lists terminals with a status from every running workspace'] = function()
+T['M.pick_bots()']['lists terminals with a status from every running project'] = function()
   local root = setup_live()
   local beta = start_server(root, 'beta')
   local delta = start_server(root, 'delta')
   local working = add_bot(delta, '∿')
   add_bot(beta, nil) -- a terminal with no status
   local waiting = add_bot(beta, '⏸')
-  child.lua('_G.ws.pick_bots()')
+  child.lua('_G.projects.pick_bots()')
   eq(picked(), { { 'beta', waiting.name }, { 'delta', working.name } })
   eq(row_icons(), { '⏸', '∿' })
   eq(child.lua_get('_G.source.items[1].text'):match('^%S+%s+(%S+)'), 'beta')
@@ -446,7 +540,7 @@ T['M.pick_bots()']['lists a bot with no status as idle'] = function()
   local beta = start_server(root, 'beta')
   local working = add_bot(beta, '●', nil, true)
   local idle = add_bot(beta, nil, nil, true) -- it reported state 0
-  child.lua('_G.ws.pick_bots()')
+  child.lua('_G.projects.pick_bots()')
   eq(picked(), { { 'beta', working.name }, { 'beta', idle.name } })
   eq(row_icons(), { '●', '·' })
 end
@@ -454,10 +548,10 @@ end
 T['M.pick_bots()']['shows the terminal title without its state glyph'] = function()
   local root = setup_live()
   local beta = start_server(root, 'beta')
-  add_bot(beta, '∿', '◐ pick_bots in workspace init.lua')
+  add_bot(beta, '∿', '◐ pick_bots in project init.lua')
   add_bot(beta, '⏸', 'plain title')
-  child.lua('_G.ws.pick_bots()')
-  eq(row_details(), { 'pick_bots in workspace init.lua', 'plain title' })
+  child.lua('_G.projects.pick_bots()')
+  eq(row_details(), { 'pick_bots in project init.lua', 'plain title' })
 end
 
 T['M.pick_bots()']['falls back to the buffer name without a summary'] = function()
@@ -465,7 +559,7 @@ T['M.pick_bots()']['falls back to the buffer name without a summary'] = function
   local beta = start_server(root, 'beta')
   local untitled = add_bot(beta, '∿') -- title is the default `term://` name
   local fresh = add_bot(beta, '⏸', '✳ Claude Code')
-  child.lua('_G.ws.pick_bots()')
+  child.lua('_G.projects.pick_bots()')
   eq(row_details(), { untitled.name, fresh.name })
 end
 
@@ -474,7 +568,7 @@ T['M.pick_bots()']['skips a server without HueyTerm'] = function()
   start_server(root, 'beta') -- `--clean`, so no HueyTerm
   local delta = start_server(root, 'delta')
   local bot = add_bot(delta, '∿')
-  child.lua('_G.ws.pick_bots()')
+  child.lua('_G.projects.pick_bots()')
   eq(picked(), { { 'delta', bot.name } })
 end
 
@@ -486,7 +580,7 @@ T['M.pick_bots()']['refreshes rows while open, only on change'] = function()
     _G.MiniPick.is_picker_active = function() return true end
     _G.set_items = {}
     _G.MiniPick.set_picker_items = function(items) table.insert(_G.set_items, items) end
-    _G.ws.pick_bots()
+    _G.projects.pick_bots()
   ]])
   -- nothing changed: no reset of the picker
   vim.uv.sleep(1500)
@@ -507,7 +601,7 @@ T['M.pick_bots()']['opens a remote terminal in its server, then connects'] = fun
   local beta = start_server(root, 'beta')
   local first = add_bot(beta, '∿')
   add_bot(beta, '⏸') -- now current in beta
-  child.lua('_G.ws.pick_bots()')
+  child.lua('_G.projects.pick_bots()')
   choose(first.name)
   eq(vim.rpcrequest(beta, 'nvim_get_current_buf'), first.bufnr)
   eq(connected(), { 'beta' })
@@ -518,7 +612,7 @@ T['M.pick_bots()']['opens a local terminal without connecting'] = function()
   child_listen_as(root, 'alpha')
   local here = add_bot(nil, '∿')
   child.cmd('enew')
-  child.lua('_G.ws.pick_bots()')
+  child.lua('_G.projects.pick_bots()')
   choose(here.name)
   eq(child.api.nvim_get_current_buf(), here.bufnr)
   eq(connected(), {})

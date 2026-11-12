@@ -244,6 +244,5 @@
       "routine under ~/nvim/ prefix: editing/testing this Neovim config repo (jj version control, rg search, dotnet test for related tooling)"
     ]
   },
-  "voiceEnabled": true,
-  "model": "opus"
+  "voiceEnabled": true
 }

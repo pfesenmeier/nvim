@@ -38,6 +38,7 @@ local H = {}
 --- @field cursor_key? string|false   default 'gf'
 --- @field force_hyperlink? boolean   set $FORCE_HYPERLINK; default true
 --- @field notify? boolean            warn when a click hits no link; default true
+--- @field stay_in_terminal? boolean  a click in Terminal mode stays there; default true
 
 local defaults = {
   -- A plain click is safe here: a link is an exact OSC 8 range, not a guess at
@@ -56,6 +57,11 @@ local defaults = {
   cursor_key = 'gf',
   force_hyperlink = true,
   notify = true,
+  -- A click off a link in Terminal mode is replayed, and with mouse reporting
+  -- off ":h terminal-input" drops terminal focus for it. When the click lands
+  -- in the same window, the release re-enters Terminal mode. A drag ends in
+  -- Visual mode instead, so selecting text still works.
+  stay_in_terminal = true,
 }
 
 H.opts = defaults
@@ -306,14 +312,7 @@ H.flush = function(buf)
       H.links[buf][id] = {
         uri = link.uri,
         text = table.concat(
-          vim.api.nvim_buf_get_text(
-            buf,
-            link.row,
-            scol,
-            link.end_row,
-            ecol,
-            {}
-          ),
+          vim.api.nvim_buf_get_text(buf, link.row, scol, link.end_row, ecol, {}),
           '\n'
         ),
       }
@@ -476,6 +475,8 @@ HueyTermLink.open_at_mouse = function()
     -- wherever the pointer is, so returning early would swallow clicks on the
     -- tabline and statusline (`H.mouse_pos` is nil there, winid == 0) as well
     -- as ordinary clicks and drag-selection inside the terminal.
+    H.reenter_on_release = vim.api.nvim_get_mode().mode == 't'
+      and win == vim.api.nvim_get_current_win()
     local key = H.opts.mouse_key
     if key then vim.api.nvim_feedkeys(vim.keycode(key), 'n', false) end
     return
@@ -483,6 +484,16 @@ HueyTermLink.open_at_mouse = function()
 
   vim.cmd.stopinsert()
   vim.schedule(function() HueyTermLink.open(target, win) end)
+end
+
+--- Keys for a left release: re-enters Terminal mode when the press came from
+--- there and dropped focus. The flag is cleared on every release, so a press
+--- the program consumed (mouse reporting on) or a drag cannot leave it stale.
+--- @return string
+H.on_release = function()
+  local reenter = H.reenter_on_release and vim.api.nvim_get_mode().mode == 'nt'
+  H.reenter_on_release = false
+  return reenter and '<LeftRelease><Cmd>startinsert<CR>' or '<LeftRelease>'
 end
 
 HueyTermLink.open_at_cursor = function()
@@ -530,6 +541,14 @@ H.on_term_open = function(buf)
     vim.keymap.set(opts.mouse_modes, opts.mouse_key, HueyTermLink.open_at_mouse, {
       buffer = buf,
       desc = 'Open link under mouse',
+    })
+  end
+
+  if opts.mouse_key and opts.stay_in_terminal then
+    vim.keymap.set({ 't', 'n', 'x' }, '<LeftRelease>', H.on_release, {
+      buffer = buf,
+      expr = true,
+      desc = 'Stay in Terminal mode after a click',
     })
   end
 

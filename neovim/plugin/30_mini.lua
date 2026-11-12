@@ -137,10 +137,22 @@ now(function() require('mini.sessions').setup() end)
 -- - `:h MiniStarter-lifecycle` - how to work with Starter buffer
 now(function()
   local starter = require('mini.starter')
+  -- At startup the starter takes over the empty buffer and renames it to
+  -- 'ministarter://1/welcome', which is the same in every nvim. With a swapfile
+  -- that rename fails with E325 when another server is showing its starter.
+  -- Defined before `setup()` so it runs before the starter's own VimEnter.
+  vim.api.nvim_create_autocmd('VimEnter', {
+    once = true,
+    callback = function()
+      if vim.fn.argc() == 0 and vim.api.nvim_buf_get_name(0) == '' then
+        vim.bo.swapfile = false
+      end
+    end,
+  })
   starter.setup({
-    header = function() return 'Workspace: ' .. require('workspace').current_name() end,
+    header = function() return 'Project: ' .. require('huey.projects').current_name() end,
     items = {
-      function() return require('workspace').starter_items() end,
+      function() return require('huey.projects').starter_items() end,
       { name = 'jjui', action = 'term jjui', section = 'Tools' },
       { name = 'claude', action = 'term claude', section = 'Tools' },
       starter.sections.recent_files(5, true, false),
@@ -184,12 +196,12 @@ now(function()
         local location = MiniStatusline.section_location({ trunc_width = 75 })
         local search = MiniStatusline.section_searchcount({ trunc_width = 75 })
 
-        local workspace = require('workspace').current_name()
+        local project = require('huey.projects').current_name()
         return MiniStatusline.combine_groups({
           { hl = mode_hl, strings = { mode } },
           {
             hl = 'MiniStatuslineDevinfo',
-            strings = { workspace, diff, diagnostics, lsp },
+            strings = { project, diff, diagnostics, lsp },
           },
           '%<',
           { hl = 'MiniStatuslineFilename', strings = { filename } },
@@ -436,7 +448,7 @@ end)
 --
 -- See also:
 -- - `:h MiniBracketed` - overall mapping design and list of targets
--- `window` moves off `w` to `s` (split); `[w`/`]w` navigate workspaces instead
+-- `window` moves off `w` to `s` (split); `[w`/`]w` navigate projects instead
 -- (see 'plugin/20_keymaps.lua'). Vim's `[s`/`]s` spell motions move to `[e`/`]e`.
 later(function() require('mini.bracketed').setup({ window = { suffix = 's' } }) end)
 

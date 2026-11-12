@@ -126,10 +126,7 @@ end
 T['H.latest_frame()']['keeps same-URI links that sit in different columns'] = function()
   -- rg's file heading (wide) and its first match line's number (narrow) share a
   -- URI yet are distinct, coexisting links; the column span tells them apart.
-  eq(
-    uris(H.latest_frame(q({ 0, 'a', 0, 9 }, { 1, 'a', 0, 1 }))),
-    { '0:a', '1:a' }
-  )
+  eq(uris(H.latest_frame(q({ 0, 'a', 0, 9 }, { 1, 'a', 0, 1 }))), { '0:a', '1:a' })
 end
 
 T['H.latest_frame()']['collapses a same-URI link redrawn in the same columns'] = function()
@@ -141,10 +138,7 @@ end
 T['H.latest_frame()']['uri_only folds a same-URI link across columns'] = function()
   -- Once a terminal is known to repaint, even a link that reflowed to different
   -- columns between frames must collapse to its last position.
-  eq(
-    uris(H.latest_frame(q({ 0, 'a', 0, 9 }, { 1, 'a', 5, 20 }), true)),
-    { '1:a' }
-  )
+  eq(uris(H.latest_frame(q({ 0, 'a', 0, 9 }, { 1, 'a', 5, 20 }), true)), { '1:a' })
 end
 
 T['H.latest_frame()']['drops frames before drawing restarted'] = function()
@@ -308,10 +302,7 @@ T['terminal']['keeps a heading and its match line that share a URI'] = function(
     )
   end
   -- The line-number column on row 1, and nothing at 'hello' after the ':'.
-  eq(
-    child.lua_get('_G.tl.H.link_at(_G.term_buf, 1, 0)'),
-    'file:///tmp/f.lua#1'
-  )
+  eq(child.lua_get('_G.tl.H.link_at(_G.term_buf, 1, 0)'), 'file:///tmp/f.lua#1')
   eq(child.lua_get('_G.tl.H.link_at(_G.term_buf, 1, 2)'), vim.NIL)
 end
 
@@ -436,6 +427,67 @@ T['terminal']['a plain left click off a link falls through'] = function()
   eq(child.lua_get('vim.api.nvim_get_current_buf()'), child.lua_get('_G.term_buf'))
   -- The replayed click placed the cursor where it landed.
   eq(child.lua_get('vim.api.nvim_win_get_cursor(_G.term_win)'), { 1, 1 })
+end
+
+--- Clicks screen cell (`row`, `col`) as separate press and release events, in
+--- Terminal mode.
+local click_in_terminal = function(row, col)
+  child.cmd('startinsert')
+  child.lua('vim.wait(50)')
+  child.lua("vim.api.nvim_input_mouse('left', 'press', '', 0, ...)", { row, col })
+  child.lua('vim.wait(50)')
+  child.lua("vim.api.nvim_input_mouse('left', 'release', '', 0, ...)", { row, col })
+  child.lua('vim.wait(100)')
+end
+
+T['terminal']['a click off a link stays in Terminal mode'] = function()
+  start_term([[printf 'some plain text\n'; sleep 5]])
+  wait_for_links('some plain text', 0)
+
+  click_in_terminal(0, 2)
+
+  eq(child.api.nvim_get_mode().mode, 't')
+end
+
+T['terminal']['a drag from Terminal mode keeps its selection'] = function()
+  start_term([[printf 'some plain text\n'; sleep 5]])
+  wait_for_links('some plain text', 0)
+
+  child.cmd('startinsert')
+  child.lua('vim.wait(50)')
+  child.lua("vim.api.nvim_input_mouse('left', 'press', '', 0, 0, 0)")
+  child.lua('vim.wait(50)')
+  child.lua("vim.api.nvim_input_mouse('left', 'drag', '', 0, 0, 6)")
+  child.lua('vim.wait(50)')
+  child.lua("vim.api.nvim_input_mouse('left', 'release', '', 0, 0, 6)")
+  child.lua('vim.wait(100)')
+
+  eq(child.api.nvim_get_mode().mode, 'v')
+end
+
+T['terminal']['a click from Normal mode stays in Normal mode'] = function()
+  start_term([[printf 'some plain text\n'; sleep 5]])
+  wait_for_links('some plain text', 0)
+
+  child.lua("vim.api.nvim_input_mouse('left', 'press', '', 0, 0, 2)")
+  child.lua("vim.api.nvim_input_mouse('left', 'release', '', 0, 0, 2)")
+  child.lua('vim.wait(100)')
+
+  eq(child.api.nvim_get_mode().mode, 'nt')
+end
+
+T['terminal']['can be told not to stay in Terminal mode'] = function()
+  start_term([[printf 'some plain text\n'; sleep 5]])
+  wait_for_links('some plain text', 0)
+  child.lua('_G.tl.setup({ notify = false, stay_in_terminal = false })')
+  -- `setup()` maps again but does not remove maps it no longer wants
+  child.lua(
+    [[vim.keymap.del({ 't', 'n', 'x' }, '<LeftRelease>', { buffer = _G.term_buf })]]
+  )
+
+  click_in_terminal(0, 2)
+
+  eq(child.api.nvim_get_mode().mode, 'nt')
 end
 
 T['terminal']['never anchors a link to unrelated text while scrolling'] = function()

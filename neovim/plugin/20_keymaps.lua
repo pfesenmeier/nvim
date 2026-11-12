@@ -19,16 +19,16 @@ end
 nmap('[p', '<Cmd>exe "iput! " . v:register<CR>', 'Paste Above')
 nmap(']p', '<Cmd>ee "iput "  . v:register<CR>', 'Paste Below')
 
--- Workspace navigation, in the style of 'mini.bracketed' targets. That plugin
+-- Project navigation, in the style of 'mini.bracketed' targets. That plugin
 -- has no way to register a custom target, so these are mapped by hand; the
--- module drives `MiniBracketed.advance()` underneath. See 'lua/workspace'.
-local ws_nav = function(direction)
-  return ("<Cmd>lua require('workspace').bracketed('%s')<CR>"):format(direction)
+-- module drives `MiniBracketed.advance()` underneath. See 'lua/huey/projects'.
+local project_nav = function(direction)
+  return ("<Cmd>lua require('huey.projects').bracketed('%s')<CR>"):format(direction)
 end
-nmap('[W', ws_nav('first'), 'Workspace first')
-nmap(']W', ws_nav('last'), 'Workspace last')
-nmap('[w', ws_nav('backward'), 'Workspace backward')
-nmap(']w', ws_nav('forward'), 'Workspace forward')
+nmap('[W', project_nav('first'), 'Project first')
+nmap(']W', project_nav('last'), 'Project last')
+nmap('[w', project_nav('backward'), 'Project backward')
+nmap(']w', project_nav('forward'), 'Project forward')
 
 -- Spell motions, displaced from `[s`/`]s` by 'mini.bracketed's `window` target.
 -- Non-recursive on purpose: the RHS must reach the built-in, not that mapping.
@@ -79,10 +79,11 @@ Config.leader_group_clues = {
   { mode = 'n', keys = '<Leader>l', desc = '+Language' },
   { mode = 'n', keys = '<Leader>m', desc = '+Map' },
   { mode = 'n', keys = '<Leader>o', desc = '+Other' },
+  { mode = 'n', keys = '<Leader>p', desc = '+Project' },
   { mode = 'n', keys = '<Leader>s', desc = '+Session' },
   { mode = 'n', keys = '<Leader>t', desc = '+Terminal' },
   { mode = 'n', keys = '<Leader>v', desc = '+Visits' },
-  { mode = 'n', keys = '<Leader>w', desc = '+Workspace' },
+  { mode = 'n', keys = '<Leader>w', desc = '+Project server' },
 
   { mode = 'x', keys = '<Leader>g', desc = '+Git' },
   { mode = 'x', keys = '<Leader>l', desc = '+Language' },
@@ -119,6 +120,7 @@ nmap_leader('bo', '<Cmd>%bd | e #<CR>', 'Buf only')
 -- - `<Leader>ef` - open directory of current file (needs to be present on disk)
 -- - `<Leader>ei` - edit 'init.lua'
 -- - `<Leader>el` - open explorer at the plugin install directory
+-- - `<Leader>ep` - explore projects; `<CR>` connects to one. See 'lua/huey/explorer.lua'
 -- - `<Leader>eP` - edit the most recent plan in '~/.claude/plans'
 -- - `<Leader>er` - edit the most recent PR review in '~/Documents/pr-reviews'
 -- - All mappings that use `edit_plugin_file` - edit 'plugin/' config files
@@ -141,10 +143,11 @@ nmap_leader('ef', explore_at_file, 'File directory')
 nmap_leader('ei', '<Cmd>edit $MYVIMRC<CR>', 'init.lua')
 nmap_leader('ek', edit_plugin_file('20_keymaps.lua'), 'Keymaps config')
 nmap_leader('el', explore_plugins, 'Plugins install dir')
+nmap_leader('eL', edit_plugin_file('40_plugins.lua'), 'Plugins config')
 nmap_leader('em', edit_plugin_file('30_mini.lua'), 'MINI config')
 nmap_leader('en', '<Cmd>lua MiniNotify.show_history()<CR>', 'Notifications')
 nmap_leader('eo', edit_plugin_file('10_options.lua'), 'Options config')
-nmap_leader('ep', edit_plugin_file('40_plugins.lua'), 'Plugins config')
+nmap_leader('ep', '<Cmd>lua require("huey.explorer").open()<CR>', 'Projects')
 nmap_leader('eP', '<Cmd>edit ~/nvim/nushell/lib/install/packages/packages.nu<CR>', 'Packages List')
 nmap_leader('eq', explore_quickfix, 'Quickfix list')
 nmap_leader('eQ', explore_locations, 'Location list')
@@ -170,7 +173,7 @@ nmap_leader('f:', '<Cmd>Pick history scope=":"<CR>', '":" history')
 nmap_leader('fa', '<Cmd>Pick jj_hunks revset="@-"<CR>', 'Hunks in @- (all)')
 nmap_leader('fA', '<Cmd>Pick jj_hunks revset="@-" path="%"<CR>', 'Hunks in @- (buf)')
 nmap_leader('fb', '<Cmd>Pick buffers<CR>', 'Buffers')
-nmap_leader('fB', '<Cmd>WorkspaceBots<CR>', 'Bots (workspaces)')
+nmap_leader('fB', '<Cmd>ProjectBots<CR>', 'Bots (projects)')
 nmap_leader('fc', '<Cmd>Pick git_commits<CR>', 'Commits (all)')
 nmap_leader('fC', '<Cmd>Pick git_commits path="%"<CR>', 'Commits (buf)')
 nmap_leader('fd', '<Cmd>Pick diagnostic scope="all"<CR>', 'Diagnostic workspace')
@@ -194,7 +197,7 @@ nmap_leader('fs', pick_workspace_symbols_live, 'Symbols workspace (live)')
 nmap_leader('fS', '<Cmd>Pick lsp scope="document_symbol"<CR>', 'Symbols document')
 nmap_leader('fv', '<Cmd>Pick visit_labels cwd=""<CR>', 'Visit labels (all)')
 nmap_leader('fV', '<Cmd>Pick visit_labels<CR>', 'Visit labels (cwd)')
-nmap_leader('fw', function() require('workspace').pick() end, 'Workspaces')
+nmap_leader('fw', function() require('huey.projects').pick() end, 'Projects')
 nmap_leader("f'", '<Cmd>Pick marks<CR>', 'Marks')
 nmap_leader('f"', '<Cmd>Pick registers<CR>', 'Registers')
 
@@ -334,9 +337,12 @@ nmap_leader('vL', '<Cmd>lua MiniVisits.remove_label()<CR>', 'Remove label')
 nmap_leader('vx', '<Cmd>lua HueyVisits.clear_label("")<CR>', 'Clear label (all)')
 nmap_leader('vX', '<Cmd>lua HueyVisits.clear_label()<CR>', 'Clear label (cwd)')
 
--- w is for 'Workspace'. See 'lua/workspace'; `[w`/`]w` navigate between them.
--- `wq` stops this workspace's server and lands on the next running one.
-nmap_leader('wq', '<Cmd>lua require("workspace").quit()<CR>', 'Quit server')
+-- p is for 'Project'. See 'lua/huey/projects'; `[w`/`]w` navigate between them.
+nmap_leader('pa', '<Cmd>lua require("huey.projects").pick_add()<CR>', 'Add project')
+
+-- w is for 'Project server'. `wq` stops this project's server and lands on
+-- the next running one.
+nmap_leader('wq', '<Cmd>lua require("huey.projects").quit()<CR>', 'Quit server')
 -- stylua: ignore end
 
 -- command line motions from :h cmdline.txt
