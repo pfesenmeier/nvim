@@ -1,8 +1,9 @@
 -- Huey explorer: floating panes for moving between projects, a la 'mini.files'.
--- The left pane lists projects: `<CR>` connects the UI to the one under the
--- cursor and `l` opens its jj workspaces in a pane to the right. There `<CR>`
--- changes the editor's directory to the workspace under the cursor. That pane
--- is editable: add a line and press `=` to create a workspace by that name. See
+-- The left pane lists projects: `<CR>` connects the UI to the default
+-- workspace of the one under the cursor and `l` opens its jj workspaces in a
+-- pane to the right. Every workspace has its own server, and there `<CR>`
+-- connects the UI to the one under the cursor. That pane is editable: add a
+-- line and press `=` to create a workspace by that name. See
 -- 'lua/huey/projects'.
 local projects = require('huey.projects')
 
@@ -14,9 +15,9 @@ H.ns = vim.api.nvim_create_namespace('HueyExplorer')
 --- Project pane; `names` is the project name on each line
 H.projects = { win = nil, names = {} }
 
---- Workspace pane for `project`; `names` and `paths` are the workspace on each
---- line as last read from jj
-H.workspaces = { win = nil, buf = nil, project = nil, names = {}, paths = {} }
+--- Workspace pane for `project`; `names` is the workspace on each line as last
+--- read from jj
+H.workspaces = { win = nil, buf = nil, project = nil, names = {} }
 
 H.is_open = function(win) return win ~= nil and vim.api.nvim_win_is_valid(win) end
 
@@ -24,7 +25,7 @@ H.close_workspaces = function()
   if H.is_open(H.workspaces.win) then
     vim.api.nvim_win_close(H.workspaces.win, true)
   end
-  H.workspaces = { win = nil, buf = nil, project = nil, names = {}, paths = {} }
+  H.workspaces = { win = nil, buf = nil, project = nil, names = {} }
 end
 
 H.close = function()
@@ -61,6 +62,16 @@ H.close_on_leave = function(buf)
   })
 end
 
+--- Shows whether a server is running, ahead of the text on line `lnum`.
+H.glyph = function(buf, lnum, running)
+  vim.api.nvim_buf_set_extmark(buf, H.ns, lnum, 0, {
+    virt_text = {
+      { running and '● ' or '○ ', running and 'DiagnosticOk' or 'Comment' },
+    },
+    virt_text_pos = 'inline',
+  })
+end
+
 --- Width of a line showing `name` and then `detail` at the end of the line.
 H.width = function(name, detail)
   return vim.fn.strdisplaywidth(name) + 2 + vim.fn.strdisplaywidth(detail)
@@ -76,8 +87,9 @@ end
 
 -- Project pane ---------------------------------------------------------------
 
---- Connects to the project under the cursor. The pane closes first, so it is
---- not still open when the UI comes back to this server.
+--- Connects to the default workspace of the project under the cursor. The
+--- pane closes first, so it is not still open when the UI comes back to this
+--- server.
 H.connect = function()
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
   local name = H.projects.names[lnum]
@@ -101,14 +113,8 @@ H.render_projects = function(buf)
   local paths = projects.paths()
   local width = 0
   for i, name in ipairs(names) do
-    local running = projects.status(name) == 'running'
     local path = vim.fn.fnamemodify(paths[i], ':~')
-    vim.api.nvim_buf_set_extmark(buf, H.ns, i - 1, 0, {
-      virt_text = {
-        { running and '● ' or '○ ', running and 'DiagnosticOk' or 'Comment' },
-      },
-      virt_text_pos = 'inline',
-    })
+    H.glyph(buf, i - 1, projects.status(name) == 'running')
     vim.api.nvim_buf_set_extmark(buf, H.ns, i - 1, 0, {
       end_col = #name,
       hl_group = i == current and 'Title' or nil,
@@ -122,6 +128,11 @@ end
 
 -- Workspace pane -------------------------------------------------------------
 
+--- True when this nvim is in workspace `ws` of project `name`.
+H.is_current = function(name, ws)
+  return projects.current_name() == name and projects.current_workspace() == ws
+end
+
 --- Lists the workspaces of the pane's project from jj, dropping any unsynced
 --- edits. Returns false when the project has none to list.
 --- @return boolean
@@ -131,22 +142,21 @@ H.render_workspaces = function()
   if not list then return false end
 
   ws.names = vim.tbl_map(function(w) return w.name end, list)
-  ws.paths = vim.tbl_map(function(w) return w.path end, list)
   vim.api.nvim_buf_clear_namespace(ws.buf, H.ns, 0, -1)
   vim.api.nvim_buf_set_lines(ws.buf, 0, -1, false, ws.names)
   vim.bo[ws.buf].modified = false
 
-  local cwd = vim.fn.resolve(vim.fn.getcwd())
   local width = 0
   for i, w in ipairs(list) do
     local path = vim.fn.fnamemodify(w.path, ':~')
+    H.glyph(ws.buf, i - 1, projects.status(ws.project, w.name) == 'running')
     vim.api.nvim_buf_set_extmark(ws.buf, H.ns, i - 1, 0, {
       end_col = #w.name,
-      hl_group = vim.fn.resolve(w.path) == cwd and 'Title' or nil,
+      hl_group = H.is_current(ws.project, w.name) and 'Title' or nil,
       virt_text = { { '  ' .. path, 'Comment' } },
       virt_text_pos = 'eol',
     })
-    width = math.max(width, H.width(w.name, path))
+    width = math.max(width, 2 + H.width(w.name, path))
   end
   ws.width = width
   if H.is_open(ws.win) then H.resize(ws.win, width, #list) end
@@ -193,16 +203,19 @@ H.synchronize = function()
   H.render_workspaces()
 end
 
---- Changes the editor's directory to the workspace under the cursor. A line
---- that is not synced yet names no workspace, so it does nothing.
-H.cd = function()
+--- Connects to the server of the workspace under the cursor, starting it if
+--- needed. A line that is not synced yet names no workspace, so it does
+--- nothing.
+H.connect_workspace = function()
   local ws = H.workspaces
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
   local line = vim.trim(vim.api.nvim_get_current_line())
-  local project, path = ws.project, ws.paths[lnum]
-  if line ~= ws.names[lnum] or not path then return end
+  local project, name = ws.project, ws.names[lnum]
+  if not name or line ~= name then return end
   H.close()
-  vim.schedule(function() projects.cd(project, path) end)
+  -- already here; `:connect` to our own server would go nowhere
+  if H.is_current(project, name) then return end
+  vim.schedule(function() projects.connect(project, name) end)
 end
 
 --- Opens the workspace pane right of the project pane, for the project under
@@ -216,10 +229,10 @@ H.open_workspaces = function()
   vim.api.nvim_buf_set_name(buf, 'huey://workspaces/' .. name)
   vim.bo[buf].bufhidden = 'wipe'
   vim.bo[buf].filetype = 'hueyexplorer'
-  H.workspaces = { buf = buf, project = name, names = {}, paths = {} }
+  H.workspaces = { buf = buf, project = name, names = {} }
   if not H.render_workspaces() then
     vim.api.nvim_buf_delete(buf, { force = true })
-    H.workspaces = { names = {}, paths = {} }
+    H.workspaces = { names = {} }
     vim.notify(('explorer: %s is not a jj repo'):format(name), vim.log.levels.WARN)
     return
   end
@@ -237,7 +250,7 @@ H.open_workspaces = function()
   H.resize(win, H.workspaces.width, #H.workspaces.names)
   H.style(win)
 
-  H.map(buf, '<CR>', H.cd, 'Change directory to workspace')
+  H.map(buf, '<CR>', H.connect_workspace, 'Connect to workspace')
   H.map(buf, '=', H.synchronize, 'Synchronize workspaces')
   H.map(buf, 'h', H.back, 'Back to projects')
   H.map(buf, 'q', H.close, 'Close')

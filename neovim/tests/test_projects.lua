@@ -41,8 +41,9 @@ local cleanup_temp_roots = function()
 end
 
 --- Loads the module in the child with a synthetic project list, stubbing
---- `status` (so no sockets are probed) and `connect` (so no `:connect` runs).
---- @param running table<string, boolean> which projects report 'running'
+--- `status` and `servers` (so no sockets are probed) and `connect` (so no
+--- `:connect` runs). `_G.connected` records each target as a label.
+--- @param running string[] labels of the running servers, in `servers()` order
 --- @param cwd string? directory to chdir into first
 local setup_ws = function(running, cwd)
   local root = new_projects()
@@ -51,10 +52,24 @@ local setup_ws = function(running, cwd)
     local o, running = ...
     _G.projects = require('huey.projects')
     _G.projects.setup(o)
-    _G.projects.status = function(name) return running[name] and 'running' or 'stopped' end
+    _G.projects.status = function(name, ws)
+      local label = _G.projects.label(name, ws)
+      for _, r in ipairs(running) do
+        if r == label or (not ws and vim.startswith(r, name .. '/')) then
+          return 'running'
+        end
+      end
+      return 'stopped'
+    end
+    _G.projects.servers = function()
+      return vim.tbl_map(function(r)
+        local name, ws = r:match('^([^/]+)/(.+)$')
+        return { project = name or r, workspace = ws or 'default' }
+      end, running)
+    end
     _G.connected, _G.stop_current = {}, {}
-    _G.projects.connect = function(name, stop)
-      table.insert(_G.connected, name)
+    _G.projects.connect = function(name, ws, stop)
+      table.insert(_G.connected, _G.projects.label(name, ws))
       -- `or false`: a nil hole would truncate the list on the way out
       table.insert(_G.stop_current, stop or false)
     end
@@ -77,13 +92,23 @@ local cmds = function() return child.lua_get('_G.cmds') end
 
 local servers = {}
 
---- Starts a real headless nvim as project `name`'s server, with `vim.g.tag`
---- set to `name` and each of `bufs` added (listed unless `listed = false`).
+--- Socket of the server labelled `label`, e.g. 'beta' or 'beta/feature',
+--- with its folder created.
+local sock_of = function(root, label)
+  local name, ws = label:match('^([^/]+)/(.+)$')
+  name, ws = name or label, ws or 'default'
+  vim.fn.mkdir(root .. '/servers/' .. name, 'p')
+  return root .. '/servers/' .. name .. '/' .. ws .. '.sock'
+end
+
+--- Starts a real headless nvim as the server labelled `name` (a project, or
+--- `<project>/<workspace>`), with `vim.g.tag` set to `name` and each of `bufs`
+--- added (listed unless `listed = false`).
 --- @param root string from `setup_live()`
 --- @param bufs { name: string, listed: boolean? }[]?
 --- @return integer chan RPC channel to the server
 local start_server = function(root, name, bufs)
-  local sock = root .. '/servers/' .. name .. '.sock'
+  local sock = sock_of(root, name)
   local job = vim.fn.jobstart({ 'nvim', '--clean', '--headless', '--listen', sock })
   local chan
   local up = vim.wait(5000, function()
@@ -127,7 +152,9 @@ local setup_live = function()
     _G.projects = require('huey.projects')
     _G.projects.setup(...)
     _G.connected = {}
-    _G.projects.connect = function(name) table.insert(_G.connected, name) end
+    _G.projects.connect = function(name, ws)
+      table.insert(_G.connected, _G.projects.label(name, ws))
+    end
     _G.MiniPick = {
       start = function(o) _G.source = o.source end,
       -- inactive, so the bots picker's refresh timer stops on its first tick
@@ -139,10 +166,10 @@ local setup_live = function()
   return root
 end
 
---- Makes the child itself answer as project `name`, the way a project
---- server sees its own socket.
-local child_listen_as = function(root, name)
-  child.fn.serverstart(root .. '/servers/' .. name .. '.sock')
+--- Makes the child itself answer as the server labelled `label`, the way a
+--- project server sees its own socket.
+local child_listen_as = function(root, label)
+  child.fn.serverstart(sock_of(root, label))
 end
 
 --- `{ project, name }` of every item the picker was given, in order.
@@ -286,23 +313,40 @@ end
 
 T['M.quit()'] = new_set()
 
+--- Like `setup_ws()`, with the child listening as server `here` when given.
+local setup_quit = function(running, here)
+  local root = setup_ws(running, 'alpha')
+  if here then child_listen_as(root, here) end
+end
+
 T['M.quit()']['connects to the next running, stopping the current'] = function()
-  -- alpha(cur) beta[stopped] gamma delta[stopped]
-  setup_ws({ alpha = true, gamma = true }, 'alpha')
+  setup_quit({ 'alpha', 'gamma' }, 'alpha')
   child.lua('_G.projects.quit()')
   eq(connected(), { 'gamma' })
   eq(stop_current(), { true })
 end
 
 T['M.quit()']['wraps to the first running'] = function()
-  setup_ws({ alpha = true, delta = true }, 'delta')
+  setup_quit({ 'alpha', 'delta' }, 'delta')
   child.lua('_G.projects.quit()')
   eq(connected(), { 'alpha' })
   eq(stop_current(), { true })
 end
 
+T['M.quit()']['moves through workspaces of the same project'] = function()
+  setup_quit({ 'alpha', 'alpha/one', 'beta' }, 'alpha')
+  child.lua('_G.projects.quit()')
+  eq(connected(), { 'alpha/one' })
+end
+
+T['M.quit()']['moves on from a workspace server'] = function()
+  setup_quit({ 'alpha', 'alpha/one', 'beta' }, 'alpha/one')
+  child.lua('_G.projects.quit()')
+  eq(connected(), { 'beta' })
+end
+
 T['M.quit()']['ignores a count'] = function()
-  setup_ws({ alpha = true, beta = true, gamma = true, delta = true }, 'alpha')
+  setup_quit({ 'alpha', 'beta', 'gamma', 'delta' }, 'alpha')
   -- `<Space>` rather than `<Leader>`: 'scripts/minimal_init.lua' sets no mapleader
   child.lua([[vim.keymap.set('n', '<Space>wq', '<Cmd>lua _G.projects.quit()<CR>')]])
   child.type_keys('3 wq')
@@ -310,7 +354,7 @@ T['M.quit()']['ignores a count'] = function()
 end
 
 T['M.quit()']['quits when it is the only running one'] = function()
-  setup_ws({ beta = true }, 'beta')
+  setup_quit({ 'beta' }, 'beta')
   stub_cmd()
   child.lua('_G.projects.quit()')
   eq(cmds(), { 'qa' })
@@ -318,15 +362,15 @@ T['M.quit()']['quits when it is the only running one'] = function()
 end
 
 T['M.quit()']['quits when none are running'] = function()
-  setup_ws({}, 'beta')
+  setup_quit({})
   stub_cmd()
   child.lua('_G.projects.quit()')
   eq(cmds(), { 'qa' })
   eq(connected(), {})
 end
 
-T['M.quit()']['leaves a project whose server never started'] = function()
-  setup_ws({ gamma = true }, 'alpha')
+T['M.quit()']['lands on the first running from an nvim that is no server'] = function()
+  setup_quit({ 'gamma', 'delta' })
   child.lua('_G.projects.quit()')
   eq(connected(), { 'gamma' })
   eq(stop_current(), { true })
@@ -389,70 +433,86 @@ local ws_bracketed = function(direction, o)
   child.lua('_G.projects.workspace_bracketed(...)', { direction, o or {} })
 end
 local cwd = function() return vim.fn.resolve(child.fn.getcwd()) end
-local ws_path = function(root, ws)
-  return vim.fn.resolve(root .. '/workspaces/alpha/' .. ws)
-end
 
 T['M.workspace_bracketed()'] = new_set()
 
-T['M.workspace_bracketed()']['cds forward through workspaces, wrapping'] = function()
+T['M.workspace_bracketed()']['connects to the next workspace server'] = function()
   local root, repo = setup_jj()
+  child_listen_as(root, 'alpha')
   child.fn.chdir(repo)
   ws_bracketed('forward')
-  eq(cwd(), ws_path(root, 'one'))
-  ws_bracketed('forward')
-  eq(cwd(), ws_path(root, 'two'))
-  ws_bracketed('forward')
+  eq(connected(), { 'alpha/one' })
   eq(cwd(), vim.fn.resolve(repo))
-  eq(connected(), {})
+end
+
+T['M.workspace_bracketed()']['wraps forward from the last'] = function()
+  local root = setup_jj()
+  child_listen_as(root, 'alpha/two')
+  ws_bracketed('forward')
+  eq(connected(), { 'alpha' })
 end
 
 T['M.workspace_bracketed()']['wraps backward from default'] = function()
-  local root, repo = setup_jj()
-  child.fn.chdir(repo)
+  local root = setup_jj()
+  child_listen_as(root, 'alpha')
   ws_bracketed('backward')
-  eq(cwd(), ws_path(root, 'two'))
+  eq(connected(), { 'alpha/two' })
 end
 
 T['M.workspace_bracketed()']['advances `n_times`'] = function()
-  local root, repo = setup_jj()
-  child.fn.chdir(repo)
+  local root = setup_jj()
+  child_listen_as(root, 'alpha')
   ws_bracketed('forward', { n_times = 2 })
-  eq(cwd(), ws_path(root, 'two'))
+  eq(connected(), { 'alpha/two' })
 end
 
 T['M.workspace_bracketed()']['goes to the first and last'] = function()
-  local root, repo = setup_jj()
-  child.fn.chdir(root .. '/workspaces/alpha/one')
+  local root = setup_jj()
+  child_listen_as(root, 'alpha/one')
   ws_bracketed('last')
-  eq(cwd(), ws_path(root, 'two'))
   ws_bracketed('first')
-  eq(cwd(), vim.fn.resolve(repo))
+  eq(connected(), { 'alpha/two', 'alpha' })
 end
 
 T['M.workspace_bracketed()']['takes a count from `v:count1`'] = function()
-  local root, repo = setup_jj()
-  child.fn.chdir(repo)
+  local root = setup_jj()
+  child_listen_as(root, 'alpha')
   child.lua(
     [[vim.keymap.set('n', ']w', "<Cmd>lua _G.projects.workspace_bracketed('forward')<CR>")]]
   )
   child.type_keys('2]w')
-  eq(cwd(), ws_path(root, 'two'))
+  eq(connected(), { 'alpha/two' })
+end
+
+T['M.workspace_bracketed()']['goes by its own workspace, not cwd'] = function()
+  local root, repo = setup_jj()
+  child_listen_as(root, 'alpha/one')
+  child.fn.chdir(repo)
+  ws_bracketed('forward')
+  eq(connected(), { 'alpha/two' })
+end
+
+T['M.workspace_bracketed()']['goes by cwd in an nvim that is no server'] = function()
+  local root = setup_jj()
+  child.fn.chdir(root .. '/workspaces/alpha/one')
+  ws_bracketed('forward')
+  eq(connected(), { 'alpha/two' })
 end
 
 T['M.workspace_bracketed()']['starts from the first outside any workspace'] = function()
-  local root, repo = setup_jj()
-  child_listen_as(root, 'alpha')
-  child.fn.chdir(root .. '/elsewhere')
+  local root = setup_jj()
+  -- under the workspace dir, so in the project, but no jj workspace
+  vim.fn.mkdir(root .. '/workspaces/alpha/stale', 'p')
+  child.fn.chdir(root .. '/workspaces/alpha/stale')
   ws_bracketed('forward')
-  eq(cwd(), vim.fn.resolve(repo))
+  eq(connected(), { 'alpha' })
 end
 
 T['M.workspace_bracketed()']['warns outside a jj repo'] = function()
   local root = setup_jj()
   child.fn.chdir(root .. '/beta')
   ws_bracketed('forward')
-  eq(cwd(), vim.fn.resolve(root .. '/beta'))
+  eq(connected(), {})
   eq(child.lua_get('_G.notes'), { 'projects: beta is not a jj repo' })
 end
 
@@ -460,7 +520,7 @@ T['M.workspace_bracketed()']['warns outside any project'] = function()
   local root = setup_jj()
   child.fn.chdir(root .. '/elsewhere')
   ws_bracketed('forward')
-  eq(cwd(), vim.fn.resolve(root .. '/elsewhere'))
+  eq(connected(), {})
   eq(child.lua_get('_G.notes'), { 'projects: not in a project' })
 end
 
@@ -478,6 +538,21 @@ T['M.current_workspace()']['names the workspace cwd is in'] = function()
   eq(child.lua_get('_G.projects.current_workspace()'), 'two')
 end
 
+T['M.current_workspace()']['is the one this server serves, whatever cwd'] = function()
+  local root, repo = setup_jj()
+  child_listen_as(root, 'alpha/two')
+  child.fn.chdir(repo)
+  eq(child.lua_get('_G.projects.current_workspace()'), 'two')
+  eq(child.lua_get('_G.projects.current_label()'), 'alpha/two')
+end
+
+T['M.current_workspace()']['is nil for the server of a project that is not a jj repo'] = function()
+  local root = setup_jj()
+  child_listen_as(root, 'beta')
+  eq(child.lua_get('_G.projects.current_workspace()'), vim.NIL)
+  eq(child.lua_get('_G.projects.current_label()'), 'beta')
+end
+
 T['M.current_workspace()']['is nil in a project that is not a jj repo'] = function()
   local root = setup_jj()
   child.fn.chdir(root .. '/beta')
@@ -490,27 +565,87 @@ T['M.current_workspace()']['is nil outside any project'] = function()
   eq(child.lua_get('_G.projects.current_workspace()'), vim.NIL)
 end
 
-T['M.cd()'] = new_set()
+T['M.ensure()'] = new_set()
 
-T['M.cd()']['cds in place for its own project'] = function()
+T['M.ensure()']['returns the socket of a running workspace server'] = function()
   local root = setup_live()
-  child_listen_as(root, 'alpha')
-  child.lua('_G.projects.cd(...)', { 'alpha', root .. '/elsewhere' })
-  eq(cwd(), vim.fn.resolve(root .. '/elsewhere'))
-  eq(child.lua_get('_G.connected'), {})
+  start_server(root, 'beta/feature')
+  eq(
+    child.lua_get('_G.projects.ensure(...)', { 'beta', 'feature' }),
+    root .. '/servers/beta/feature.sock'
+  )
 end
 
-T['M.cd()']["cds in another project's server, then connects to it"] = function()
+T['M.ensure()']['refuses a workspace the project does not have'] = function()
+  setup_jj()
+  eq(child.lua_get('_G.projects.ensure(...)', { 'alpha', 'nope' }), vim.NIL)
+  eq(child.lua_get('_G.notes'), { "projects: alpha has no workspace 'nope'" })
+end
+
+T['M.status()'] = new_set()
+
+T['M.status()']['is per workspace, or any for the project'] = function()
   local root = setup_live()
-  child_listen_as(root, 'alpha')
-  local chan = start_server(root, 'gamma')
-  child.lua('_G.projects.cd(...)', { 'gamma', root .. '/elsewhere' })
+  start_server(root, 'beta/feature')
+  eq(child.lua_get('_G.projects.status(...)', { 'beta', 'feature' }), 'running')
+  eq(child.lua_get('_G.projects.status(...)', { 'beta', 'default' }), 'stopped')
+  eq(child.lua_get('_G.projects.status(...)', { 'beta' }), 'running')
+  eq(child.lua_get('_G.projects.status(...)', { 'gamma' }), 'stopped')
+end
+
+T['M.servers()'] = new_set()
+
+T['M.servers()']['lists running servers by project, default workspace first'] = function()
+  local root = setup_live()
+  start_server(root, 'delta')
+  start_server(root, 'beta/zed')
+  start_server(root, 'beta/feature')
+  start_server(root, 'beta')
+  -- a socket file left by a server that died
+  vim.fn.mkdir(root .. '/servers/gamma', 'p')
+  vim.fn.writefile({}, root .. '/servers/gamma/default.sock')
+  eq(child.lua_get('_G.projects.servers()'), {
+    { project = 'beta', workspace = 'default' },
+    { project = 'beta', workspace = 'feature' },
+    { project = 'beta', workspace = 'zed' },
+    { project = 'delta', workspace = 'default' },
+  })
+end
+
+T['M.stop()'] = new_set()
+
+T['M.stop()']['stops one workspace server, or every one of a project'] = function()
+  local root = setup_live()
+  start_server(root, 'beta')
+  start_server(root, 'beta/feature')
+  start_server(root, 'beta/zed')
+  child.cmd('ProjectStop beta/feature')
+  eq(child.lua_get('_G.projects.servers()'), {
+    { project = 'beta', workspace = 'default' },
+    { project = 'beta', workspace = 'zed' },
+  })
+  child.cmd('ProjectStop beta')
+  eq(child.lua_get('_G.projects.servers()'), {})
+end
+
+T['M.pick()'] = new_set()
+
+T['M.pick()']['lists every workspace of every project'] = function()
+  setup_jj()
+  child.lua([[
+    _G.MiniPick = { start = function(o) _G.source = o.source end }
+    _G.projects.pick()
+  ]])
   eq(
-    vim.fn.resolve(vim.rpcrequest(chan, 'nvim_call_function', 'getcwd', {})),
-    vim.fn.resolve(root .. '/elsewhere')
+    child.lua_get([[vim.tbl_map(
+      function(i) return _G.projects.label(i.project, i.workspace) end,
+      _G.source.items
+    )]]),
+    { 'alpha', 'alpha/one', 'alpha/two', 'beta', 'gamma', 'delta' }
   )
-  eq(child.lua_get('_G.connected'), { 'gamma' })
-  eq(cwd() ~= vim.fn.resolve(root .. '/elsewhere'), true)
+  child.lua('_G.source.choose(_G.source.items[2])')
+  child.poke_eventloop()
+  eq(connected(), { 'alpha/one' })
 end
 
 T['M.collect()'] = new_set()
@@ -519,10 +654,12 @@ T['M.collect()']['gathers from running servers in configured order'] = function(
   local root = setup_live()
   -- started out of order on purpose
   start_server(root, 'delta')
+  start_server(root, 'beta/feature')
   start_server(root, 'beta')
   eq(child.lua_get('_G.projects.collect("return vim.g.tag")'), {
-    { project = 'beta', result = 'beta' },
-    { project = 'delta', result = 'delta' },
+    { project = 'beta', workspace = 'default', result = 'beta' },
+    { project = 'beta', workspace = 'feature', result = 'beta/feature' },
+    { project = 'delta', workspace = 'default', result = 'delta' },
   })
 end
 
@@ -531,7 +668,7 @@ T['M.collect()']['passes args to the chunk'] = function()
   start_server(root, 'beta')
   eq(
     child.lua_get([[_G.projects.collect('return vim.g.tag .. ...', { '!' })]]),
-    { { project = 'beta', result = 'beta!' } }
+    { { project = 'beta', workspace = 'default', result = 'beta!' } }
   )
 end
 
@@ -541,8 +678,8 @@ T['M.collect()']['runs in-process for its own project'] = function()
   child.g.tag = 'child'
   start_server(root, 'gamma')
   eq(child.lua_get('_G.projects.collect("return vim.g.tag")'), {
-    { project = 'alpha', result = 'child' },
-    { project = 'gamma', result = 'gamma' },
+    { project = 'alpha', workspace = 'default', result = 'child' },
+    { project = 'gamma', workspace = 'default', result = 'gamma' },
   })
 end
 
@@ -689,6 +826,16 @@ T['M.pick_bots()']['opens a remote terminal in its server, then connects'] = fun
   choose(first.name)
   eq(vim.rpcrequest(beta, 'nvim_get_current_buf'), first.bufnr)
   eq(connected(), { 'beta' })
+end
+
+T['M.pick_bots()']['labels and connects to a workspace server'] = function()
+  local root = setup_live()
+  local feature = start_server(root, 'beta/feature')
+  local bot = add_bot(feature, '∿')
+  child.lua('_G.projects.pick_bots()')
+  eq(child.lua_get('_G.source.items[1].text'):match('^%S+%s+(%S+)'), 'beta/feature')
+  choose(bot.name)
+  eq(connected(), { 'beta/feature' })
 end
 
 T['M.pick_bots()']['opens a local terminal without connecting'] = function()

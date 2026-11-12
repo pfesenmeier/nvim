@@ -16,11 +16,12 @@ H.send = function(msg)
   pipe:write(proto.encode(msg))
 end
 
---- The project name, or the folder name outside a project.
+--- The project name, with the jj workspace after a slash unless it is
+--- `default`; the folder name outside a project.
 --- @return string
 H.workspace = function()
   local ok, projects = pcall(require, 'huey.projects')
-  if ok then return projects.current_name() end
+  if ok then return projects.current_label() end
   return vim.fn.fnamemodify(vim.fn.getcwd(), ':t')
 end
 

@@ -197,7 +197,7 @@ now(function()
         local location = MiniStatusline.section_location({ trunc_width = 75 })
         local search = MiniStatusline.section_searchcount({ trunc_width = 75 })
 
-        -- Project and the jj workspace `[w`/`]w` landed in, e.g. 'nvim/one'
+        -- Project and the jj workspace this server is for, e.g. 'nvim/one'
         local projects = require('huey.projects')
         local project = projects.current_name()
         local workspace = projects.current_workspace()

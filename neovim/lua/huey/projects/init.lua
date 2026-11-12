@@ -37,7 +37,29 @@ local defaults = {
 
 local opts = defaults
 
-local function sock_for(name) return opts.server_dir .. '/' .. name .. '.sock' end
+-- Each jj workspace of a project gets its own server, at
+-- `<server_dir>/<project>/<workspace>.sock`. The project's own folder is the
+-- `default` workspace, jj repo or not.
+local function sock_for(name, ws)
+  return opts.server_dir .. '/' .. name .. '/' .. (ws or 'default') .. '.sock'
+end
+
+--- How a server is shown and typed: the project name for its default
+--- workspace, `<project>/<workspace>` otherwise.
+--- @param name string
+--- @param ws string?
+--- @return string
+function M.label(name, ws)
+  if not ws or ws == 'default' then return name end
+  return name .. '/' .. ws
+end
+
+-- Splits a label back into project and workspace.
+local function parse_label(label)
+  local name, ws = label:match('^([^/]+)/(.+)$')
+  if name then return name, ws end
+  return label, 'default'
+end
 
 local function same_path(a, b) return vim.fn.resolve(a) == vim.fn.resolve(b) end
 
@@ -114,10 +136,91 @@ end
 -- True when `sock` is one of this process's own listen addresses.
 local function is_self(sock) return vim.tbl_contains(vim.fn.serverlist(), sock) end
 
-function M.status(name) return probe(sock_for(name)) and 'running' or 'stopped' end
+--- Project and workspace this process serves, or nil when it is no project
+--- server (the TUI's own nvim).
+--- @return string? name, string? ws
+local function self_server()
+  local prefix = opts.server_dir .. '/'
+  for _, addr in ipairs(vim.fn.serverlist()) do
+    if addr:sub(1, #prefix) == prefix then
+      local name, ws = addr:sub(#prefix + 1):match('^([^/]+)/([^/]+)%.sock$')
+      if name and find(name) then return name, ws end
+    end
+  end
+end
 
-local function spawn(project)
-  local sock = sock_for(project.name)
+-- `default` first, then by name, the order `jj workspace list` gives
+local function ws_before(a, b)
+  if a == 'default' or b == 'default' then return a == 'default' and b ~= a end
+  return a < b
+end
+
+--- Workspaces of project `name` whose server is running, `default` first.
+--- @param name string
+--- @return string[]
+local function running_workspaces(name)
+  local candidates
+  if is_win then
+    -- named pipes can't be listed by folder, so ask jj what there could be
+    candidates = vim.tbl_map(
+      function(w) return w.name end,
+      M.workspaces(name) or { { name = 'default' } }
+    )
+  else
+    candidates = {}
+    local dir = opts.server_dir .. '/' .. name
+    for _, f in ipairs(vim.fn.isdirectory(dir) == 1 and vim.fn.readdir(dir) or {}) do
+      local ws = f:match('^(.+)%.sock$')
+      if ws then candidates[#candidates + 1] = ws end
+    end
+  end
+  local out = vim.tbl_filter(
+    function(ws) return probe(sock_for(name, ws)) end,
+    candidates
+  )
+  table.sort(out, ws_before)
+  return out
+end
+
+--- 'running' when the server of workspace `ws` of project `name` is up. With
+--- no `ws`, when any of the project's servers is.
+--- @param name string
+--- @param ws string?
+--- @return 'running'|'stopped'
+function M.status(name, ws)
+  local up
+  if ws then
+    up = probe(sock_for(name, ws))
+  else
+    up = #running_workspaces(name) > 0
+  end
+  return up and 'running' or 'stopped'
+end
+
+--- Every running server, in configuration order and then workspace order.
+--- @return { project: string, workspace: string }[]
+function M.servers()
+  local out = {}
+  for _, p in ipairs(list()) do
+    for _, ws in ipairs(running_workspaces(p.name)) do
+      out[#out + 1] = { project = p.name, workspace = ws }
+    end
+  end
+  return out
+end
+
+local function spawn(sock, path)
+  if not is_win then
+    -- macOS caps a socket path at 104 bytes; nvim would fail to listen
+    if #sock > 103 then
+      vim.notify(
+        ('projects: socket path is too long: %s'):format(sock),
+        vim.log.levels.ERROR
+      )
+      return false
+    end
+    vim.fn.mkdir(vim.fs.dirname(sock), 'p')
+  end
   -- progpath, not 'nvim': run the same nvim binary as this one
   vim.fn.jobstart({
     vim.v.progpath ~= '' and vim.v.progpath or 'nvim',
@@ -125,7 +228,7 @@ local function spawn(project)
     sock,
     '--headless',
     '--cmd',
-    'cd ' .. vim.fn.fnameescape(project.path),
+    'cd ' .. vim.fn.fnameescape(path),
     -- A headless server has no terminal to ask for its background color, so
     -- it would default to dark. Copy this one's, which came from the terminal.
     '--cmd',
@@ -141,35 +244,52 @@ local function spawn(project)
   return true
 end
 
---- Address of `name`'s server, starting it when it isn't running. Nil when
---- the name is unknown or the server didn't come up.
+--- Address of the server of workspace `ws` (default `default`) of project
+--- `name`, starting it when it isn't running. Nil when the project or
+--- workspace is unknown or the server didn't come up.
 --- @param name string
+--- @param ws string?
 --- @return string?
-function M.ensure(name)
+function M.ensure(name, ws)
+  ws = ws or 'default'
   local project = find(name)
   if not project then
     vim.notify(("projects: unknown name '%s'"):format(name), vim.log.levels.ERROR)
     return
   end
-  local addr = sock_for(name)
-  if not probe(addr) and not spawn(project) then return end
+  local addr = sock_for(name, ws)
+  if probe(addr) then return addr end
+
+  local path = project.path
+  if ws ~= 'default' then
+    local found = vim
+      .iter(M.workspaces(name) or {})
+      :find(function(w) return w.name == ws end)
+    if not found then
+      vim.notify(
+        ("projects: %s has no workspace '%s'"):format(name, ws),
+        vim.log.levels.ERROR
+      )
+      return
+    end
+    path = found.path
+  end
+  if not spawn(addr, path) then return end
   return addr
 end
 
+--- Connect the UI to the server of workspace `ws` (default `default`) of
+--- project `name`, starting it if needed.
 --- @param name string
+--- @param ws string?
 --- @param stop_current boolean? use `:connect!`, stopping the server left behind
-function M.connect(name, stop_current)
-  local addr = M.ensure(name)
+function M.connect(name, ws, stop_current)
+  local addr = M.ensure(name, ws)
   if not addr then return end
   vim.cmd((stop_current and 'connect! ' or 'connect ') .. vim.fn.fnameescape(addr))
 end
 
-function M.stop(name)
-  local sock = sock_for(name)
-  if not probe(sock) then
-    vim.notify(('projects: %s is not running'):format(name), vim.log.levels.WARN)
-    return
-  end
+local function stop_one(sock)
   local ok, chan = pcall(vim.fn.sockconnect, 'pipe', sock, { rpc = true })
   if not ok or chan == 0 then return end
   pcall(vim.rpcnotify, chan, 'nvim_command', 'qa!')
@@ -178,16 +298,52 @@ function M.stop(name)
   if not is_win then pcall(os.remove, sock) end
 end
 
-function M.pick()
-  local glyph = function(status) return status == 'running' and '●' or '○' end
-  local row = function(status, name, trailing)
-    return ('%s  %-20s  %s'):format(glyph(status), name, trailing)
+--- Stop the server of workspace `ws` of project `name`, or every server of
+--- the project when `ws` is nil.
+--- @param name string
+--- @param ws string?
+function M.stop(name, ws)
+  local all = ws and { ws } or running_workspaces(name)
+  local socks =
+    vim.tbl_filter(probe, vim.tbl_map(function(w) return sock_for(name, w) end, all))
+  if #socks == 0 then
+    vim.notify(
+      ('projects: %s is not running'):format(M.label(name, ws)),
+      vim.log.levels.WARN
+    )
+    return
   end
-  local items = {}
+  vim.iter(socks):each(stop_one)
+end
+
+--- Every workspace of every project, in configuration order and then
+--- workspace order. A project that is not a jj repo has only `default`.
+--- @return { project: string, workspace: string, path: string }[]
+function M.targets()
+  local out = {}
   for _, p in ipairs(list()) do
+    for _, w in
+      ipairs(M.workspaces(p.name) or { { name = 'default', path = p.path } })
+    do
+      out[#out + 1] = { project = p.name, workspace = w.name, path = w.path }
+    end
+  end
+  return out
+end
+
+--- Pick a workspace of any project, each with its own server.
+function M.pick()
+  local items = {}
+  for _, t in ipairs(M.targets()) do
+    local running = M.status(t.project, t.workspace) == 'running'
     items[#items + 1] = {
-      name = p.name,
-      text = row(M.status(p.name), p.name, p.path),
+      project = t.project,
+      workspace = t.workspace,
+      text = ('%s  %-24s  %s'):format(
+        running and '●' or '○',
+        M.label(t.project, t.workspace),
+        vim.fn.fnamemodify(t.path, ':~')
+      ),
     }
   end
   MiniPick.start({
@@ -196,7 +352,7 @@ function M.pick()
       items = items,
       choose = function(item)
         if not item then return end
-        vim.schedule(function() M.connect(item.name) end)
+        vim.schedule(function() M.connect(item.project, item.workspace) end)
       end,
     },
   })
@@ -265,23 +421,25 @@ function M.pick_add()
   })
 end
 
---- Run a Lua chunk in every running project server, in configuration order.
---- This server runs it in-process rather than over RPC.
+--- Run a Lua chunk in every running server, in `M.servers()` order. This
+--- server runs it in-process rather than over RPC.
 --- @param code string Lua chunk; receives `args` as `...`
 --- @param args any[]?
---- @return { project: string, result: any }[] nil results are skipped
+--- @return { project: string, workspace: string, result: any }[] nil results are skipped
 function M.collect(code, args)
   args = args or {}
   local out = {}
-  for _, p in ipairs(list()) do
-    local sock = sock_for(p.name)
+  for _, s in ipairs(M.servers()) do
+    local sock = sock_for(s.project, s.workspace)
     local res
     if is_self(sock) then
       res = assert(loadstring(code))(unpack(args))
-    elseif M.status(p.name) == 'running' then
+    else
       res = rpc_lua(sock, code, args)
     end
-    if res ~= nil then out[#out + 1] = { project = p.name, result = res } end
+    if res ~= nil then
+      out[#out + 1] = { project = s.project, workspace = s.workspace, result = res }
+    end
   end
   return out
 end
@@ -322,7 +480,7 @@ local function summary(title)
   return title
 end
 
---- Picker rows for every terminal with a status in a running project. Read
+--- Picker rows for every terminal with a status in a running server. Read
 --- live from each server on every call; nothing is cached.
 --- @return table[]
 function M.bot_items()
@@ -331,12 +489,13 @@ function M.bot_items()
     for _, b in ipairs(r.result) do
       items[#items + 1] = {
         project = r.project,
+        workspace = r.workspace,
         -- not `bufnr`: MiniPick would treat it as a buffer in this process
         remote_buf = b.bufnr,
         name = b.name,
         text = ('%s  %-12s %s'):format(
           b.icon,
-          r.project,
+          M.label(r.project, r.workspace),
           summary(b.title) or vim.fn.fnamemodify(b.name, ':~')
         ),
       }
@@ -347,7 +506,7 @@ end
 
 local refresh_ms = 1000
 
---- Pick a terminal with a status from any running project. Rows refresh
+--- Pick a terminal with a status from any running server. Rows refresh
 --- while the picker is open so the icons track the terminals.
 function M.pick_bots()
   local items = M.bot_items()
@@ -382,7 +541,7 @@ function M.pick_bots()
 
   -- Run in the item's server, locally when that is this one
   local run = function(item, code)
-    local sock = sock_for(item.project)
+    local sock = sock_for(item.project, item.workspace)
     if not is_self(sock) then return rpc_lua(sock, code, { item.remote_buf }) end
     -- the buffer may be gone by now; fail quietly like the RPC path does
     local ok, res = pcall(assert(loadstring(code)), item.remote_buf)
@@ -413,7 +572,9 @@ function M.pick_bots()
         if not item then return end
         vim.schedule(function()
           run(item, 'vim.cmd.buffer(...)')
-          if not is_self(sock_for(item.project)) then M.connect(item.project) end
+          if not is_self(sock_for(item.project, item.workspace)) then
+            M.connect(item.project, item.workspace)
+          end
         end)
       end,
     },
@@ -495,14 +656,15 @@ function M.add_workspace(name, ws)
 end
 
 --- Position of this server's project in `M.names()`, or nil when it is none.
---- A project server knows by its own socket, whatever workspace its cwd is in.
---- Any other nvim goes by cwd: a project's folder, or one of its workspaces
---- under `workspace_dir`.
+--- A project server knows by its own socket, whatever its cwd. Any other nvim
+--- goes by cwd: a project's folder, or one of its workspaces under
+--- `workspace_dir`.
 --- @return number?
 function M.current_index()
   local all = list()
+  local self = self_server()
   for i, p in ipairs(all) do
-    if is_self(sock_for(p.name)) then return i end
+    if p.name == self then return i end
   end
   local cwd = vim.fn.resolve(vim.fn.getcwd())
   for i, p in ipairs(all) do
@@ -518,22 +680,32 @@ function M.current_name()
   return vim.fn.fnamemodify(vim.fn.getcwd(), ':t')
 end
 
---- Name of the jj workspace the editor's cwd is in: 'default' in the project's
---- own folder when it is a jj repo, the folder name under `workspace_dir`
---- otherwise. Nil outside a project or a jj repo. Read from the filesystem
---- rather than jj, so it is cheap enough for the statusline.
+--- Name of the jj workspace this nvim is in. A project server knows by its own
+--- socket. Any other nvim goes by cwd: 'default' in the project's own folder,
+--- the folder name under `workspace_dir` otherwise. Nil outside a project or a
+--- jj repo. Read from the filesystem rather than jj, so it is cheap enough for
+--- the statusline.
 --- @return string?
 function M.current_workspace()
   local i = M.current_index()
   if not i then return end
   local p = list()[i]
+  local has_jj = vim.uv.fs_stat(vim.fs.joinpath(p.path, '.jj')) ~= nil
+  local _, self_ws = self_server()
+  if self_ws then
+    if self_ws ~= 'default' or has_jj then return self_ws end
+    return
+  end
   local cwd = vim.fn.resolve(vim.fn.getcwd())
   local ws_root = vim.fn.resolve(vim.fs.joinpath(opts.workspace_dir, p.name))
   if vim.fs.dirname(cwd) == ws_root then return vim.fs.basename(cwd) end
-  if cwd == vim.fn.resolve(p.path) and vim.uv.fs_stat(cwd .. '/.jj') then
-    return 'default'
-  end
+  if cwd == vim.fn.resolve(p.path) and has_jj then return 'default' end
 end
+
+--- `M.current_name()`, with the workspace after a slash unless it is
+--- `default`, e.g. 'nvim/feature'.
+--- @return string
+function M.current_label() return M.label(M.current_name(), M.current_workspace()) end
 
 function M.starter_items()
   local items = {}
@@ -559,61 +731,9 @@ function M.paths()
   return vim.tbl_map(function(p) return p.path end, list())
 end
 
---- Name of the next/previous *running* project, skipping stopped ones, or nil
---- when there is none to move to. Used by `M.quit()` to pick where to land.
---- Shaped after `MiniBracketed.window()`.
---- @param direction string 'first' | 'backward' | 'forward' | 'last'
---- @param o table? { n_times = v:count1, wrap = true }
---- @return string?
-local function advance(direction, o)
-  o = vim.tbl_deep_extend('force', { n_times = vim.v.count1, wrap = true }, o or {})
-
-  local all = M.names()
-  local iterator = {
-    next = function(i)
-      for j = i + 1, #all do
-        if M.status(all[j]) == 'running' then return j end
-      end
-    end,
-    prev = function(i)
-      for j = i - 1, 1, -1 do
-        if M.status(all[j]) == 'running' then return j end
-      end
-    end,
-    -- The origin need not be running: the TUI can sit in a project directory
-    -- whose server was never spawned. 0 (== `start_edge`) when cwd is no
-    -- project at all, so 'forward' lands on the first running one.
-    state = M.current_index() or 0,
-    start_edge = 0,
-    end_edge = #all + 1,
-  }
-
-  local res = require('mini.bracketed').advance(iterator, direction, o)
-  if res == iterator.state then return end
-
-  return all[res]
-end
-
---- Change the editor's directory to `path`, a workspace of project `name`.
---- In that project's server this is a plain `:cd`. From anywhere else the
---- project's server is started if needed, changes directory, and then the UI
---- connects to it.
---- @param name string
---- @param path string
-function M.cd(name, path)
-  local i = M.current_index()
-  if i and list()[i].name == name then
-    return vim.cmd.cd(vim.fn.fnameescape(path))
-  end
-  local addr = M.ensure(name)
-  if not addr then return end
-  rpc_lua(addr, 'vim.cmd.cd(vim.fn.fnameescape(...))', { path })
-  M.connect(name)
-end
-
---- `:cd` to the next/previous jj workspace of this server's project, in
---- `M.workspaces()` order; bound to `[w` / `]w` / `[W` / `]W`. Shaped after
---- `MiniBracketed.window()`.
+--- `:connect` to the server of the next/previous jj workspace of this
+--- project, in `M.workspaces()` order, starting it if needed; bound to `[w` /
+--- `]w` / `[W` / `]W`. Shaped after `MiniBracketed.window()`.
 --- @param direction string 'first' | 'backward' | 'forward' | 'last'
 --- @param o table? { n_times = v:count1, wrap = true }
 function M.workspace_bracketed(direction, o)
@@ -632,16 +752,24 @@ function M.workspace_bracketed(direction, o)
     )
   end
 
+  -- a server is in the workspace it serves; any other nvim, the one its cwd is in
+  local _, self_ws = self_server()
   local cwd = vim.fn.resolve(vim.fn.getcwd())
   local state = 0
   for j, w in ipairs(all) do
-    if vim.fn.resolve(w.path) == cwd then state = j end
+    local here
+    if self_ws then
+      here = w.name == self_ws
+    else
+      here = vim.fn.resolve(w.path) == cwd
+    end
+    if here then state = j end
   end
   local iterator = {
     next = function(j) return j < #all and j + 1 or nil end,
     prev = function(j) return j > 1 and j - 1 or nil end,
-    -- 0 (== `start_edge`) when cwd is in no workspace, so `]w` lands on the
-    -- first one and `[w` wraps to the last
+    -- 0 (== `start_edge`) when in no workspace, so `]w` lands on the first
+    -- one and `[w` wraps to the last
     state = state,
     start_edge = 0,
     end_edge = #all + 1,
@@ -649,18 +777,33 @@ function M.workspace_bracketed(direction, o)
 
   local res = require('mini.bracketed').advance(iterator, direction, o)
   if res == state or not all[res] then return end
-  vim.cmd.cd(vim.fn.fnameescape(all[res].path))
+  M.connect(name, all[res].name)
 end
 
---- Close this project's server, moving the UI to the next running project
---- when there is one: `:connect!` stops the server it detaches from. With no
---- other project running there is nowhere to land, so just quit.
+--- Close this server, moving the UI to the next running one (`M.servers()`
+--- order, wrapping) when there is one: `:connect!` stops the server it
+--- detaches from. With no other server running there is nowhere to land, so
+--- just quit. An nvim that is no project server starts from the first.
 function M.quit()
+  local all = M.servers()
+  local self_name, self_ws = self_server()
+  local state = 0
+  for j, s in ipairs(all) do
+    if s.project == self_name and s.workspace == self_ws then state = j end
+  end
+  local iterator = {
+    next = function(j) return j < #all and j + 1 or nil end,
+    prev = function(j) return j > 1 and j - 1 or nil end,
+    state = state,
+    start_edge = 0,
+    end_edge = #all + 1,
+  }
   -- `n_times` is pinned to 1 on purpose: this closes a server, so a stray
-  -- count must not skip past projects.
-  local target = advance('forward', { n_times = 1 })
+  -- count must not skip past others.
+  local res = require('mini.bracketed').advance(iterator, 'forward', { n_times = 1 })
+  local target = res ~= state and all[res]
   if not target then return vim.cmd('qa') end
-  M.connect(target, true)
+  M.connect(target.project, target.workspace, true)
 end
 
 function M.setup(user)
@@ -668,28 +811,44 @@ function M.setup(user)
   cache = {}
   if not is_win then vim.fn.mkdir(opts.server_dir, 'p') end
 
-  vim.api.nvim_create_user_command(
-    'ProjectConnect',
-    function(o) M.connect(o.args) end,
-    {
-      nargs = 1,
-      complete = function() return M.names() end,
-      desc = "Connect UI to a project's nvim server (spawn if needed)",
-    }
-  )
-
-  vim.api.nvim_create_user_command('ProjectStop', function(o) M.stop(o.args) end, {
+  vim.api.nvim_create_user_command('ProjectConnect', function(o)
+    local name, ws = parse_label(o.args)
+    M.connect(name, ws)
+  end, {
     nargs = 1,
-    complete = function() return M.names() end,
-    desc = "Stop a project's nvim server",
+    complete = function()
+      return vim.tbl_map(
+        function(t) return M.label(t.project, t.workspace) end,
+        M.targets()
+      )
+    end,
+    desc = "Connect UI to a project workspace's nvim server (spawn if needed)",
+  })
+
+  vim.api.nvim_create_user_command('ProjectStop', function(o)
+    -- a bare project name stops all of its servers
+    local name, ws = parse_label(o.args)
+    M.stop(name, o.args:find('/') and ws or nil)
+  end, {
+    nargs = 1,
+    complete = function()
+      local out = M.names()
+      for _, s in ipairs(M.servers()) do
+        if s.workspace ~= 'default' then
+          out[#out + 1] = M.label(s.project, s.workspace)
+        end
+      end
+      return out
+    end,
+    desc = "Stop a project's nvim servers, or one workspace's",
   })
 
   vim.api.nvim_create_user_command('ProjectQuit', M.quit, {
-    desc = "Stop this project's server, connecting the UI to the next running one",
+    desc = 'Stop this server, connecting the UI to the next running one',
   })
 
   vim.api.nvim_create_user_command('ProjectBots', M.pick_bots, {
-    desc = 'Pick a terminal with a status from any running project',
+    desc = 'Pick a terminal with a status from any running server',
   })
 
   vim.api.nvim_create_user_command(

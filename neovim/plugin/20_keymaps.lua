@@ -19,9 +19,9 @@ end
 nmap('[p', '<Cmd>exe "iput! " . v:register<CR>', 'Paste Above')
 nmap(']p', '<Cmd>ee "iput "  . v:register<CR>', 'Paste Below')
 
--- Workspace navigation, in the style of 'mini.bracketed' targets: `:cd`
--- through this project's jj workspaces. That plugin has no way to register a
--- custom target, so these are mapped by hand; the module drives
+-- Workspace navigation, in the style of 'mini.bracketed' targets: connect to
+-- the server of the previous/next jj workspace of this project. That plugin has
+-- no way to register a custom target, so these are mapped by hand; the module drives
 -- `MiniBracketed.advance()` underneath. See 'lua/huey/projects'.
 local workspace_nav = function(direction)
   return ("<Cmd>lua require('huey.projects').workspace_bracketed('%s')<CR>"):format(
@@ -123,7 +123,7 @@ nmap_leader('bo', '<Cmd>%bd | e #<CR>', 'Buf only')
 -- - `<Leader>ef` - open directory of current file (needs to be present on disk)
 -- - `<Leader>ei` - edit 'init.lua'
 -- - `<Leader>el` - open explorer at the plugin install directory
--- - `<Leader>ep` - explore projects; `<CR>` connects, `l` lists jj workspaces (`<CR>` there `:cd`s). See 'lua/huey/explorer.lua'
+-- - `<Leader>ep` - explore projects; `<CR>` connects, `l` lists jj workspaces (`<CR>` there connects to that workspace's server). See 'lua/huey/explorer.lua'
 -- - `<Leader>eP` - edit the most recent plan in '~/.claude/plans'
 -- - `<Leader>er` - edit the most recent PR review in '~/Documents/pr-reviews'
 -- - All mappings that use `edit_plugin_file` - edit 'plugin/' config files

@@ -11,8 +11,10 @@ local temp_roots = {}
 local repos = {}
 
 --- Loads the explorer in the child over a store listing `project_names`, with
---- `status` stubbed (no sockets probed) and `connect` recording its target.
---- @param running table<string, boolean> which projects report 'running'
+--- `status` stubbed (no sockets probed) and `connect` recording its target as
+--- a label, e.g. 'beta/feature'.
+--- @param running table<string, boolean> which labels report 'running'; a
+---   project reports running when any of its workspaces does
 --- @param cwd string? project to chdir into first
 --- @param paths table<string, string>? project name -> path, for projects that
 ---   must be somewhere other than a fresh empty folder
@@ -33,9 +35,19 @@ local setup = function(running, cwd, paths)
     local o, running = ...
     local projects = require('huey.projects')
     projects.setup(o)
-    projects.status = function(name) return running[name] and 'running' or 'stopped' end
+    projects.status = function(name, ws)
+      if running[projects.label(name, ws)] then return 'running' end
+      if not ws then
+        for label in pairs(running) do
+          if vim.startswith(label, name .. '/') then return 'running' end
+        end
+      end
+      return 'stopped'
+    end
     _G.connected = {}
-    projects.connect = function(name) table.insert(_G.connected, name) end
+    projects.connect = function(name, ws)
+      table.insert(_G.connected, projects.label(name, ws))
+    end
     _G.explorer = require('huey.explorer')
   ]],
     {
@@ -100,15 +112,25 @@ T['open()']['starts on the first project outside any project'] = function()
   eq(cursor_line(), 1)
 end
 
-T['open()']['marks running projects'] = function()
-  setup({ beta = true })
-  open()
-  local glyphs = child.lua_get([[vim.tbl_map(function(m)
+--- Running glyph on each line of the current pane.
+local glyphs = function()
+  return child.lua_get([[vim.tbl_map(function(m)
     return m[4].virt_text[1][1]
   end, vim.tbl_filter(function(m)
     return m[4].virt_text_pos == 'inline'
   end, vim.api.nvim_buf_get_extmarks(0, -1, 0, -1, { details = true })))]])
-  eq(glyphs, { '○ ', '● ', '○ ' })
+end
+
+T['open()']['marks running projects'] = function()
+  setup({ beta = true })
+  open()
+  eq(glyphs(), { '○ ', '● ', '○ ' })
+end
+
+T['open()']['marks a project running when only a workspace server is'] = function()
+  setup({ ['gamma/feature'] = true })
+  open()
+  eq(glyphs(), { '○ ', '○ ', '● ' })
 end
 
 T['open()']['focuses the pane when already open'] = function()
@@ -173,12 +195,13 @@ T['workspaces'] = new_set()
 --- answer `answer` (1 is yes) and record their message in `_G.prompts`;
 --- notifications are recorded in `_G.notes` rather than shown.
 --- @param answer integer?
+--- @param running table<string, boolean>? as for `setup()`
 --- @return string root, string repo
-local setup_jj = function(answer)
+local setup_jj = function(answer, running)
   helpers.skip_if_no_jj()
   local repo = helpers.new_jj_repo({ ['a.txt'] = { 'a' } })
   table.insert(repos, repo)
-  local root = setup({}, nil, { beta = repo })
+  local root = setup(running or {}, nil, { beta = repo })
   child.lua(
     [[
     local answer = ...
@@ -267,43 +290,44 @@ T['workspaces']['lists other workspaces after the default one'] = function()
   eq(child.get_lines(), { 'default', 'aaa' })
 end
 
---- Records `projects.cd()` calls in `_G.cds` rather than changing directory.
-local stub_cd = function()
-  child.lua([[
-    _G.cds = {}
-    require('huey.projects').cd = function(name, path)
-      table.insert(_G.cds, { name, vim.fn.resolve(path) })
-    end
-  ]])
+T['workspaces']['marks running workspace servers'] = function()
+  local root, repo = setup_jj(1, { ['beta/aaa'] = true })
+  helpers.jj(repo, 'workspace', 'add', '--name', 'aaa', root .. '/aaa')
+  open_beta()
+  eq(glyphs(), { '○ ', '● ' })
 end
 
-T['workspaces']['<CR> changes directory to the workspace under the cursor'] = function()
+T['workspaces']['<CR> connects to the server of the workspace under the cursor'] = function()
   local root, repo = setup_jj()
   helpers.jj(repo, 'workspace', 'add', '--name', 'aaa', root .. '/aaa')
-  child.fn.chdir(repo)
-  open()
-  press('l')
+  open_beta()
   press('j<CR>')
-  eq(vim.fn.resolve(child.fn.getcwd()), vim.fn.resolve(root .. '/aaa'))
+  eq(child.lua_get('_G.connected'), { 'beta/aaa' })
   eq(#child.api.nvim_list_wins(), 1)
-  eq(child.lua_get('_G.connected'), {})
 end
 
-T['workspaces']['<CR> hands a workspace of another project to projects.cd()'] = function()
-  local _, repo = setup_jj()
-  stub_cd()
+T['workspaces']['<CR> on the default workspace connects to the project'] = function()
+  setup_jj()
   open_beta()
   press('<CR>')
-  eq(child.lua_get('_G.cds'), { { 'beta', vim.fn.resolve(repo) } })
+  eq(child.lua_get('_G.connected'), { 'beta' })
+  eq(#child.api.nvim_list_wins(), 1)
+end
+
+T['workspaces']['<CR> on the current workspace only closes'] = function()
+  local _, repo = setup_jj()
+  child.fn.chdir(repo)
+  open()
+  press('l<CR>')
+  eq(child.lua_get('_G.connected'), {})
   eq(#child.api.nvim_list_wins(), 1)
 end
 
 T['workspaces']['<CR> on an unsynced line does nothing'] = function()
   setup_jj()
-  stub_cd()
   open_beta()
   press('ofeature<Esc><CR>')
-  eq(child.lua_get('_G.cds'), {})
+  eq(child.lua_get('_G.connected'), {})
   eq(#child.api.nvim_list_wins(), 3)
 end
 
