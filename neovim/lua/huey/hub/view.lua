@@ -1,5 +1,5 @@
--- Shared by the agents buffer and `huey tui`: keeps a table of agents in step
--- with hub messages, and lays out one line per agent.
+-- Shared by `huey tui`, `huey hook` and the explorer: keeps a table of agents in
+-- step with hub messages, and lays out one line per agent.
 -- Runs under `nvim -l` too, so it only uses `vim.api` string helpers and `vim.fn`.
 local proto = require('huey.hub.proto')
 
@@ -88,17 +88,34 @@ View.header = function()
   )
 end
 
+--- Highlight group for each state.
+View.state_hl = {
+  working = 'DiagnosticInfo',
+  blocked = 'DiagnosticWarn',
+  error = 'DiagnosticError',
+  done = 'DiagnosticOk',
+  idle = 'Comment',
+}
+
+--- The state, with why it is blocked or how far along it is, e.g.
+--- `blocked(permission)` or `working 40%`.
+--- @param agent { state: string, kind: string?, progress: integer? }
+--- @return string
+View.state = function(agent)
+  local state = agent.state .. (agent.kind and ('(' .. agent.kind .. ')') or '')
+  if agent.state == 'working' and agent.progress then
+    state = state .. ' ' .. agent.progress .. '%'
+  end
+  return state
+end
+
 --- One agent's line, and the byte its state column ends at, for highlighting.
 --- @param agent huey.Agent
 --- @param now integer epoch seconds
 --- @return string line
 --- @return integer state_end
 View.line = function(agent, now)
-  local state = agent.state .. (agent.kind and ('(' .. agent.kind .. ')') or '')
-  if agent.state == 'working' and agent.progress then
-    state = state .. ' ' .. agent.progress .. '%'
-  end
-  local head = (' %s %s'):format(proto.icon(agent.state, agent.progress) or ' ', View.pad(state, 20))
+  local head = (' %s %s'):format(proto.icon(agent.state, agent.progress) or ' ', View.pad(View.state(agent), 20))
   local rest = ('  %s  %s  %s  '):format(
     View.pad(agent.workspace or '?', 14),
     View.pad(View.ago(now - (agent.started or now)), 4),

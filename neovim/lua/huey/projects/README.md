@@ -76,6 +76,10 @@ one server shows up in the others.
   Unlike `<leader>wq`, this can target a server other than the current one, and
   leaves the UI where it is.
 
+- `<leader>ea` — the explorer opened straight to the agents of every workspace
+  of the current project, as `<Tab>` in its workspace pane shows them, or of
+  every project outside one.
+
 - `<leader>ep` — project explorer (`lua/huey/explorer.lua`), a floating pane
   in the style of 'mini.files'. A project is `●` when any of its servers is
   running. `<CR>` connects to the default workspace of the project under the
@@ -94,9 +98,14 @@ one server shows up in the others.
 
   `l` on a workspace opens a third pane: the agent terminals in that
   workspace's server, the same ones `<leader>fB` lists (empty when the server
-  is stopped). Each line shows the agent's status icon and what its terminal
-  title says it is working on, with the prompt it started with dimmed after it
-  once the two differ. A float right of the pane shows the latest output of the
+  is stopped). Each line shows what the agent's terminal title says it is
+  working on. Ahead of it come its status icon and state (with why it is
+  blocked or how far along it is, e.g. `blocked(permission)` or `working 40%`,
+  colored by state), how long it has been in that state, and how long it has
+  been running. After it come the message it is blocked on and the prompt it
+  started with, dimmed, once that differs from the line. The pane re-reads its
+  agents every second, keeping the cursor on the same agent, except while it
+  has unsynced edits. A float right of the pane shows the latest output of the
   agent under the cursor, refreshed every second, and is left out when the
   screen has no room. `<CR>` switches that server to the agent's terminal and
   connects to it. Add a line and press `=` to start `agent_cmd` with the line
@@ -107,7 +116,8 @@ one server shows up in the others.
 
   `<Tab>` in the project pane opens the agents of every running server in
   place of the workspace pane; in the workspace pane, those of every workspace
-  of the project. Each row also names the workspace it runs in. These panes
+  of the project. Each row also names the workspace it runs in, in a column
+  ahead of the line. These panes
   span several servers, so they can only stop agents: start them from a single
   workspace's pane. `<Tab>` on the pane it opened from closes it again, and
   `<Tab>` in an agent pane does nothing.

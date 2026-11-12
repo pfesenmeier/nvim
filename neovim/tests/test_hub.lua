@@ -1,6 +1,5 @@
 local helpers = dofile('tests/helpers.lua')
 
-local expect = helpers.expect
 local eq = helpers.expect.equality
 local new_set = MiniTest.new_set
 
@@ -134,78 +133,6 @@ T['drops an agent whose buffer is wiped'] = function()
 
   children[1].lua('vim.cmd.bwipeout({ bang = true })')
   eq(#wait_list(0), 0)
-end
-
---- Reports `status` for a new buffer in `child` straight to the hub, as its
---- client would, without a terminal in between.
---- @param child table
---- @param status table
---- @return integer buf
-local fake_agent = function(child, status)
-  return child.lua(
-    [[
-    local proto = require('huey.hub.proto')
-    local buf = vim.api.nvim_create_buf(true, true)
-    local pipe = vim.uv.new_pipe(false)
-    local ok
-    pipe:connect(vim.env.HUEY_SOCK, function(err) ok = not err end)
-    vim.wait(2000, function() return ok ~= nil end, 10)
-    _G.fake_pipes = _G.fake_pipes or {}
-    table.insert(_G.fake_pipes, pipe)
-    local now = os.time()
-    local msg = vim.tbl_extend('force', ..., { t = 'status', buf = buf, started = now, changed = now })
-    pipe:write(proto.encode({ t = 'hello', role = 'nvim', pid = vim.fn.getpid(), server = vim.v.servername }))
-    pipe:write(proto.encode(msg))
-    return buf
-  ]],
-    { status }
-  )
-end
-
-T['the agents buffer lists every agent and jumps to one'] = function()
-  start_hub()
-  children[1].setup()
-  children[2].setup()
-  local alpha = fake_agent(children[1], { state = 'working', workspace = 'alpha', title = 'Fix the parser' })
-  fake_agent(children[2], { state = 'blocked', kind = 'permission', workspace = 'beta' })
-  eq(#wait_list(2), 2)
-
-  local child = children[1]
-  child.lua([[require('huey.hub.agents').open()]])
-  local lines
-  vim.wait(5000, function()
-    lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
-    return #lines == 3
-  end, 50)
-  eq(#lines, 3)
-  expect.match(lines[1], '^%s+STATE')
-  expect.match(lines[2], 'working.*alpha.*Fix the parser')
-  expect.match(lines[3], 'blocked%(permission%).*beta')
-
-  -- alpha lives in this nvim, so Enter shows its buffer here and closes the list
-  child.api.nvim_win_set_cursor(0, { 2, 0 })
-  child.type_keys('<CR>')
-  eq(child.api.nvim_get_current_buf(), alpha)
-  eq(#child.api.nvim_list_wins(), 1)
-  eq(child.fn.bufexists('huey://agents'), 0)
-end
-
-T['the agents buffer follows the hub'] = function()
-  start_hub()
-  children[1].setup()
-  local child = children[1]
-  child.lua([[require('huey.hub.agents').open()]])
-  local lines = function() return child.api.nvim_buf_get_lines(0, 0, -1, false) end
-  vim.wait(2000, function() return lines()[2] == '   no agents' end, 50)
-  eq(lines()[2], '   no agents')
-
-  fake_agent(child, { state = 'done', workspace = 'alpha' })
-  vim.wait(5000, function() return #lines() == 2 and lines()[2]:find('alpha') ~= nil end, 50)
-  expect.match(lines()[2], 'done.*alpha')
-
-  -- closing the list wipes it and drops its hub connection
-  child.type_keys('q')
-  eq(child.fn.bufexists('huey://agents'), 0)
 end
 
 T['an nvim starts the hub when none is running'] = function()

@@ -11,10 +11,13 @@
 -- is forgotten by jj and deleted from disk along with its server, and an
 -- agent's terminal is deleted. `<Tab>` opens the agents of every
 -- project from the project pane, or of every workspace of the project from the
--- workspace pane; press it there again to close them. A preview right of an
--- agent pane shows the latest output of the agent under the cursor. See
--- 'lua/huey/projects'.
+-- workspace pane; press it there again to close them. Agent panes show each
+-- agent's state and how long it has been in it, and keep up with them while
+-- open. A preview right of an agent pane shows the latest output of the agent
+-- under the cursor. `Explorer.open_agents()` opens straight to the agents of
+-- the current project. See 'lua/huey/projects'.
 local projects = require('huey.projects')
+local View = require('huey.hub.view')
 
 local Explorer = {}
 local H = {}
@@ -32,30 +35,31 @@ H.workspaces = { win = nil, buf = nil, project = nil, names = {} }
 --- Agent pane right of the pane in window `parent`, for the agents of
 --- `workspace` of `project`, every workspace of `project` when there is no
 --- `workspace`, or every project when there is neither. `agents` is the agent
---- on each line as last read from the servers. `preview` is the float showing
---- the output of the one under the cursor, refreshed by `timer`.
-H.agents = { win = nil, buf = nil, agents = {} }
-H.preview = { win = nil, buf = nil, timer = nil }
+--- on each line as last read from the servers, re-read by `timer`. `preview`
+--- is the float showing the output of the one under the cursor.
+H.agents = { win = nil, buf = nil, agents = {}, timer = nil }
+H.preview = { win = nil, buf = nil }
 
 H.is_open = function(win) return win ~= nil and vim.api.nvim_win_is_valid(win) end
 
 H.close_preview = function()
   local p = H.preview
-  if p.timer and not p.timer:is_closing() then
-    p.timer:stop()
-    p.timer:close()
-  end
   if H.is_open(p.win) then vim.api.nvim_win_close(p.win, true) end
   if p.buf and vim.api.nvim_buf_is_valid(p.buf) then
     vim.api.nvim_buf_delete(p.buf, { force = true })
   end
-  H.preview = { win = nil, buf = nil, timer = nil }
+  H.preview = { win = nil, buf = nil }
 end
 
 H.close_agents = function()
   H.close_preview()
+  local timer = H.agents.timer
+  if timer and not timer:is_closing() then
+    timer:stop()
+    timer:close()
+  end
   if H.is_open(H.agents.win) then vim.api.nvim_win_close(H.agents.win, true) end
-  H.agents = { win = nil, buf = nil, agents = {} }
+  H.agents = { win = nil, buf = nil, agents = {}, timer = nil }
 end
 
 H.close_workspaces = function()
@@ -400,10 +404,35 @@ end
 --- lines can still be deleted.
 H.can_start_agents = function() return H.agents.workspace ~= nil end
 
+--- Columns shown ahead of an agent's line: its icon and state, how long it
+--- has been in that state, how long it has been running, and the workspace it
+--- runs in when `widths.workspace` is set. Padded to `widths` so the lines
+--- below each other line up.
+--- @param g huey.ProjectAgent
+--- @param widths { state: integer, workspace: integer? }
+--- @param now integer epoch seconds
+--- @return [string, string][] chunks
+H.agent_columns = function(g, widths, now)
+  local hl = View.state_hl[g.state] or 'Comment'
+  local chunks = { { g.icon .. ' ', hl } }
+  if widths.state > 0 then
+    local state = g.state and View.state(g) or ''
+    local since = function(t) return ('%3s'):format(t and View.ago(now - t) or '') end
+    chunks[#chunks + 1] = { View.pad(state, widths.state) .. ' ', hl }
+    chunks[#chunks + 1] = { since(g.changed) .. ' ' .. since(g.started) .. '  ', 'Comment' }
+  end
+  if widths.workspace then
+    local label = projects.label(g.project, g.workspace)
+    chunks[#chunks + 1] = { View.pad(label, widths.workspace) .. '  ', 'Directory' }
+  end
+  return chunks
+end
+
 --- Lists the pane's agents from their servers, dropping any unsynced edits. A
 --- line shows what the agent says it is working on, or its prompt until it
---- says. After it come the workspace it runs in, in a pane over several, and
---- the prompt it started with, dimmed, once that differs from the line.
+--- says. Ahead of it come the columns of `H.agent_columns()`, and after it why
+--- the agent is blocked and the prompt it started with, dimmed, once that
+--- differs from the line.
 H.render_agents = function()
   local a = H.agents
   if a.workspace then
@@ -412,7 +441,20 @@ H.render_agents = function()
     a.agents = projects.all_agents(a.project)
   end
   local single = H.can_start_agents()
+  local now = os.time()
+  local widths = { state = 0, workspace = not single and 0 or nil }
+  for _, g in ipairs(a.agents) do
+    if g.state then widths.state = math.max(widths.state, #View.state(g)) end
+    if widths.workspace then
+      widths.workspace =
+        math.max(widths.workspace, vim.fn.strdisplaywidth(projects.label(g.project, g.workspace)))
+    end
+  end
+
   vim.api.nvim_buf_clear_namespace(a.buf, H.ns, 0, -1)
+  -- a re-list is not an edit to undo
+  local undolevels = vim.bo[a.buf].undolevels
+  vim.bo[a.buf].undolevels = -1
   vim.api.nvim_buf_set_lines(
     a.buf,
     0,
@@ -420,29 +462,32 @@ H.render_agents = function()
     false,
     vim.tbl_map(function(g) return g.text end, a.agents)
   )
+  vim.bo[a.buf].undolevels = undolevels
   vim.bo[a.buf].modified = false
 
   local width = 0
   for i, g in ipairs(a.agents) do
+    local columns = H.agent_columns(g, widths, now)
     vim.api.nvim_buf_set_extmark(a.buf, H.ns, i - 1, 0, {
-      virt_text = { { g.icon .. ' ', 'Special' } },
+      virt_text = columns,
       virt_text_pos = 'inline',
     })
     local chunks = {}
-    if not single then
-      chunks[#chunks + 1] = { '  ' .. projects.label(g.project, g.workspace), 'Directory' }
+    if g.state == 'blocked' and g.msg and g.msg ~= '' then
+      chunks[#chunks + 1] = { '  ' .. (g.msg:gsub('%c', ' ')), 'DiagnosticWarn' }
     end
     if g.prompt and g.prompt ~= g.text then
       chunks[#chunks + 1] = { '  ' .. g.prompt, 'Comment' }
     end
-    local detail = table.concat(vim.tbl_map(function(c) return c[1] end, chunks))
     if #chunks > 0 then
       vim.api.nvim_buf_set_extmark(a.buf, H.ns, i - 1, 0, {
         virt_text = chunks,
         virt_text_pos = 'eol',
       })
     end
-    width = math.max(width, 2 + vim.fn.strdisplaywidth(g.text .. detail))
+    local all = vim.list_extend(vim.list_extend({}, columns), chunks)
+    local line = table.concat(vim.tbl_map(function(c) return c[1] end, all))
+    width = math.max(width, vim.fn.strdisplaywidth(g.text .. line))
   end
   if #a.agents == 0 and not single then
     vim.api.nvim_buf_set_extmark(a.buf, H.ns, 0, 0, {
@@ -488,6 +533,42 @@ end
 local preview_min_width = 20
 local refresh_ms = 1000
 
+--- True when the agent pane's lines differ from the agents listed in it.
+--- 'modified' cannot tell: it is never set in a scratch buffer.
+--- @return boolean
+H.has_edits = function()
+  local a = H.agents
+  local texts = vim.tbl_map(function(g) return g.text end, a.agents)
+  if #texts == 0 then texts = { '' } end
+  return not vim.deep_equal(vim.api.nvim_buf_get_lines(a.buf, 0, -1, false), texts)
+end
+
+--- Re-lists the pane's agents so their states and times stay current, keeping
+--- the cursor on the agent it was on, then refreshes the preview. The list is
+--- left alone while it has unsynced edits or is in Insert mode, since a
+--- re-list drops edits.
+H.refresh_agents = function()
+  local a = H.agents
+  if not H.is_open(a.win) then return end
+  local editing = vim.api.nvim_get_current_win() == a.win
+    and vim.api.nvim_get_mode().mode:sub(1, 1) == 'i'
+  if not editing and not H.has_edits() then
+    local agent = H.agent_under_cursor()
+    H.render_agents()
+    for i, g in ipairs(a.agents) do
+      if
+        agent
+        and g.project == agent.project
+        and g.workspace == agent.workspace
+        and g.bufnr == agent.bufnr
+      then
+        vim.api.nvim_win_set_cursor(a.win, { i, 0 })
+      end
+    end
+  end
+  H.update_preview()
+end
+
 --- Puts the preview right of the agent pane, filling the rest of the screen.
 --- Hidden when there is no room for it.
 H.place_preview = function()
@@ -518,21 +599,13 @@ H.place_preview = function()
   end
 end
 
---- Opens the preview, refreshing it while the agent pane is open so it tracks
---- the agent's output.
+--- Opens the preview.
 H.open_preview = function()
   -- kept while its window closes for lack of room; `H.close_preview()` wipes it
   local buf = vim.api.nvim_create_buf(false, true)
-  H.preview = { buf = buf, timer = assert(vim.uv.new_timer()) }
+  H.preview = { buf = buf }
   H.place_preview()
   H.update_preview()
-  H.preview.timer:start(
-    refresh_ms,
-    refresh_ms,
-    vim.schedule_wrap(function()
-      if H.is_open(H.agents.win) then H.update_preview() end
-    end)
-  )
 end
 
 --- Starts an agent for every line that matches none listed, with the line as
@@ -647,6 +720,9 @@ H.open_agents_pane = function(project, workspace)
   H.resize(win, H.agents.width, math.max(#H.agents.agents, 1))
   H.style(win)
   H.open_preview()
+  -- keeps the list and preview up with the agents while the pane is open
+  H.agents.timer = assert(vim.uv.new_timer())
+  H.agents.timer:start(refresh_ms, refresh_ms, vim.schedule_wrap(H.refresh_agents))
 
   H.map(buf, '<CR>', H.open_agent, 'Open agent')
   H.map(buf, '=', H.synchronize_agents, 'Synchronize agents')
@@ -750,6 +826,21 @@ Explorer.open = function()
   H.map(buf, '<Esc>', H.close, 'Close')
   H.grow_with_edits(buf, win, function() return H.projects.width or 0 end)
   H.close_on_leave(buf)
+end
+
+--- Opens the explorer on the agents of every workspace of the current
+--- project, with its workspaces left of them, or on the agents of every
+--- project outside one. Reopens it when it is already open.
+Explorer.open_agents = function()
+  H.close()
+  Explorer.open()
+  local name = H.project_under_cursor()
+  if not name or vim.api.nvim_win_get_cursor(0)[1] ~= projects.current_index() then
+    return H.open_agents_pane()
+  end
+  -- a project that is not a jj repo has no workspace pane to open
+  if projects.workspaces(name) then H.open_workspaces() end
+  H.open_agents_pane(name)
 end
 
 return Explorer

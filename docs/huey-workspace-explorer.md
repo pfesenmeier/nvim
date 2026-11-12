@@ -55,11 +55,9 @@ there are three panes:
   `\\.\pipe\huey-<user>` on Windows or `$XDG_RUNTIME_DIR/huey.sock` (`$TMPDIR/huey-<user>.sock`).
   Every nvim streams its agent statuses there; an nvim that quits or crashes takes its agents
   with it. The hub exits 30s after the last connection closes.
-- `:HueyAgents` (`<leader>hh`): a buffer listing every agent across nvims with its workspace,
-  state, age, time in state, and title. Enter shows the agent's terminal; for an agent in
-  another nvim it switches that nvim to the buffer and `:connect`s this one over to it.
-  `r` reconnects, `q` closes. It watches the hub only while the buffer is open.
-- `huey tui`: the same list for a terminal outside nvim.
+- Inside nvim the explorer's agent panes (`<leader>ea`, see `lua/huey/projects/README.md`)
+  list agents with their state, time in state, age, and title.
+- `huey tui`: every agent across nvims for a terminal outside nvim.
 - `huey list`: the same agents as JSON.
 - Both lists lay out rows with `huey/hub/view.lua`.
 - Protocol: one JSON object per line. Code lives in `neovim/lua/huey/hub/`.

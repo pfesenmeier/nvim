@@ -513,6 +513,7 @@ local list_bots = [[
           icon = icon,
           title = vim.b[b].term_title,
           prompt = prompt,
+          status = term and term.get_status and term.get_status(b),
         }
       end
     end
@@ -622,11 +623,19 @@ end
 --- @field icon string
 --- @field text string what it says it is working on, else its prompt
 --- @field prompt string? what `M.add_agent()` started it with
+--- @field state string? idle | working | done | blocked | error; nil before
+---   its first status or once it clears it
+--- @field kind string? permission | question | auth, when blocked
+--- @field progress integer? 0-100, when working
+--- @field msg string? why it is blocked
+--- @field started integer? epoch seconds of its first status
+--- @field changed integer? epoch seconds its state last changed
 
 --- Appends the agents `list_bots` found in a server to `out`.
 --- @return huey.ProjectAgent[]
 local function add_agent_rows(out, name, ws, bots)
   for _, b in ipairs(bots) do
+    local status = b.status or {}
     out[#out + 1] = {
       project = name,
       workspace = ws,
@@ -634,6 +643,12 @@ local function add_agent_rows(out, name, ws, bots)
       icon = b.icon,
       text = summary(b.title) or b.prompt or vim.fn.fnamemodify(b.name, ':~'),
       prompt = b.prompt,
+      state = status.state,
+      kind = status.kind,
+      progress = status.progress,
+      msg = status.msg,
+      started = status.started,
+      changed = status.changed,
     }
   end
   return out

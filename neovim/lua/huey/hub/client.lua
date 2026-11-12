@@ -83,12 +83,6 @@ Client.setup = function()
     callback = function() leaving = true end,
   })
 
-  vim.api.nvim_create_user_command(
-    'HueyAgents',
-    function() require('huey.hub.agents').open() end,
-    { desc = 'Show every agent across nvims' }
-  )
-
   Client.connect()
 end
 

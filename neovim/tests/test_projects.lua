@@ -1003,6 +1003,24 @@ T['M.add_agent()']['shows the title over the prompt once the agent sets one'] = 
   eq(agents_of('beta')[1].prompt, 'fix it')
 end
 
+T['M.add_agent()']['reports the status of the agent'] = function()
+  local root = setup_live()
+  local beta = start_server(root, 'beta')
+  local bot = add_bot(beta, '⏸')
+  vim.rpcrequest(beta, 'nvim_exec_lua', [[
+    local buf = ...
+    _G.HueyTerm.get_status = function(b)
+      if b ~= buf then return end
+      return { state = 'blocked', kind = 'permission', msg = 'run rm?', started = 10, changed = 20 }
+    end
+  ]], { bot.bufnr })
+  local g = agents_of('beta')[1]
+  eq(
+    { g.state, g.kind, g.progress, g.msg, g.started, g.changed },
+    { 'blocked', 'permission', nil, 'run rm?', 10, 20 }
+  )
+end
+
 T['M.add_agent()']['drops an agent whose process exited'] = function()
   local root = setup_live()
   local beta = start_server(root, 'beta')

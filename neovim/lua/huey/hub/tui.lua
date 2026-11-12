@@ -1,5 +1,6 @@
 -- `huey tui`: a live table of every agent across nvims, read from the hub, for
--- terminals outside nvim. Inside nvim, `:HueyAgents` shows the same in a buffer.
+-- terminals outside nvim. Inside nvim, the explorer's agent panes show them
+-- (`<leader>ea`).
 -- `huey list`: the same agents as JSON.
 local proto = require('huey.hub.proto')
 local View = require('huey.hub.view')

@@ -475,6 +475,8 @@ end
 
 T['agents'] = new_set()
 
+local columns
+
 --- Like `setup_jj()`, with the agent functions of 'huey.projects' stubbed over
 --- `_G.agents`, a list of agents per server label. `all_agents` goes through
 --- the labels in sorted order. `add_agent` appends one that shows its prompt
@@ -574,6 +576,82 @@ T['agents']['l opens the agents of the workspace right of it'] = function()
   eq(child.api.nvim_win_get_config(0).col, left.col + left.width + 2)
   -- projects, workspaces, agents, preview
   eq(#child.api.nvim_list_wins(), 5)
+end
+
+--- Chunks of the columns ahead of line `lnum` (0-based) of the current pane.
+columns = function(lnum)
+  return child.lua_get(
+    [[vim.tbl_filter(function(m)
+      return m[4].virt_text_pos == 'inline'
+    end, vim.api.nvim_buf_get_extmarks(0, -1, { ..., 0 }, { ..., -1 }, { details = true }))[1][4].virt_text]],
+    { lnum }
+  )
+end
+
+T['agents']['shows the state of each agent and how long it has been in it'] = function()
+  local now = os.time()
+  setup_agents({
+    beta = {
+      vim.tbl_extend('force', working, {
+        icon = '◑',
+        state = 'working',
+        progress = 40,
+        changed = now - 90,
+        started = now - 7200,
+      }),
+      vim.tbl_extend('force', idle, {
+        icon = '⏸',
+        state = 'blocked',
+        kind = 'permission',
+        msg = 'run\nrm?',
+        changed = now,
+        started = now,
+      }),
+      { bufnr = 12, icon = '·', text = 'just started', prompt = 'just started' },
+    },
+  })
+  open_beta_agents()
+  eq(columns(0), {
+    { '◑ ', 'DiagnosticInfo' },
+    { 'working 40%         ', 'DiagnosticInfo' },
+    { ' 1m  2h  ', 'Comment' },
+  })
+  eq(columns(1)[2], { 'blocked(permission) ', 'DiagnosticWarn' })
+  eq(columns(2), {
+    { '· ', 'Comment' },
+    { '                    ', 'Comment' },
+    { '         ', 'Comment' },
+  })
+  -- why it is blocked comes after the line
+  eq(details(), { { 0, '  fix the bug' }, { 1, '  run rm?' } })
+end
+
+T['agents']['keeps up with the agents while open'] = function()
+  setup_agents({ beta = { working, idle } })
+  open_beta_agents()
+  press('j')
+  child.lua([[
+    table.insert(_G.agents.beta, 1, { bufnr = 20, icon = '∿', text = 'new one' })
+    _G.agents.beta[3].icon = '●'
+  ]])
+  eq(child.wait_for([[vim.api.nvim_buf_line_count(0) == 3]]), true)
+  eq(child.get_lines(), { 'new one', 'Fixing the bug', 'review the diff' })
+  eq(glyphs(), { '∿ ', '∿ ', '● ' })
+  -- still on the agent it was on
+  eq(cursor_line(), 3)
+  -- a re-list is not an edit to undo
+  press('u')
+  eq(child.get_lines(), { 'new one', 'Fixing the bug', 'review the diff' })
+end
+
+T['agents']['leaves unsynced edits alone'] = function()
+  setup_agents({ beta = { working } })
+  open_beta_agents()
+  press('oadd tests<Esc>')
+  child.lua([[_G.agents.beta[1].text = 'Changed']])
+  vim.uv.sleep(1500)
+  child.poke_eventloop()
+  eq(child.get_lines(), { 'Fixing the bug', 'add tests' })
 end
 
 T['agents']['shows the prompt after a line once the title differs'] = function()
@@ -737,11 +815,9 @@ T['tab']['labels each agent with its workspace'] = function()
   setup_agents({ beta = { working }, ['beta/aaa'] = { other } })
   open()
   press('<Tab>')
-  eq(details(), { { 0, '  beta' }, { 1, '  beta/aaa' } })
-  eq(
-    child.lua_get([[vim.api.nvim_buf_get_extmarks(0, -1, 0, 0, { details = true })[2][4].virt_text]]),
-    { { '  beta', 'Directory' }, { '  fix the bug', 'Comment' } }
-  )
+  eq(columns(0), { { '∿ ', 'Comment' }, { 'beta      ', 'Directory' } })
+  eq(columns(1), { { '⏸ ', 'Comment' }, { 'beta/aaa  ', 'Directory' } })
+  eq(details(), { { 0, '  fix the bug' } })
 end
 
 T['tab']['in the projects pane closes the agents when they are open'] = function()
@@ -847,6 +923,37 @@ T['tab']['h goes back to the pane it opened from'] = function()
   press('<Tab>h')
   eq(child.api.nvim_buf_get_name(0), 'huey://workspaces/beta')
   eq(#child.api.nvim_list_wins(), 3)
+end
+
+T['open_agents()'] = new_set()
+
+T['open_agents()']['opens the agents of the current project'] = function()
+  local _, repo = setup_agents({ alpha = { elsewhere }, beta = { working }, ['beta/aaa'] = { other } })
+  child.fn.chdir(repo)
+  child.lua('_G.explorer.open_agents()')
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta/*')
+  eq(child.get_lines(), { 'Fixing the bug', 'needs input' })
+  -- projects, workspaces, agents, preview
+  eq(#child.api.nvim_list_wins(), 5)
+  press('h')
+  eq(child.api.nvim_buf_get_name(0), 'huey://workspaces/beta')
+end
+
+T['open_agents()']['opens the agents of every project outside one'] = function()
+  setup_agents({ alpha = { elsewhere }, beta = { working } })
+  child.lua('_G.explorer.open_agents()')
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/*')
+  eq(child.get_lines(), { 'in alpha', 'Fixing the bug' })
+  -- projects, agents, preview
+  eq(#child.api.nvim_list_wins(), 4)
+end
+
+T['open_agents()']['reopens an open explorer'] = function()
+  setup_agents({ beta = { working } })
+  open_beta()
+  child.lua('_G.explorer.open_agents()')
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/*')
+  eq(#child.api.nvim_list_wins(), 4)
 end
 
 return T

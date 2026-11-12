@@ -119,6 +119,7 @@ nmap_leader('bw', '<Cmd>lua MiniBufremove.wipeout()<CR>', 'Wipeout')
 nmap_leader('bW', '<Cmd>lua MiniBufremove.wipeout(0, true)<CR>', 'Wipeout!')
 nmap_leader('bo', '<Cmd>%bd | e #<CR>', 'Buf only')
 -- e is for 'Explore' and 'Edit'. Common usage:
+-- - `<Leader>ea` - agents of every workspace of the current project, in the project explorer. See 'lua/huey/explorer.lua'
 -- - `<Leader>ed` - open explorer at current working directory
 -- - `<Leader>ef` - open directory of current file (needs to be present on disk)
 -- - `<Leader>ei` - edit 'init.lua'
@@ -141,6 +142,7 @@ local explore_plugins       = function()
   MiniFiles.open(vim.fn.stdpath('data') .. '/site/pack/core/opt')
 end
 
+nmap_leader('ea', '<Cmd>lua require("huey.explorer").open_agents()<CR>', 'Agents')
 nmap_leader('ed', '<Cmd>lua MiniFiles.open()<CR>', 'Directory')
 nmap_leader('ef', explore_at_file, 'File directory')
 nmap_leader('ei', '<Cmd>edit $MYVIMRC<CR>', 'init.lua')
@@ -296,7 +298,6 @@ nmap_leader('sw', '<Cmd>lua MiniSessions.write()<CR>', 'Write current')
 nmap_leader('tT', '<Cmd>horizontal term<CR>', 'Terminal (horizontal)')
 nmap_leader('tt', '<Cmd>vertical term<CR>', 'Terminal (vertical)')
 nmap_leader('cc', '<Cmd>term claude<CR>', 'Claude code')
-nmap_leader('hh', '<Cmd>HueyAgents<CR>', 'Huey agents')
 
 vim.keymap.set('t', "<C-b>", "<C-\\><C-n>", { desc = 'Exit term mode' })
 -- <C-b> also goes back from normal and visual mode, so `a`/`i` stay free for textobjects
