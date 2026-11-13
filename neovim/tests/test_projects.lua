@@ -1048,6 +1048,20 @@ T['M.remove_agent()']['deletes a terminal in its own server in process'] = funct
   eq(child.api.nvim_buf_is_valid(buf), false)
 end
 
+T['M.remove_agent()']['deletes a terminal shown behind a focused float'] = function()
+  local root = setup_live()
+  child_listen_as(root, 'alpha')
+  local buf = child.lua_get([[_G.projects.add_agent('alpha', 'default', 'hi')]])
+  -- the terminal fills the only regular window, with the explorer over it
+  child.api.nvim_set_current_buf(buf)
+  child.cmd('only')
+  local float = child.lua_get([[vim.api.nvim_open_win(vim.api.nvim_create_buf(false, true), true,
+    { relative = 'editor', row = 1, col = 1, width = 10, height = 2 })]])
+  eq(child.lua_get([[_G.projects.remove_agent('alpha', 'default', ...)]], { buf }), true)
+  eq(child.api.nvim_buf_is_valid(buf), false)
+  eq(child.api.nvim_get_current_win(), float)
+end
+
 T['M.all_agents()'] = new_set()
 
 T['M.all_agents()']['lists agents of every running server, or of one project'] = function()

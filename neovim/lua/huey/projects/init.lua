@@ -720,10 +720,19 @@ function M.remove_agent(name, ws, bufnr)
     ws,
     [[
       local buf = ...
-      if vim.api.nvim_buf_is_valid(buf) then
-        vim.api.nvim_buf_delete(buf, { force = true })
+      if not vim.api.nvim_buf_is_valid(buf) then return true end
+      -- Neovim quietly keeps a buffer that is in the last regular window
+      -- while a float is focused, as when the explorer is open, so move
+      -- every window off it first
+      for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+        local alt = vim.api.nvim_win_call(win, function() return vim.fn.bufnr('#') end)
+        if alt <= 0 or alt == buf or vim.fn.buflisted(alt) == 0 then
+          alt = vim.api.nvim_create_buf(true, false)
+        end
+        vim.api.nvim_win_set_buf(win, alt)
       end
-      return true
+      vim.api.nvim_buf_delete(buf, { force = true })
+      return not vim.api.nvim_buf_is_valid(buf)
     ]],
     { bufnr }
   )
