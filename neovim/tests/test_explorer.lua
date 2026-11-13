@@ -112,7 +112,7 @@ T['open()']['starts on the first project outside any project'] = function()
   eq(cursor_line(), 1)
 end
 
---- Running glyph on each line of the current pane. Marks hidden with their
+--- Glyph ahead of each line of the current pane. Marks hidden with their
 --- deleted line are skipped.
 local glyphs = function()
   return child.lua_get([[vim.tbl_map(function(m)
@@ -132,16 +132,16 @@ local details = function()
   end, vim.api.nvim_buf_get_extmarks(0, -1, 0, -1, { details = true })))]])
 end
 
-T['open()']['marks running projects'] = function()
+T['open()']['marks projects with a server but no agents idle'] = function()
   setup({ beta = true })
   open()
-  eq(glyphs(), { '○ ', '● ', '○ ' })
+  eq(glyphs(), { '  ', '· ', '  ' })
 end
 
-T['open()']['marks a project running when only a workspace server is'] = function()
+T['open()']['marks a project idle when only a workspace server is running'] = function()
   setup({ ['gamma/feature'] = true })
   open()
-  eq(glyphs(), { '○ ', '○ ', '● ' })
+  eq(glyphs(), { '  ', '  ', '· ' })
 end
 
 T['open()']['focuses the pane when already open'] = function()
@@ -245,7 +245,7 @@ T['projects']['a deleted line takes its marks with it'] = function()
   open()
   press('jdd')
   eq(child.get_lines(), { 'alpha', 'gamma' })
-  eq(glyphs(), { '○ ', '○ ' })
+  eq(glyphs(), { '  ', '  ' })
   eq(#details(), 2)
 end
 
@@ -445,11 +445,11 @@ T['workspaces']['lists other workspaces after the default one'] = function()
   eq(child.get_lines(), { 'default', 'aaa' })
 end
 
-T['workspaces']['marks running workspace servers'] = function()
+T['workspaces']['marks workspaces with a server but no agents idle'] = function()
   local root, repo = setup_jj(1, { ['beta/aaa'] = true })
   helpers.jj(repo, 'workspace', 'add', '--name', 'aaa', root .. '/aaa')
   open_beta()
-  eq(glyphs(), { '○ ', '● ' })
+  eq(glyphs(), { '  ', '· ' })
 end
 
 T['workspaces']['<CR> connects to the server of the workspace under the cursor'] = function()
@@ -1097,6 +1097,38 @@ T['status']['projects count their agents by state, most urgent first'] = functio
     { { '  ⏸1', 'DiagnosticWarn' }, { ' ∿1', 'DiagnosticInfo' }, { ' ·1', 'Comment' } },
     {},
   })
+end
+
+--- Glyph and its highlight ahead of each line of the current pane.
+local glyph_chunks = function()
+  return child.lua_get([[vim.tbl_map(function(m)
+    return m[4].virt_text[1]
+  end, vim.tbl_filter(function(m)
+    return m[4].virt_text_pos == 'inline' and not m[4].invalid
+  end, vim.api.nvim_buf_get_extmarks(0, -1, 0, -1, { details = true })))]])
+end
+
+T['status']['projects show the state of their most urgent agent'] = function()
+  setup_agents({ alpha = { elsewhere }, beta = { working, idle }, ['beta/aaa'] = { other } })
+  open()
+  eq(glyph_chunks(), {
+    { '∿ ', 'DiagnosticInfo' },
+    { '⏸ ', 'DiagnosticWarn' },
+    { '  ', 'Comment' },
+  })
+end
+
+T['status']['a project with one working agent shows working, not its server'] = function()
+  setup_agents({ beta = { working } })
+  child.lua([[require('huey.projects').status = function() return 'running' end]])
+  open()
+  eq(glyph_chunks()[2], { '∿ ', 'DiagnosticInfo' })
+end
+
+T['status']['workspaces show the state of their own agents'] = function()
+  setup_agents({ beta = { working }, ['beta/aaa'] = { other } })
+  open_beta()
+  eq(glyph_chunks(), { { '∿ ', 'DiagnosticInfo' } })
 end
 
 T['status']['workspaces count their own agents'] = function()

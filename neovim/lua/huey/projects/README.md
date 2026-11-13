@@ -81,12 +81,13 @@ one server shows up in the others.
   every project outside one.
 
 - `<leader>ep` — project explorer (`lua/huey/explorer.lua`), a floating pane
-  in the style of 'mini.files'. A project is `●` when any of its servers is
-  running. `<CR>` connects to the default workspace of the project under the
+  in the style of 'mini.files'. Ahead of each project is the state of its
+  most urgent agent (e.g. `⏸` blocked, `∿` working, `●` done), `·` when a
+  server runs with no agents, and nothing when none runs. `<CR>` connects to the default workspace of the project under the
   cursor; delete its line and press `=` to drop it from the list, after a
   confirm prompt. Its servers stop, taking their agents with them, but nothing
   on disk is touched. A pinned project and the one this nvim is in stay. `l` opens its jj workspaces in a pane to the right (`default` first,
-  `●` when running), and `h` goes back. `<CR>` on a workspace connects to its
+  marked the same way from their own agents), and `h` goes back. `<CR>` on a workspace connects to its
   server, starting it if needed. The workspace pane is editable: add a line and press `=`
   to create a workspace by that name, after a confirm prompt. Each one is a
   `jj workspace add` at `<workspace_dir>/<project>/<name>`, outside the repo,

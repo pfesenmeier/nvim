@@ -165,14 +165,19 @@ H.close_on_leave = function(buf)
   })
 end
 
---- Shows whether a server is running, ahead of the text on line `lnum`.
---- Marks on a line are hidden when it is deleted, rather than moving to the
---- next line, and come back if the delete is undone.
-H.glyph = function(buf, lnum, running)
+--- Shows the state of `agents` ahead of the text on line `lnum`: the icon of
+--- the most urgent one, `·` (idle) when the server runs with none, and blank
+--- when there is no server. Marks on a line are hidden when it is deleted,
+--- rather than moving to the next line, and come back if the delete is undone.
+--- @param running boolean
+--- @param agents huey.ProjectAgent[]
+H.glyph = function(buf, lnum, running, agents)
+  local counts = H.counts(agents)
+  local state = vim.iter(proto.states):find(function(s) return counts[s] end)
+  if not state and running then state = 'idle' end
+  local chunk = state and { proto.icon(state) .. ' ', proto.hl[state] } or { '  ', 'Comment' }
   vim.api.nvim_buf_set_extmark(buf, H.ns, lnum, 0, {
-    virt_text = {
-      { running and '● ' or '○ ', running and 'DiagnosticOk' or 'Comment' },
-    },
+    virt_text = { chunk },
     virt_text_pos = 'inline',
     invalidate = true,
   })
@@ -193,16 +198,25 @@ H.agents_in = function(project, workspace)
   end, H.all)
 end
 
---- Virtual text counting `agents` by state, most urgent first, e.g. `⏸1 ∿2`.
---- An agent with no status yet counts as idle. Empty when there are none.
+--- How many of `agents` are in each state. An agent with no status yet
+--- counts as idle.
 --- @param agents huey.ProjectAgent[]
---- @return string[][]
-H.tally = function(agents)
+--- @return table<string, integer>
+H.counts = function(agents)
   local counts = {}
   for _, g in ipairs(agents) do
     local state = g.state or 'idle'
     counts[state] = (counts[state] or 0) + 1
   end
+  return counts
+end
+
+--- Virtual text counting `agents` by state, most urgent first, e.g. `⏸1 ∿2`.
+--- An agent with no status yet counts as idle. Empty when there are none.
+--- @param agents huey.ProjectAgent[]
+--- @return string[][]
+H.tally = function(agents)
+  local counts = H.counts(agents)
   local chunks = {}
   for _, state in ipairs(proto.states) do
     if counts[state] then
@@ -213,11 +227,11 @@ H.tally = function(agents)
   return chunks
 end
 
---- Marks line `lnum` of `buf`: whether its server is running ahead of the
---- text, which is highlighted when `current`, and after it the tally of
+--- Marks line `lnum` of `buf`: the state of `agents` ahead of the text (see
+--- `H.glyph()`), the text highlighted when `current`, and after it the tally of
 --- `agents` and then `path`. Returns the width the line takes.
 H.decorate = function(buf, lnum, text, running, current, agents, path)
-  H.glyph(buf, lnum, running)
+  H.glyph(buf, lnum, running, agents)
   local virt_text = H.tally(agents)
   virt_text[#virt_text + 1] = { '  ' .. path, 'Comment' }
   vim.api.nvim_buf_set_extmark(buf, H.ns, lnum, 0, {
