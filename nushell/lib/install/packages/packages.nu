@@ -73,5 +73,8 @@ export def main [] {
     [pass                                  null                                      apt                                                 null]
     # secure store for gcm's azure devops token cache, otherwise it falls back to plain text
     [gnome-keyring                         null                                      apt                                                 null]
+    # claude code /voice records through sox. the pulse backend reaches wslg's audio server
+    [sox                                   null                                      apt                                                 null]
+    [libsox-fmt-pulse                      null                                      apt                                                 null]
   ]
 }
