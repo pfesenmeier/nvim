@@ -17,7 +17,7 @@ email = "pbfesenmeier@sep.com"
 
 # "bright black" is nearly invisible on the jjui selected row
 [colors]
-rest = "#829181"
+rest = "#859289"
 
 [revsets]
 bookmark-advance-to = "@-"

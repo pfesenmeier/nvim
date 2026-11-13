@@ -509,6 +509,7 @@ H.open_workspaces = function()
     col = 0,
     width = 20,
     height = 1,
+    title = ' Workspaces ',
   })
   H.workspaces.win = win
   H.resize(win, H.workspaces.width, #H.workspaces.names)
@@ -766,6 +767,7 @@ H.open_agents_pane = function(project, workspace)
     col = 0,
     width = 20,
     height = 1,
+    title = ' Agents ',
   })
   if replaced then vim.api.nvim_win_set_config(parent, { hide = true }) end
   H.agents.win = win
@@ -880,6 +882,7 @@ Explorer.open = function()
     col = 0,
     width = 20,
     height = 1,
+    title = ' Projects ',
   })
   H.projects.win = win
   H.resize(win, width, count)

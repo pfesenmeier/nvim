@@ -202,7 +202,7 @@ nmap_leader('fs', pick_workspace_symbols_live, 'Symbols workspace (live)')
 nmap_leader('fS', '<Cmd>Pick lsp scope="document_symbol"<CR>', 'Symbols document')
 nmap_leader('fv', '<Cmd>Pick visit_labels cwd=""<CR>', 'Visit labels (all)')
 nmap_leader('fV', '<Cmd>Pick visit_labels<CR>', 'Visit labels (cwd)')
-nmap_leader('fw', function() require('huey.projects').pick() end, 'Projects')
+nmap_leader('fw', function() require('huey.projects').pick() end, 'Workspaces')
 nmap_leader("f'", '<Cmd>Pick marks<CR>', 'Marks')
 nmap_leader('f"', '<Cmd>Pick registers<CR>', 'Registers')
 

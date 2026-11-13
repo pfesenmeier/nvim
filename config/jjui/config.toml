@@ -2,9 +2,9 @@
 # Lua-scripting docs: https://idursun.github.io/jjui/customization/lua-scripting/
 
 [ui]
-# everforest-light-hard, adapted from https://github.com/vic/tinted-jjui
-# Theme file lives at themes/everforest-light.toml in this repo (symlinked).
-theme = "everforest-light"
+# everforest-dark-hard, adapted from https://github.com/vic/tinted-jjui
+# Theme file lives at themes/everforest.toml in this repo (symlinked).
+theme = "everforest"
 
 [preview]
 # Use the pane-sized difft tool from the jj config
