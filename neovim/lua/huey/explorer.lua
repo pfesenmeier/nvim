@@ -18,8 +18,8 @@
 -- counts its agents by state, and every pane keeps up with the agents while it
 -- is open. When the panes don't all fit across the screen, the ones on the
 -- left are hidden until there is room again, as in 'mini.files'.
--- `Explorer.open_agents()` opens straight to the agents of the current
--- project. See 'lua/huey/projects'.
+-- `Explorer.open_agents()` opens straight to the agents of every project.
+-- See 'lua/huey/projects'.
 local projects = require('huey.projects')
 local proto = require('huey.hub.proto')
 local View = require('huey.hub.view')
@@ -948,19 +948,12 @@ Explorer.open = function()
   H.timer:start(refresh_ms, refresh_ms, vim.schedule_wrap(H.refresh))
 end
 
---- Opens the explorer on the agents of every workspace of the current
---- project, with its workspaces hidden behind them, or on the agents of every
---- project outside one. Reopens it when it is already open.
+--- Opens the explorer on the agents of every project, with the project pane
+--- hidden behind them. Reopens it when it is already open.
 Explorer.open_agents = function()
   H.close()
   Explorer.open()
-  local name = H.project_under_cursor()
-  if not name or vim.api.nvim_win_get_cursor(0)[1] ~= projects.current_index() then
-    return H.open_agents_pane()
-  end
-  -- a project that is not a jj repo has no workspace pane to open
-  if projects.workspaces(name) then H.open_workspaces() end
-  H.open_agents_pane(name)
+  H.open_agents_pane()
 end
 
 Explorer.H = H

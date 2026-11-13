@@ -1023,16 +1023,16 @@ end
 
 T['open_agents()'] = new_set()
 
-T['open_agents()']['opens the agents of the current project'] = function()
-  local _, repo = setup_agents({ alpha = { elsewhere }, beta = { working }, ['beta/aaa'] = { other } })
+T['open_agents()']['opens the agents of every project inside one'] = function()
+  local _, repo = setup_agents({ alpha = { elsewhere }, beta = { working } })
   child.fn.chdir(repo)
   child.lua('_G.explorer.open_agents()')
-  eq(child.api.nvim_buf_get_name(0), 'huey://agents/beta/*')
-  eq(child.get_lines(), { 'Fixing the bug', 'needs input' })
-  -- projects, workspaces (hidden), agents
-  eq(#child.api.nvim_list_wins(), 4)
+  eq(child.api.nvim_buf_get_name(0), 'huey://agents/*')
+  eq(child.get_lines(), { 'in alpha', 'Fixing the bug' })
+  -- projects (hidden), agents
+  eq(#child.api.nvim_list_wins(), 3)
   press('h')
-  eq(child.api.nvim_buf_get_name(0), 'huey://workspaces/beta')
+  eq(child.api.nvim_buf_get_name(0), 'huey://projects')
 end
 
 T['open_agents()']['opens the agents of every project outside one'] = function()
