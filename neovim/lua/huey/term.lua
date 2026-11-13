@@ -1,6 +1,6 @@
 -- module for reading agent status (OSC 7501) from terminal buffers, showing it
--- in the bufferline, forwarding it to the outer terminal, and publishing it to
--- the hub (see 'huey/hub')
+-- in the bufferline, telling the outer terminal the most urgent one, and
+-- publishing it to the hub (see 'huey/hub')
 local HueyTerm = {}
 local H = {}
 
@@ -84,11 +84,33 @@ H.parse_status = function(sequence)
   }
 end
 
---- Writes a raw OSC sequence straight to the TUI host terminal.
---- @param sequence string
---- @param terminator string? BEL or ST, as the program sent it
-H.forward_raw = function(sequence, terminator)
-  vim.api.nvim_ui_send(sequence .. (terminator or '\27\\'))
+--- An OSC 7501 record for `status`, or one that clears it when there is none.
+--- @param status huey.Status?
+--- @return string
+H.encode_status = function(status)
+  if not status then return '\27]7501;state=clear\27\\' end
+  local fields = { 'state=' .. status.state }
+  for _, key in ipairs({ 'kind', 'progress', 'app' }) do
+    if status[key] then fields[#fields + 1] = key .. '=' .. status[key] end
+  end
+  for _, key in ipairs({ 'title', 'msg' }) do
+    if status[key] then fields[#fields + 1] = key .. '=' .. vim.base64.encode(status[key]) end
+  end
+  return '\27]7501;' .. table.concat(fields, ':') .. '\27\\'
+end
+
+--- The record last sent to the outer terminal. Starts cleared, so nothing is
+--- sent until some terminal reports.
+local forwarded = H.encode_status(nil)
+
+--- Tells the outer terminal the most urgent status across every terminal, so
+--- one agent finishing does not hide another that is still working or waiting
+--- on the user. Sends only when that status changes.
+H.forward_status = function()
+  local sequence = H.encode_status(HueyTerm.get_editor_icon())
+  if sequence == forwarded then return end
+  forwarded = sequence
+  vim.api.nvim_ui_send(sequence)
 end
 
 --- Emits status as Nvim's internal |Progress| event via nvim_echo,
@@ -201,8 +223,7 @@ end
 --- and the hub.
 --- @param buf integer
 --- @param parsed table from H.parse_status
---- @param raw? { sequence: string, terminator?: string } the OSC as received, to forward
-H.apply = function(buf, parsed, raw)
+H.apply = function(buf, parsed)
   bots[buf] = true
   if parsed.state == 'clear' then
     if not bufstatuses[buf] then return end
@@ -212,7 +233,7 @@ H.apply = function(buf, parsed, raw)
   end
 
   vim.cmd.redrawtabline()
-  if raw then H.forward_raw(raw.sequence, raw.terminator) end
+  H.forward_status()
   H.publish(buf)
 
   local status = bufstatuses[buf]
@@ -292,7 +313,7 @@ H.create_autocmds = function()
       if parsed.id then return end
 
       native[buf] = true
-      H.apply(buf, parsed, ev.data)
+      H.apply(buf, parsed)
     end,
   })
 
@@ -310,6 +331,7 @@ H.create_autocmds = function()
       if status.state ~= 'done' and status.state ~= 'error' then
         bufstatuses[ev.buf] = nil
         vim.cmd.redrawtabline()
+        H.forward_status()
       end
       H.publish(ev.buf)
     end,
@@ -325,7 +347,10 @@ H.create_autocmds = function()
       bots[ev.buf] = nil
       native[ev.buf] = nil
       reported_at[ev.buf] = nil
-      if had then H.publish(ev.buf) end
+      if had then
+        H.publish(ev.buf)
+        H.forward_status()
+      end
     end,
   })
 

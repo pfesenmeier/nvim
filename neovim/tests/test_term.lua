@@ -170,6 +170,98 @@ T['forgets a wiped buffer'] = function()
   eq(child.lua_get('HueyTerm.get_icon(_G.wiped)'), vim.NIL)
 end
 
+-- The outer terminal hears one status for all the terminals: the most urgent.
+
+--- Records what is sent to the outer terminal in `_G.sent`.
+local record_sent = function()
+  child.lua([[
+    _G.sent = {}
+    vim.api.nvim_ui_send = function(s) table.insert(_G.sent, s) end
+  ]])
+end
+local sent = function() return child.lua_get('_G.sent') end
+
+--- Runs `cmd` in a second terminal buffer, kept in `_G.other_buf`, and waits
+--- for it to show `shown`.
+local start_other = function(cmd, shown)
+  child.lua(
+    [[
+    vim.cmd.enew()
+    vim.fn.jobstart({ 'sh', '-c', ... }, { term = true })
+    _G.other_buf = vim.api.nvim_get_current_buf()
+  ]],
+    { cmd }
+  )
+  eq(child.wait_for(('HueyTerm.get_icon(_G.other_buf) == %q'):format(shown)), true)
+end
+
+T['the outer terminal'] = new_set()
+
+T['the outer terminal']['hears working over done'] = function()
+  record_sent()
+  start_term(osc('state=working') .. '; sleep 30')
+  wait_icon('∿')
+  start_other(osc('state=done') .. '; sleep 30', '●')
+  eq(sent(), { '\27]7501;state=working\27\\' })
+end
+
+T['the outer terminal']['hears blocked over working'] = function()
+  record_sent()
+  start_term(osc('state=working:progress=50') .. '; sleep 30')
+  wait_icon('◑')
+  start_other(osc('state=blocked:kind=permission') .. '; sleep 30', '⏸')
+  eq(sent(), {
+    '\27]7501;state=working:progress=50\27\\',
+    '\27]7501;state=blocked:kind=permission\27\\',
+  })
+end
+
+T['the outer terminal']['hears done once nothing is still working'] = function()
+  record_sent()
+  start_term(osc('state=working') .. '; read x; ' .. osc('state=done') .. '; sleep 30')
+  wait_icon('∿')
+  start_other(osc('state=done') .. '; sleep 30', '●')
+  advance()
+  wait_icon('●')
+  eq(sent(), { '\27]7501;state=working\27\\', '\27]7501;state=done\27\\' })
+end
+
+T['the outer terminal']['hears a clear once no terminal has a status'] = function()
+  record_sent()
+  start_term(osc('state=working') .. '; read x; ' .. osc('state=clear') .. '; sleep 30')
+  wait_icon('∿')
+  advance()
+  wait_icon(nil)
+  eq(sent(), { '\27]7501;state=working\27\\', '\27]7501;state=clear\27\\' })
+end
+
+T['the outer terminal']['hears the title and why it is blocked'] = function()
+  record_sent()
+  local title = vim.base64.encode('Fix the parser')
+  local msg = vim.base64.encode('Run rm?')
+  start_term(
+    osc(('state=blocked:app=claude-code:kind=permission:title=%s:msg=%s'):format(title, msg))
+      .. '; sleep 30'
+  )
+  wait_icon('⏸')
+  eq(sent(), {
+    ('\27]7501;state=blocked:kind=permission:app=claude-code:title=%s:msg=%s\27\\'):format(title, msg),
+  })
+end
+
+T['the outer terminal']['hears the next most urgent once a terminal is wiped'] = function()
+  record_sent()
+  start_term(osc('state=working') .. '; sleep 30')
+  wait_icon('∿')
+  start_other(osc('state=blocked') .. '; sleep 30', '⏸')
+  child.cmd('bwipeout! ' .. child.lua_get('_G.other_buf'))
+  eq(sent(), {
+    '\27]7501;state=working\27\\',
+    '\27]7501;state=blocked\27\\',
+    '\27]7501;state=working\27\\',
+  })
+end
+
 -- Statuses from Claude Code hooks, which reach nvim over RPC rather than
 -- through the terminal (see 'huey/hook').
 

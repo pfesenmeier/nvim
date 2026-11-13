@@ -3,7 +3,9 @@
 -- workspace of the one under the cursor and `l` opens its jj workspaces in a
 -- pane to the right. Every workspace has its own server, and there `<CR>`
 -- connects the UI to the one under the cursor. That pane is editable: add a
--- line and press `=` to create a workspace by that name. `l` there opens the
+-- line and press `=` to create a workspace by that name; a line
+-- `<workspace>/<prompt>` also starts an agent with that prompt there, as
+-- 'mini.files' makes `dir/file`. `l` there opens the
 -- agent terminals of that workspace's server, where a new line and `=` start
 -- an agent with that line as its prompt. In every pane, deleting a line and
 -- pressing `=` removes what it names: a project leaves the list and its
@@ -410,13 +412,39 @@ H.mark_workspaces = function()
   if H.is_open(ws.win) then H.resize(ws.win, width, #ws.names) end
 end
 
+--- Splits a new line of the workspace pane at its first `/` into a workspace
+--- name and a prompt for an agent to start there, the way 'mini.files' makes
+--- a folder and a file in it from `dir/file`. Every later `/` is part of the
+--- prompt, so `feature//review` prompts `/review`. The prompt is nil when
+--- there is no `/` or nothing follows it.
+--- @param line string
+--- @return string name, string? prompt
+H.split_workspace_line = function(line)
+  local name, prompt = line:match('^([^/]*)/(.*)$')
+  if not name then return vim.trim(line), nil end
+  prompt = vim.trim(prompt)
+  return vim.trim(name), prompt ~= '' and prompt or nil
+end
+
 --- Creates a workspace for every line that names none yet and removes every
 --- one whose line was deleted, after asking, the way 'mini.files'
---- synchronizes. Then re-lists from jj. `default` is the project's own folder
---- and the current workspace is where this nvim runs, so neither is removed.
+--- synchronizes. A line `<workspace>/<prompt>` also starts an agent with that
+--- prompt in the workspace, which may already exist. Then re-lists from jj.
+--- `default` is the project's own folder and the current workspace is where
+--- this nvim runs, so neither is removed.
 H.synchronize = function()
   local ws = H.workspaces
-  local removed, create = H.diff_names(ws.buf, ws.names)
+  local removed, added = H.diff_names(ws.buf, ws.names)
+
+  -- workspaces to create, and the agents to start, as `{ workspace, prompt }`
+  local create, start = {}, {}
+  for _, line in ipairs(added) do
+    local name, prompt = H.split_workspace_line(line)
+    if not vim.tbl_contains(ws.names, name) and not vim.tbl_contains(create, name) then
+      create[#create + 1] = name
+    end
+    if prompt then start[#start + 1] = { name, prompt } end
+  end
 
   local kept = vim.tbl_filter(
     function(n) return n == 'default' or H.is_current(ws.project, n) end,
@@ -438,16 +466,26 @@ H.synchronize = function()
   for _, name in ipairs(create) do
     changes[#changes + 1] = { 'CREATE', name }
   end
+  for _, s in ipairs(start) do
+    changes[#changes + 1] = { 'AGENT ', ('%s: %s'):format(s[1], s[2]) }
+  end
   local title = ('Synchronize workspaces of %s?'):format(ws.project)
   if not H.confirm(title, changes) then return end
   for _, name in ipairs(delete) do
     projects.remove_workspace(ws.project, name)
   end
+  -- a workspace that failed to create has nowhere to start its agents
+  local failed = {}
   for _, name in ipairs(create) do
-    projects.add_workspace(ws.project, name)
+    if not projects.add_workspace(ws.project, name) then failed[name] = true end
+  end
+  for _, s in ipairs(start) do
+    if not failed[s[1]] then projects.add_agent(ws.project, s[1], s[2]) end
   end
   -- an agent pane over a removed workspace lists nothing that still exists
   if vim.tbl_contains(delete, H.agents.workspace) then H.close_agents() end
+  -- the tallies count the new agents
+  if #start > 0 then H.fetch() end
   H.render_workspaces()
 end
 

@@ -432,10 +432,10 @@ end
 T['workspaces']['= rejects a name that is not a folder name'] = function()
   local _, repo = setup_jj()
   open_beta()
-  press('oa/b<Esc>=')
+  press('o.hidden<Esc>=')
   eq(jj_workspaces(repo), { 'default' })
   eq(child.get_lines(), { 'default' })
-  eq(child.lua_get('_G.notes'), { "projects: 'a/b' is not a valid workspace name" })
+  eq(child.lua_get('_G.notes'), { "projects: '.hidden' is not a valid workspace name" })
 end
 
 T['workspaces']['lists other workspaces after the default one'] = function()
@@ -1143,6 +1143,110 @@ T['status']['refreshes on its own while open'] = function()
   vim.uv.sleep(1200)
   child.poke_eventloop()
   eq(glyphs(), { '⏸ ' })
+end
+
+T['workspace with agent'] = new_set()
+
+--- True when the last confirm prompt lists `text`.
+local prompted = function(text) return child.lua_get('_G.prompts[#_G.prompts]'):find(text, 1, true) ~= nil end
+
+T['workspace with agent']['= creates the workspace and starts an agent in it'] = function()
+  local root, repo = setup_agents()
+  open_beta()
+  press('ofeature/fix the bug<Esc>=')
+  eq(jj_workspaces(repo), { 'default', 'feature' })
+  eq(vim.fn.filereadable(root .. '/workspaces/beta/feature/a.txt'), 1)
+  eq(child.lua_get('_G.added'), { { 'beta/feature', 'fix the bug' } })
+  eq(child.get_lines(), { 'default', 'feature' })
+  eq(prompted('CREATE │ feature\n  AGENT  │ feature: fix the bug'), true)
+end
+
+T['workspace with agent']['= sends a slash command after the first / to the agent'] = function()
+  local _, repo = setup_agents()
+  open_beta()
+  press('ofeature//code-review high<Esc>=')
+  eq(jj_workspaces(repo), { 'default', 'feature' })
+  eq(child.lua_get('_G.added'), { { 'beta/feature', '/code-review high' } })
+end
+
+T['workspace with agent']['= keeps every later / in the prompt'] = function()
+  local _, repo = setup_agents()
+  open_beta()
+  press('ofeature/ /simplify lua/a.lua then /review <Esc>=')
+  eq(jj_workspaces(repo), { 'default', 'feature' })
+  eq(child.lua_get('_G.added'), { { 'beta/feature', '/simplify lua/a.lua then /review' } })
+end
+
+T['workspace with agent']['= with nothing after the / only creates the workspace'] = function()
+  local _, repo = setup_agents()
+  open_beta()
+  press('ofeature/ <Esc>=')
+  eq(jj_workspaces(repo), { 'default', 'feature' })
+  eq(child.lua_get('_G.added'), {})
+end
+
+T['workspace with agent']['= starts an agent in a workspace that already exists'] = function()
+  local _, repo = setup_agents()
+  open_beta()
+  press('odefault/fix it<Esc>=')
+  eq(jj_workspaces(repo), { 'default' })
+  eq(child.lua_get('_G.added'), { { 'beta', 'fix it' } })
+  eq(prompted('CREATE'), false)
+  eq(child.get_lines(), { 'default' })
+end
+
+T['workspace with agent']['= creates a workspace once for several agents'] = function()
+  local _, repo = setup_agents()
+  open_beta()
+  press('ofeature/one<CR>feature/two<CR>feature<Esc>=')
+  eq(jj_workspaces(repo), { 'default', 'feature' })
+  eq(child.lua_get('_G.added'), { { 'beta/feature', 'one' }, { 'beta/feature', 'two' } })
+end
+
+T['workspace with agent']['= creates and starts nothing when declined'] = function()
+  local _, repo = setup_agents({}, 2)
+  open_beta()
+  press('ofeature/fix it<Esc>=')
+  eq(jj_workspaces(repo), { 'default' })
+  eq(child.lua_get('_G.added'), {})
+  -- the edit stays, to fix or confirm again
+  eq(child.get_lines(), { 'default', 'feature/fix it' })
+end
+
+T['workspace with agent']['= starts no agent when the workspace is not created'] = function()
+  local _, repo = setup_agents()
+  open_beta()
+  press('o.hidden/fix it<Esc>=')
+  eq(jj_workspaces(repo), { 'default' })
+  eq(child.lua_get('_G.added'), {})
+  eq(child.lua_get('_G.notes'), { "projects: '.hidden' is not a valid workspace name" })
+end
+
+T['workspace with agent']['the new agents count on the workspace line'] = function()
+  setup_agents()
+  open_beta()
+  press('ofeature/fix it<Esc>=')
+  -- default, then feature with one idle agent
+  eq(child.lua_get('_G.agents["beta/feature"][1].prompt'), 'fix it')
+  local tally = child.lua_get([[vim.tbl_map(function(m)
+    return m[4].virt_text and m[4].virt_text[1][1]
+  end, vim.api.nvim_buf_get_extmarks(0, -1, { 1, 0 }, { 1, -1 }, { details = true }))]])
+  eq(vim.tbl_contains(tally, '  ' .. child.lua_get([[require('huey.hub.proto').icon('idle')]]) .. '1'), true)
+end
+
+T['split_workspace_line()'] = new_set()
+
+T['split_workspace_line()']['splits at the first / only'] = function()
+  setup()
+  local split = function(line)
+    return child.lua_get('{ _G.explorer.H.split_workspace_line(...) }', { line })
+  end
+  eq(split('feature'), { 'feature' })
+  eq(split(' feature / fix it '), { 'feature', 'fix it' })
+  eq(split('feature//review'), { 'feature', '/review' })
+  eq(split('feature/a/b /c'), { 'feature', 'a/b /c' })
+  eq(split('feature/'), { 'feature' })
+  eq(split('/review'), { '', 'review' })
 end
 
 return T
