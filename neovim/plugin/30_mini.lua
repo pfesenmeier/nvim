@@ -432,24 +432,6 @@ end)
 -- - `:h MiniAlign-algorithm` - how alignment is done on algorithmic level
 later(function() require('mini.align').setup() end)
 
--- Animate common Neovim actions. Like cursor movement, scroll, window resize,
--- window open, window close. Animations are done based on Neovim events and
--- don't require custom mappings.
---
--- Only scroll is animated here; 'smear-cursor.nvim' handles the cursor (see
--- 'plugin/40_plugins.lua').
--- Steps are capped at 10ms so holding `j`/`k` doesn't fall behind key repeat.
-later(function()
-  local animate = require('mini.animate')
-  animate.setup({
-    cursor = { enable = false },
-    scroll = { timing = function(_, n) return math.min(150 / n, 10) end },
-    resize = { enable = false },
-    open = { enable = false },
-    close = { enable = false },
-  })
-end)
-
 -- Go forward/backward with square brackets. Implements consistent sets of mappings
 -- for selected targets (like buffers, diagnostic, quickfix list entries, etc.).
 -- Example usage:
