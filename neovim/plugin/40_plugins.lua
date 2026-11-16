@@ -226,12 +226,6 @@ vim.g.everforest_background = 'hard'
 vim.cmd('color everforest')
 -- end)
 
--- Animated cursor trail
-later(function()
-  add({ 'https://github.com/sphamba/smear-cursor.nvim' })
-  require('smear_cursor').setup({})
-end)
-
 later(function()
   vim.pack.add({ 'https://github.com/MeanderingProgrammer/render-markdown.nvim' })
   require('render-markdown').setup({})

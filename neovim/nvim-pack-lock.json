@@ -16,10 +16,6 @@
       "rev": "f9ac12d7cbd2563cfc2cce9a8152fc8df2ad0d6f",
       "src": "https://github.com/nvim-mini/mini.nvim"
     },
-    "neoscroll.nvim": {
-      "rev": "c8d29979cb0cb3a2437a8e0ae683fd82f340d3b8",
-      "src": "https://github.com/karb94/neoscroll.nvim"
-    },
     "nvim-lspconfig": {
       "rev": "443d92c6bea761ab54cdde46fb197a2b4d614bdd",
       "src": "https://github.com/neovim/nvim-lspconfig"
@@ -39,10 +35,6 @@
     "roslyn.nvim": {
       "rev": "13103877cd3adcc395e80740fa5de104457eb22b",
       "src": "https://github.com/seblyng/roslyn.nvim"
-    },
-    "smear-cursor.nvim": {
-      "rev": "f6cb57c342268177f719acc3968b9d8de3ecc969",
-      "src": "https://github.com/sphamba/smear-cursor.nvim"
     },
     "vim-dadbod": {
       "rev": "6d1d41da4873a445c5605f2005ad2c68c99d8770",
